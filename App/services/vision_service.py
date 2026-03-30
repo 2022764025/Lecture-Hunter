@@ -1,107 +1,67 @@
 import cv2
 import numpy as np
 import mediapipe as mp
-from hsemotion.face_api import HSEmotionRecognizer  # 최신 감정 분석 엔진
+from deepface import DeepFace
 
 class EngagementDetector:
     def __init__(self):
-        # 1. MediaPipe Face Mesh 초기화 (시선 및 졸음용)
+        # 1. MediaPipe 초기화 (시선 및 졸음용)
         self.mp_face_mesh = mp.solutions.face_mesh
         self.face_mesh = self.mp_face_mesh.FaceMesh(
-            max_num_faces=1,
+            max_num_faces=1, 
             refine_landmarks=True,
-            min_detection_confidence=0.5,
+            min_detection_confidence=0.5, 
             min_tracking_confidence=0.5
         )
         
-        # 2. 최신 EfficientNet 기반 감정 인식기 로드
-        # enet_b0_8_best_vgaf 모델은 속도와 정확도 밸런스가 가장 좋습니다.
-        # 처음 실행 시 모델 가중치 파일(약 20MB)을 자동으로 다운로드합니다.
-        self.fer = HSEmotionRecognizer(model_name='enet_b0_8_best_vgaf')
-
-        # 감정 라벨 매핑 (민재님의 비즈니스 로직에 맞춰 최적화)
-        # HSEmotion 기본 라벨: Anger, Contempt, Disgust, Fear, Happiness, Neutral, Sadness, Surprise
-        self.emotion_map = {
-            'Anger': 'Angry',
-            'Happiness': 'Happy',
-            'Sadness': 'Sad',
-            'Surprise': 'Surprise',
-            'Neutral': 'Neutral',
-            'Fear': 'Fear',
-            'Disgust': 'Disgust'
-        }
-
         # 랜드마크 인덱스 설정
         self.LEFT_EYE = [33, 160, 158, 133, 153, 144]
         self.RIGHT_EYE = [362, 385, 387, 263, 373, 380]
-
-    def calculate_ear(self, landmarks, eye_indices):
-        """눈 개방도(EAR) 계산 알고리즘"""
-        p2_p6 = np.linalg.norm(landmarks[eye_indices[1]] - landmarks[eye_indices[5]])
-        p3_p5 = np.linalg.norm(landmarks[eye_indices[2]] - landmarks[eye_indices[4]])
-        p1_p4 = np.linalg.norm(landmarks[eye_indices[0]] - landmarks[eye_indices[3]])
-        return (p2_p6 + p3_p5) / (2.0 * p1_p4)
-
-    def get_gaze_point(self, landmarks):
-        """눈 구멍 내 눈동자 상대 위치 추적"""
-        # X축 (좌우): 0을 중심으로 -0.5 ~ 0.5 범위
-        left_bound = landmarks[33][0]
-        right_bound = landmarks[133][0]
-        iris_x = landmarks[468][0]
-        gaze_x = (iris_x - left_bound) / (right_bound - left_bound) - 0.5
         
-        # Y축 (상하): 가동 범위 보정 적용
-        top_bound = landmarks[159][1]
-        bottom_bound = landmarks[145][1]
-        iris_y = landmarks[468][1]
-        gaze_y_ratio = (iris_y - top_bound) / (bottom_bound - top_bound)
-        gaze_y = gaze_y_ratio - 0.45 
-        
-        return float(gaze_x), float(gaze_y)
+        print("시스템: DeepFace 엔진 장착 완료 (TF 2.16.1 호환 모드)")
 
     def get_emotion(self, frame):
-        """최신 HSEmotion 엔진을 사용한 감정 분석"""
+        """DeepFace를 사용한 감정 분석 (MediaPipe 백엔드 활용)"""
         try:
-            # 1. 프레임 전체를 모델에 전달 (내부적으로 얼굴 검출 및 전처리 수행)
-            # logits=False로 설정하여 최종 라벨과 확률값을 직접 받습니다.
-            emotion_label, scores = self.fer.predict_emotions(frame, logits=False)
-            
-            # 2. 매핑된 라벨 반환 (기본값 Neutral)
-            return self.emotion_map.get(emotion_label, "Neutral")
-        except Exception as e:
+            # detector_backend='mediapipe'를 써서 이미 로드된 mediapipe를 재활용한다.
+            results = DeepFace.analyze(frame, actions=['emotion'], 
+                                        enforce_detection=False, 
+                                        detector_backend='mediapipe', 
+                                        silent=True)
+            return results[0]['dominant_emotion'].capitalize()
+        except:
             return "Neutral"
 
     def analyze_frame(self, frame):
         if frame is None: return None
-        
-        # MediaPipe 처리를 위해 RGB 변환
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(rgb_frame)
         
-        if not results.multi_face_landmarks:
-            return None
+        if not results.multi_face_landmarks: return None
 
-        raw_landmarks = results.multi_face_landmarks[0].landmark
-        landmarks_np = np.array([[lm.x, lm.y] for lm in raw_landmarks])
+        # 랜드마크 추출
+        lms = np.array([[lm.x, lm.y] for lm in results.multi_face_landmarks[0].landmark])
         
-        # 1. EAR 계산 (졸음 여부)
-        avg_ear = (self.calculate_ear(landmarks_np, self.LEFT_EYE) + 
-                    self.calculate_ear(landmarks_np, self.RIGHT_EYE)) / 2.0
+        # 1. EAR 계산 (졸음 수치)
+        ear = (self._calc_ear(lms, self.LEFT_EYE) + self._calc_ear(lms, self.RIGHT_EYE)) / 2.0
         
-        # 2. 시선 좌표 추출
-        gaze_x, gaze_y = self.get_gaze_point(landmarks_np)
+        # 2. 시선 좌표 계산 (X: 좌우, Y: 상하)
+        g_x = (lms[468][0] - lms[33][0]) / (lms[133][0] - lms[33][0]) - 0.5
+        g_y = (lms[468][1] - lms[159][1]) / (lms[145][1] - lms[159][1]) - 0.45
         
-        # 3. 최신 엔진 기반 감정 분석 (frame 전달)
+        # 3. 감정 분석 수행
         emotion = self.get_emotion(frame)
 
-        # 4. 종합 집중도 점수 (졸음 60% + 시선 40%)
-        engagement_score = (avg_ear * 0.6) + (max(0, 1 - abs(gaze_x)*10) * 0.4)
-
         return {
-            "ear": float(avg_ear),
-            "status": "Awake" if avg_ear > 0.25 else "Drowsy",
-            "gaze_x": gaze_x,
-            "gaze_y": gaze_y,
+            "ear": float(ear),
+            "status": "Awake" if ear > 0.25 else "Drowsy",
+            "gaze_x": float(g_x),
+            "gaze_y": float(g_y),
             "emotion": emotion,
-            "engagement_score": float(engagement_score)
+            "engagement_score": float((ear * 0.6) + (max(0, 1 - abs(g_x)*10) * 0.4))
         }
+
+    def _calc_ear(self, lms, idx):
+        """눈 개방도(EAR) 계산 헬퍼 함수"""
+        return (np.linalg.norm(lms[idx[1]]-lms[idx[5]]) + 
+                np.linalg.norm(lms[idx[2]]-lms[idx[4]])) / (2.0 * np.linalg.norm(lms[idx[0]]-lms[idx[3]]))

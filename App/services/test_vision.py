@@ -6,7 +6,7 @@ from vision_service import EngagementDetector
 def main():
     # 1. 감지기 초기화
     # 모델 학습 전까지는 model_path=None으로 둡니다.
-    detector = EngagementDetector(model_path=None)
+    detector = EngagementDetector()
     
     # 2. 카메라 연결 (맥북 M1 내장 카메라)
     cap = cv2.VideoCapture(0)
