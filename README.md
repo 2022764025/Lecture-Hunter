@@ -15,25 +15,25 @@ This project aims to develop an AI-driven educational platform that utilizes mul
 
 ## 🚀 Key Features (4 Pillars) ##
 
-### 📊 [실시간] 익명 집계 대시보드 ###
+**📊 [실시간] 익명 집계 대시보드**
 
 - **익명성 보장**: 개별 학생의 데이터를 삭제하고 학급 전체의 평균 집중도만 추출.
 
 - **교수자 피드백**: "현재 70%가 어려워함" 메시지를 통해 수업 속도 즉각 조절.
 
-### 🗺️ [수업 후] 강의 자료 시선 히트맵 ###
+**🗺️ [수업 후] 강의 자료 시선 히트맵**
 
 - **Gaze Tracking** : 학생들의 시선이 슬라이드 좌표($x, y$) 중 어디에 머물렀는지 시각화.
 
 - **콘텐츠 최적화** : 학습자가 방황한 지점을 파악하여 강의 자료 보완 근거 제공.
 
-### ⏱️ [복습용] 스마트 복습 타임라인 ###
+**⏱️ [복습용] 스마트 복습 타임라인**
 
 - **EAR & 시선 이탈** : 졸았거나 고개를 돌린 시간대를 영상 타임라인에 자동 마킹.
 
 - **핀포인트 복습** : 3시간 강의를 다 볼 필요 없이 놓친 구간만 효율적 복습 가능.
 
-### 📈 [비즈니스] 콘텐츠 이탈 분석 (QC) ###
+**📈 [비즈니스] 콘텐츠 이탈 분석 (QC)**
 
 - **종합 집중도 지표** : 강사의 어느 시점에서 학생들의 시선이 대거 이탈하는지 분석.
 
@@ -47,7 +47,7 @@ This project aims to develop an AI-driven educational platform that utilizes mul
 
 - OS: macOS (Apple Silicon M1/M2/M3)
 
-- Language: Python '3.12+'
+- Language: Python `3.12+` (Python 3.13+ is not supported)
 
 - Framework: FastAPI (Asynchronous Backend)
 
