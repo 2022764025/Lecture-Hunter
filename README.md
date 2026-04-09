@@ -33,11 +33,13 @@ This project aims to develop an AI-driven educational platform that utilizes mul
 
 - **핀포인트 복습** : 3시간 강의를 다 볼 필요 없이 놓친 구간만 효율적 복습 가능.
 
-**📈 [비즈니스] 콘텐츠 이탈 분석 (QC)**
+**📈 [B2B] 강사 성과 지표 및 콘텐츠 품질 관리 (QC)**
 
-- **종합 집중도 지표** : 강사의 어느 시점에서 학생들의 시선이 대거 이탈하는지 분석.
+- **Instructor Score (성과 수치화)** : 강의 참여도의 평균값과 **변동성(표준편차)**을 결합한 독자적 알고리즘으로 강사의 강의력을 정량적 점수로 산출.
 
-- **품질 관리** : 스타 강사 선별 및 콘텐츠 재촬영 구간 결정을 위한 고부가가치 데이터 제공.
+- **데이터 컨설팅** : 강사별 이탈 지점 분석을 통해 콘텐츠 재촬영 구간 결정 및 강사 재계약을 위한 객관적 의사결정 근거 제공.
+
+- **품질 최적화** : 스타 강사 발굴 및 교육 콘텐츠 품질 상향 평준화를 위한 고부가가치 비즈니스 인사이트 도출.
 
 ---
 
@@ -47,7 +49,7 @@ This project aims to develop an AI-driven educational platform that utilizes mul
 
 - OS: macOS (Apple Silicon M1/M2/M3)
 
-- Language: Python `3.12+` (Python 3.13+ is not supported)
+- Language: Python `3.12+` (**Python 3.13+ is not supported**)
 
 - Framework: FastAPI (Asynchronous Backend)
 
