@@ -58,15 +58,17 @@ async def process_audio_and_broadcast(audio_data: bytes, lecture_id: str):
     audio_np = np.frombuffer(process_data, dtype=np.int16).astype(np.float32) / 32768.0
     
     # [핵심 수정 2] vad_filter 활성화로 환각 원천 차단
-    segments, _ = stt_model.transcribe(
+    segments, info = stt_model.transcribe(
         audio_np, 
         beam_size=5, 
-        language="ko",
+        language=None,
         vad_filter=True, # Whisper 자체 VAD 가동
         vad_parameters=dict(min_silence_duration_ms=500),
-        initial_prompt="전공 강의 실시간 자막입니다."
+        initial_prompt="전공 강의 실시간 자막입니다. This is a real-time lecture captioning service."
     )
     
+    print(f"감지된 언어: {info.language} (확률: {info.language_probability:.2f})", flush=True)
+
     original_text = ""
     for segment in segments:
         # no_speech_prob가 너무 높으면(잡음일 확률이 높으면) 무시
