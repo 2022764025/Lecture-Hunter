@@ -5,13 +5,13 @@ import os
 
 # 1. 파일 경로 설정 (바탕화면에 있다면 경로를 맞춰주세요)
 # 맥북 바탕화면 경로는 보통 /Users/사용자명/Desktop/test_lecture.m4a 입니다.
-file_path = os.path.expanduser("/Users/iminjae/Desktop/test_lecture.m4a") 
-url = "http://localhost:8000/lecture/audio/lect01"
+file_path = os.path.expanduser("/Users/iminjae/LIVELECTUREAI/test_samples/test_es.mp3") 
+url = "http://localhost:8000/lecture/audio/lect01?target_lang=Korean"
 
 try:
     print("오디오 변환 중 (m4a -> Raw PCM)...")
     # 2. m4a 파일을 로드하여 서버 규격(16kHz, Mono, 16bit)으로 변환
-    audio = AudioSegment.from_file(file_path, format="m4a")
+    audio = AudioSegment.from_file(file_path) # format="m4a"
     audio = audio.set_frame_rate(16000).set_channels(1).set_sample_width(2)
     
     # 3. 순수 데이터(Raw Bytes) 추출

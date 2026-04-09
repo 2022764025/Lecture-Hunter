@@ -26,7 +26,7 @@ async def get_supabase() -> AsyncClient:
         supabase_client = await create_async_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY)
     return supabase_client
 
-async def process_audio_and_broadcast(audio_data: bytes, lecture_id: str):
+async def process_audio_and_broadcast(audio_data: bytes, lecture_id: str, target_lang: str):
     global lecture_buffers, last_received_times
     client = await get_supabase()
     
@@ -82,7 +82,7 @@ async def process_audio_and_broadcast(audio_data: bytes, lecture_id: str):
     if not original_text or any(phrase in original_text for phrase in hallucination_phrases):
         return ""
 
-    translated_text = await translation_engine.translate(original_text)
+    translated_text = await translation_engine.translate(original_text, target_lang)
     
     # 임베딩 및 DB 저장
     try:
@@ -91,6 +91,7 @@ async def process_audio_and_broadcast(audio_data: bytes, lecture_id: str):
             "lecture_id": lecture_id,
             "original_text": original_text,
             "translated_text": translated_text,
+            "target_lang": target_lang,
             "content_embedding": embed_resp['embedding']
         }).execute()
     except Exception as e:
@@ -99,7 +100,11 @@ async def process_audio_and_broadcast(audio_data: bytes, lecture_id: str):
     # 브로드캐스트
     channel = client.channel(f'lecture_{lecture_id}')
     await channel.subscribe() 
-    await channel.send_broadcast('new_caption', {'original': original_text, 'translated': translated_text})
+    await channel.send_broadcast('new_caption', {
+        'original': original_text, 
+        'translated': translated_text,
+        'language': target_lang # 학생 앱에서 "아, 이건 영어 자막이구나"라고 알 수 있게 보냄
+    })
     
-    print(f"[최종] {original_text} -> {translated_text}")
+    print(f"[최종] [{target_lang}] 결과: {original_text} -> {translated_text}")
     return original_text
