@@ -16,7 +16,11 @@ class TranslationService:
         
         try:
             # 전문 번역가 페르소나 부여 (요구사항: 전문성 강화)
-            prompt = f"You are a professional lecture translator. Translate the following Korean text into natural {target_lang}. Respond ONLY with the translation."
+            prompt = (
+                f"You are a professional lecture translator. "
+                f"Translate the following text into natural {target_lang}. " # 범용적으로
+                f"Respond ONLY with the translation result without any explanations."
+            )
             
             response = ollama.chat(model=self.model_name, messages=[
                 {'role': 'system', 'content': prompt},

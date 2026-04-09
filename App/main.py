@@ -103,7 +103,11 @@ async def stream_engagement(lecture_id: str, student_id: str, request: Request):
 
 # --- [기능 2] 실시간 오디오 처리 (STT / 번역 / DB 인덱싱) ---
 @app.post("/lecture/audio/{lecture_id}")
-async def upload_audio_chunk(lecture_id: str, file: UploadFile = File(...)):
+async def upload_audio_chunk(
+    lecture_id: str, 
+    target_lang: str = "Korean", # 기본값은 한국어로 설정
+    file: UploadFile = File(...)
+):
     """
     [핵심] Flutter에서 보낸 오디오 데이터를 받아 
     stt_service 로직을 통해 실시간 자막 생성 및 RAG용 DB 저장을 수행합니다.
@@ -111,23 +115,23 @@ async def upload_audio_chunk(lecture_id: str, file: UploadFile = File(...)):
     try:
         audio_data = await file.read()
         # stt_service의 환각 필터, VAD, DB 저장 로직이 여기서 한꺼번에 실행됨
-        result = await process_lecture_audio(audio_data, lecture_id)
+        result = await process_lecture_audio(audio_data, lecture_id, target_lang)
         return {"status": "success", "transcribed": result}
     except Exception as e:
-        print(f"❌ Audio Processing Error: {e}")
+        print(f"Audio Processing Error: {e}")
         return {"status": "error", "message": str(e)}
 
 # --- [기능 3] AI 조교 Q&A (RAG with Memory) ---
 @app.get("/lecture/ask")
-async def ask_ai_assistant(lecture_id: str, question: str):
+async def ask_ai_assistant(lecture_id: str, question: str, target_lang: str = "Korean"):
     """
     [핵심] Claude가 최적화해준 히스토리 기반 RAG 엔진을 호출합니다.
     """
     try:
-        answer = await get_answer_with_memory(question, lecture_id)
+        answer = await get_answer_with_memory(question, lecture_id, target_lang)
         return {"question": question, "answer": answer}
     except Exception as e:
-        print(f"❌ RAG Error: {e}")
+        print(f"RAG Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- [기능 4] 교수용 실시간 통계 대시보드 ---
