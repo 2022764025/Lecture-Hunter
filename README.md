@@ -1,5 +1,7 @@
 # 🎙️ LiveLectureAI
-**실증적AI 개발프로젝트Ⅰ** > **과제헌터** | 강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯 개발
+> **실증적AI 개발프로젝트Ⅰ** > **과제헌터** | 강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯 개발
+
+![Python](https://img.shields.io/badge/python-3.12-blue?style=flat&logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-0.135.1-009688?style=flat&logo=fastapi&logoColor=white) ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=flat&logo=flutter&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-2.10.0-EE4C2C?style=flat&logo=pytorch&logoColor=white) ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.16.1-FF6F00?style=flat&logo=tensorflow&logoColor=white) ![MediaPipe](https://img.shields.io/badge/MediaPipe-0.10.13-00C041?style=flat&logo=google&logoColor=white) ![Whisper](https://img.shields.io/badge/Whisper-1.2.1-412991?style=flat&logo=openai&logoColor=white) ![Supabase](https://img.shields.io/badge/Supabase-2.28.0-3ECF8E?style=flat&logo=supabase&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-2.28.0-4169E1?style=flat&logo=postgresql&logoColor=white) ![WebSockets](https://img.shields.io/badge/WebSockets-15.0.1-010101?style=flat&logo=socket.io&logoColor=white) ![License](https://img.shields.io/badge/license-MIT-green) ![DORA](https://img.shields.io/badge/DORA-Elite-brightgreen) ![Deploy](https://img.shields.io/badge/Deploy_Freq-30%2Fweek-blue)
 
 ---
 
@@ -40,6 +42,47 @@ This project aims to develop an AI-driven educational platform that utilizes mul
 - **데이터 컨설팅** : 강사별 이탈 지점 분석을 통해 콘텐츠 재촬영 구간 결정 및 강사 재계약을 위한 객관적 의사결정 근거 제공.
 
 - **품질 최적화** : 스타 강사 발굴 및 교육 콘텐츠 품질 상향 평준화를 위한 고부가가치 비즈니스 인사이트 도출.
+
+---
+
+## 🏗️ System Architecture
+
+본 프로젝트 시스템은 "**실시간 엣지 분석 -> 클라우드 지능형 처리 -> 다국어 브로드캐스트**"의 3단계 파이프라인으로 작동합니다.
+
+```mermaid
+graph TD
+    subgraph "Client Side (Flutter)"
+        A[Mic/Camera Stream] --> B[DIP Processor]
+        B --> C[SSE/WebSocket Client]
+    end
+
+    subgraph "Backend Engine (FastAPI)"
+        C --> D{Engine Selector}
+        D --> E[Vision Engine: HSEmotion + Gaze]
+        D --> F[Audio Engine: Whisper + Gemma2]
+        E --> G[Engagement Scorer]
+        F --> H[Multi-lang Translator]
+    end
+
+    subgraph "Intelligent Data (Supabase)"
+        G --> I[(Realtime DB)]
+        H --> J[(Vector DB: pgvector)]
+        J --> K[RAG AI Tutor]
+    end
+
+    I --> L[Real-time Dashboard]
+    K --> L
+```
+
+---
+
+## 📂 Data Schema & Architecture
+
+| Table Name | Key Columns | Description |
+| :--- | :--- | :--- |
+| **lecture_contents** | `original`, `translated`, `target_lang`, `embedding` | 실시간 자막 전사 및 번역 데이터, 벡터 검색용 임베딩 |
+| **lecture_logs** | `engagement_score`, `emotion`, `gaze_x/y`, `ear` | 시선 추적, 감정 분석, 졸음 감지 원천 데이터 |
+| **lecture_summaries** | `summary_text`, `key_points` | 강의 종료 후 생성되는 AI 요약 및 키워드 데이터 |
 
 ---
 
