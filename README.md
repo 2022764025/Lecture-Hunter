@@ -101,7 +101,7 @@ graph TD
 ### 🧠 AI & Machine Learning (Core)
 
 - 🎙 STT (Speech-to-Text): **faster-whisper** `(1.2.1)`
-  
+
 - 👁 Computer Vision: 
 
     - **mediapipe** `(0.10.13)`
@@ -170,42 +170,42 @@ graph TD
 
 **1️⃣ Multi-modal AI Engine (Core)**
 
-    - [x] 비전 분석 엔진 고도화: `HSEmotion` + `DIP(Sobel, DoG)` 하이브리드 로직 구축
+- [x] 비전 분석 엔진 고도화: `HSEmotion` + `DIP(Sobel, DoG)` 하이브리드 로직 구축
 
-    - [x] 시선 추적 안정화: EMA 필터 및 비선형 가속을 통한 Gaze Tracking 정확도 개선
+- [x] 시선 추적 안정화: EMA 필터 및 비선형 가속을 통한 Gaze Tracking 정확도 개선
 
-    - [x] 지능형 음성 인식(STT): Whisper(Medium) 기반 다국어 자동 판독(Auto-Detection) 로직 구현
+- [x] 지능형 음성 인식(STT): Whisper(Medium) 기반 다국어 자동 판독(Auto-Detection) 로직 구현
 
-    - [x] 동적 다국어 번역 엔진: Gemma2 기반 사용자 선택형 목표 언어(Target Language) 번역 시스템 연동
+- [x] 동적 다국어 번역 엔진: Gemma2 기반 사용자 선택형 목표 언어(Target Language) 번역 시스템 연동
 
-    - [x] VAD 음성 감지 통합: Whisper VAD 필터 적용으로 환각 현상 방지 및 무음 구간 처리 최적화
+- [x] VAD 음성 감지 통합: Whisper VAD 필터 적용으로 환각 현상 방지 및 무음 구간 처리 최적화
 
 **2️⃣ Backend & Intelligence (Architecture)**
 
-    - [x] 백엔드 아키텍처 설계: FastAPI 기반 SSE 스트리밍 및 RAG 서비스 구조화 완료
+- [x] 백엔드 아키텍처 설계: FastAPI 기반 SSE 스트리밍 및 RAG 서비스 구조화 완료
 
-    - [x] 벡터 기반 RAG 엔진: Supabase Vector(pgvector)를 활용한 강의 내용 임베딩 및 유사도 검색 구축
+- [x] 벡터 기반 RAG 엔진: Supabase Vector(pgvector)를 활용한 강의 내용 임베딩 및 유사도 검색 구축
 
-    - [x] 메모리 기반 지능형 Q&A: 이전 강의 문맥을 기억하고 답변하는 RAG 서비스 로직 완성
+- [x] 메모리 기반 지능형 Q&A: 이전 강의 문맥을 기억하고 답변하는 RAG 서비스 로직 완성
 
-    - [x] 데이터베이스 스키마 최적화: `target_lang` 컬럼 추가 및 다국어 데이터 저장 구조 확보
+- [x] 데이터베이스 스키마 최적화: `target_lang` 컬럼 추가 및 다국어 데이터 저장 구조 확보
 
 **3️⃣ High-Performance Scaling (Testing & Deployment)**
-    - [ ] vLLM 기반 고성능 모델 배포: Gemma2-9B/27B 모델 서빙을 위한 vLLM 엔진 교체 및 GPU 서버 테스트
-    
-    - [ ] 하드웨어 가속 및 모델 업그레이드: Whisper Large-v3 및 CUDA 가속을 통한 실시간 성능 극대화 테스트
+- [ ] vLLM 기반 고성능 모델 배포: Gemma2-9B/27B 모델 서빙을 위한 vLLM 엔진 교체 및 GPU 서버 테스트
 
-    - [ ] 동시 접속자 대응 벤치마크: 다중 사용자 접속 시 처리 성능(Throughput) 및 지연 시간 측정
+- [ ] 하드웨어 가속 및 모델 업그레이드: Whisper Large-v3 및 CUDA 가속을 통한 실시간 성능 극대화 테스트
 
-    [ ] 강의 분석 리포트 생성: 참여도 및 안정도 데이터를 활용한 자동 분석 리포트 생성 API 완성
+- [ ] 동시 접속자 대응 벤치마크: 다중 사용자 접속 시 처리 성능(Throughput) 및 지연 시간 측정
+
+- [ ] 강의 분석 리포트 생성: 참여도 및 안정도 데이터를 활용한 자동 분석 리포트 생성 API 완성
 
 **4️⃣ Frontend Integration (Flutter)**
 
-    - [ ] SSE 실시간 통신 연동: 백엔드 분석 데이터를 Flutter 클라이언트로 실시간 수신 및 가시화 테스트
+- [ ] SSE 실시간 통신 연동: 백엔드 분석 데이터를 Flutter 클라이언트로 실시간 수신 및 가시화 테스트
 
-    - [ ] 실시간 다국어 자막 UI: 목표 언어 선택 위젯 및 스트리밍 자막 뷰어 UI 구현
+- [ ] 실시간 다국어 자막 UI: 목표 언어 선택 위젯 및 스트리밍 자막 뷰어 UI 구현
 
-    - [ ] 집중도 대시보드 위젯: 실시간 참여도 그래프 및 시선 히트맵 시각화 위젯 개발
+- [ ] 집중도 대시보드 위젯: 실시간 참여도 그래프 및 시선 히트맵 시각화 위젯 개발
 
 ---
 
@@ -222,7 +222,7 @@ pip install -r requirements.txt
 
 **Usage**
 ```Bash
-# FastAPI servet start
+# FastAPI server start
 uvicorn App.main:app --reload
 
 # Vision Engine test(Local)
