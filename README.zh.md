@@ -5,13 +5,13 @@
 
 <p align="center">
     <a href="README.md">
-        <img src="https://img.shields.io/badge/Language-Korean-red?style=for-the-badge&logo=googletranslate&logoColor=white" alt="한국어 버전"/>
+        <img src="https://img.shields.io/badge/Language-한국어-red?style=for-the-badge&logo=googletranslate&logoColor=white" alt="한국어 버전"/>
     </a>
     <a href="README.en.md">
         <img src="https://img.shields.io/badge/Language-English-blue?style=for-the-badge&logo=googletranslate&logoColor=white" alt="English Version"/>
     </a>
     <a href="README.zh.md">
-        <img src="https://img.shields.io/badge/Language-Chinese-orange?style=for-the-badge&logo=googletranslate&logoColor=white" alt="中文版"/>
+        <img src="https://img.shields.io/badge/Language-中文版-orange?style=for-the-badge&logo=googletranslate&logoColor=white" alt="中文版"/>
     </a>
 </p>
 
@@ -62,25 +62,25 @@
 ```mermaid
 graph TD
     subgraph "Client Side (Flutter)"
-        A[Mic/Camera Stream] --> B[DIP Processor]
-        B --> C[SSE/WebSocket Client]
+        A["Mic/Camera Stream"] --> B["DIP Processor"]
+        B --> C["SSE/WebSocket Client"]
     end
 
     subgraph "Backend Engine (FastAPI)"
-        C --> D{Engine Selector}
-        D --> E[Vision Engine: HSEmotion + Gaze]
-        D --> F[Audio Engine: Whisper + Gemma2]
-        E --> G[Engagement Scorer]
-        F --> H[Multi-lang Translator]
+        C --> D{"Engine Selector"}
+        D --> E["Vision Engine: HSEmotion + Gaze"]
+        D --> F["Audio Engine: Whisper + Gemma2"]
+        E --> G["Engagement Scorer"]
+        F --> H["Multi-lang Translator"]
     end
 
     subgraph "Intelligent Data (Supabase)"
-        G --> I[(Realtime DB)]
-        H --> J[(Vector DB: pgvector)]
-        J --> K[RAG AI Tutor]
+        G --> I[("(Realtime DB)")]
+        H --> J[("(Vector DB: pgvector)")]
+        J --> K["RAG AI Tutor"]
     end
 
-    I --> L[Real-time Dashboard]
+    I --> L["Real-time Dashboard"]
     K --> L
 ```
 
