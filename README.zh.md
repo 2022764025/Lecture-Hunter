@@ -55,6 +55,68 @@
 
 ---
 
+## 🧠 技术深潜 : 高级工程 (Technical Deep Dive: Advanced Engineering) ##
+
+### 1. Whisper VAD & STT 优化 ###
+
+用于防止静音区间出现幻觉 (Hallucination) 的 **VAD (语音活动检测)** 逻辑。
+
+**A. 基于信号能量的 VAD (Signal Energy-based VAD)**
+
+仅当输入信号 $x(n)$ 的帧能量显著大于背景噪声能量 ($E_{noise}$) 时，才驱动 STT 引擎。
+
+$$E_{frame} = \sum_{n=1}^L |x(n)|^2 > \gamma \cdot E_{noise}$$
+
+- $\gamma$: 考虑信噪比 (SNR) 的动态阈值。
+
+### 2. RAG 优化：向量归一化 (Vector Normalization) ###
+
+为了在大规模课程数据集中确保搜索速度和准确度，进行经过 L2 归一化后的内积运算。
+
+$$\|\mathbf{v}\|_2 = \sqrt{\sum_{i=1}^n |v_i|^2}, \quad \mathbf{\hat{v}} = \frac{\mathbf{v}}{\|\mathbf{v}\|_2}$$
+
+- 由于归一化向量之间的内积等同于余弦相似度，通过降低运算复杂度来最大化实时搜索性能。
+
+### 3. DIP (数字图像处理) 预处理 ###
+
+为了提高视觉引擎的准确度，对输入图像应用 DoG (高斯差分) 滤波器，以消除噪声并突出特征点。
+
+**高斯差分 (Difference of Gaussians, DoG)**
+
+利用具有不同标准差 ($\sigma_1, \sigma_2$) 的两个高斯核之差来强调边缘。
+
+$$DoG(x, y) = \frac{1}{2\pi\sigma_1^2} e^{-\frac{x^2+y^2}{2\sigma_1^2}} - \frac{1}{2\pi\sigma_2^2} e^{-\frac{x^2+y^2}{2\sigma_2^2}}$$
+
+-> 通过该过程可以实现对光照变化具有鲁棒性 (Robust) 的关键点提取。
+
+**B. Sobel 边缘检测**
+
+检测瞳孔区域的边界线，以提高视线追踪的精度。
+
+$$G = \sqrt{G_x^2 + G_y^2}, \quad \theta = \arctan\left(\frac{G_y}{G_x}\right)$$
+
+### 4. 多模态参与度融合模型 (Multi-modal Engagement Fusion Model) ###
+
+为了克服单一指标的局限性，使用结合了视觉 ($V$) 和情感 ($A$) 数据的融合专注度指标。
+
+**A. 综合参与度得分 ($CE$)**
+
+$$CE = w_e \cdot EAR_{norm} + w_g \cdot Gaze_{dist} + w_{emo} \cdot \sum (Emo_i \cdot s_i)$$
+
+- $w_e, w_g, w_{emo}$: 各指标重要程度的权重 ($\sum w = 1$)。
+
+- $s_i$: 各种情感 (Emotion) 的专注度相关系数 (例如：Neutral=1.0, Surprise=0.8, Sad=-0.5)。
+
+**B. 头部姿势方差 ($HP_v$)**
+
+通过头部的晃动 (Yaw, Pitch, Roll) 检测非专注区间。
+
+$$HP_v = \sqrt{\frac{1}{N}\sum_{i=1}^N (\theta_i - \bar{\theta})^2}$$
+
+- 如果标准差超过阈值，则分类为 'Distracted' 状态并反映在仪表板中。
+
+---
+
 ## 🏗️ 系統架構 (System Architecture)
 
 本系統基於三階段流水線運行： "**實時邊緣分析 -> 雲端智能處理 -> 多語言廣播**"。
