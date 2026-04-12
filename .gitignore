@@ -1,0 +1,17 @@
+pikmin/
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+
+
+.env.*
+*.log
+
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
