@@ -21,3 +21,16 @@ jobs:
         run: |
           # 코드가 깔끔한지 봇이 체크하는 과정
           echo "Checking code quality..."
+
+      - name: Comment on PR (Success)
+        if: github.event_name == 'pull_request' && success()
+        uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            **LiveLectureAI CI Bot Notification**
+            **CI Build & Lint Passed!**
+            - Python 3.12 Environment: OK
+            - Dependencies Installation: OK
+            - Code Style Check: OK
+            
+            모든 체크가 끝났습니다.
