@@ -55,6 +55,68 @@ This project aims to develop an AI-driven educational platform that utilizes mul
 
 ---
 
+## 🧠 Technical Deep Dive: Advanced Engineering ##
+
+### 1. Whisper VAD & STT Optimization ###
+
+Implementation of **VAD (Voice Activity Detection)** logic to prevent hallucinations during silent intervals.
+
+**A. Signal Energy-based VAD**
+
+The STT engine is triggered only when the frame energy of the input signal $x(n)$ is significantly higher than the background noise energy ($E_{noise}$).
+
+$$E_{frame} = \sum_{n=1}^L |x(n)|^2 > \gamma \cdot E_{noise}$$
+
+- $\gamma$: Dynamic threshold considering the Signal-to-Noise Ratio (SNR).
+
+### 2. RAG Optimization: Vector Normalization ###
+
+Inner product calculations are performed after L2 Normalization to ensure search speed and accuracy within large-scale lecture datasets.
+
+$$\|\mathbf{v}\|_2 = \sqrt{\sum_{i=1}^n |v_i|^2}, \quad \mathbf{\hat{v}} = \frac{\mathbf{v}}{\|\mathbf{v}\|_2}$$
+
+- Since the inner product of normalized vectors is identical to Cosine Similarity, this maximizes real-time retrieval performance by reducing computational complexity.
+
+### 3. DIP (Digital Image Processing) Preprocessing ###
+
+To enhance the accuracy of the vision engine, a DoG (Difference of Gaussians) filter is applied to the input image to remove noise and highlight feature points.
+
+**A. Difference of Gaussians (DoG)**
+
+Emphasizes edges by utilizing the difference between two Gaussian kernels with different standard deviations ($\sigma_1, \sigma_2$).
+
+$$DoG(x, y) = \frac{1}{2\pi\sigma_1^2} e^{-\frac{x^2+y^2}{2\sigma_1^2}} - \frac{1}{2\pi\sigma_2^2} e^{-\frac{x^2+y^2}{2\sigma_2^2}}$$
+
+-> This process enables robust landmark extraction against lighting variations.
+
+**B. Sobel Edge Detection**
+
+Detects the boundaries of the pupil area to increase the precision of gaze tracking.
+
+$$G = \sqrt{G_x^2 + G_y^2}, \quad \theta = \arctan\left(\frac{G_y}{G_x}\right)$$
+
+### 4. Multi-modal Engagement Fusion Model ###
+
+A fused engagement index combining vision ($V$) and emotion ($A$) data is used to overcome the limitations of single-metric analysis.
+
+**A. Composite Engagement Score ($CE$)**
+
+$$CE = w_e \cdot EAR_{norm} + w_g \cdot Gaze_{dist} + w_{emo} \cdot \sum (Emo_i \cdot s_i)$$
+
+- $w_e, w_g, w_{emo}$: Weights based on the importance of each metric ($\sum w = 1$).
+
+- $s_i$: Correlation coefficients for each emotion (e.g., Neutral=1.0, Surprise=0.8, Sad=-0.5).
+
+**B. Head Pose Variance ($HP_v$)**
+
+Detects non-attentive intervals through head movements (Yaw, Pitch, Roll).
+
+$$HP_v = \sqrt{\frac{1}{N}\sum_{i=1}^N (\theta_i - \bar{\theta})^2}$$
+
+- If the standard deviation exceeds the threshold, the state is classified as 'Distracted' and reflected in the dashboard.
+
+---
+
 ## 🏗️ System Architecture
 
 The system operates on a 3-stage pipeline: "**Real-time Edge Analysis -> Cloud Intelligent Processing -> Multilingual Broadcast**".

@@ -57,6 +57,68 @@ This project aims to develop an AI-driven educational platform that utilizes mul
 
 ---
 
+## 🧠 Technical Deep Dive: Advanced Engineering ##
+
+### 1. Whisper VAD & STT Optimization ###
+
+무음 구간에서의 환각 현상(Hallucination)을 방지하기 위한 **VAD (Voice Activity Detection)** 로직입니다.
+
+**A. Signal Energy-based VAD**
+
+입력 신호 $x(n)$의 프레임 에너지가 배경 소음 에너지($E_{noise}$)보다 충분히 클 때만 STT 엔진을 구동합니다.
+
+$$E_{frame} = \sum_{n=1}^L |x(n)|^2 > \gamma \cdot E_{noise}$$
+
+- $\gamma$: 신호 대 잡음비(SNR)를 고려한 동적 임계치
+
+### 2. RAG Optimization: Vector Normalization ###
+
+대규모 강의 데이터셋에서 검색 속도와 정확도를 보장하기 위해 L2 Normalization을 거친 내적 연산을 수행합니다.
+
+$$\|\mathbf{v}\|_2 = \sqrt{\sum_{i=1}^n |v_i|^2}, \quad \mathbf{\hat{v}} = \frac{\mathbf{v}}{\|\mathbf{v}\|_2}$$
+
+- 정규화된 벡터 간의 내적은 코사인 유사도와 동일하므로, 연산 복잡도를 줄이면서 실시간 검색 성능을 극대화합니다.
+
+### 3. DIP (Digital Image Processing) Preprocessing ###
+
+비전 엔진의 정확도를 높이기 위해 입력 영상에 DoG (Difference of Gaussians) 필터를 적용하여 노이즈를 제거하고 특징점을 부각합니다.
+
+**A. Difference of Gaussians (DoG)**
+
+서로 다른 표준편차($\sigma_1, \sigma_2$)를 가진 두 가우시안 커널의 차를 이용하여 엣지를 강조합니다.
+
+$$DoG(x, y) = \frac{1}{2\pi\sigma_1^2} e^{-\frac{x^2+y^2}{2\sigma_1^2}} - \frac{1}{2\pi\sigma_2^2} e^{-\frac{x^2+y^2}{2\sigma_2^2}}$$
+
+-> 이 과정을 통해 조명 변화에 강건한(Robust) 랜드마크 추출이 가능해집니다.
+
+**B. Sobel Edge Detection**
+
+시선 추적의 정밀도를 높이기 위해 동공 영역의 경계선을 검출합니다.
+
+$$G = \sqrt{G_x^2 + G_y^2}, \quad \theta = \arctan\left(\frac{G_y}{G_x}\right)$$
+
+### 4. Multi-modal Engagement Fusion Model ###
+
+단일 지표의 한계를 극복하기 위해 비전($V$)과 감정($A$) 데이터를 결합한 융합 집중도 지표를 사용합니다.
+
+**A. Composite Engagement Score ($CE$)**
+
+$$CE = w_e \cdot EAR_{norm} + w_g \cdot Gaze_{dist} + w_{emo} \cdot \sum (Emo_i \cdot s_i)$$
+
+- $w_e, w_g, w_{emo}$: 각 지표의 중요도에 따른 가중치 ($\sum w = 1$)
+
+- $s_i$: 각 감정(Emotion)별 집중도 상관계수 (예: Neutral=1.0, Surprise=0.8, Sad=-0.5)
+
+**B. Head Pose Variance ($HP_v$)**
+
+고개의 흔들림(Yaw, Pitch, Roll)을 통해 비집중 구간을 감지합니다.
+
+$$HP_v = \sqrt{\frac{1}{N}\sum_{i=1}^N (\theta_i - \bar{\theta})^2}$$
+
+- 표준편차가 임계치를 넘으면 'Distracted' 상태로 분류하여 대시보드에 반영합니다.
+
+---
+
 ## 🏗️ System Architecture
 
 본 프로젝트 시스템은 "**실시간 엣지 분석 -> 클라우드 지능형 처리 -> 다국어 브로드캐스트**"의 3단계 파이프라인으로 작동합니다.
