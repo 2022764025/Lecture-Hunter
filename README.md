@@ -240,7 +240,7 @@ graph TD
 
 ---
 
-## ✅ Project Milestone & Checklist (Updated 2026.04.09) ##
+## ✅ Project Milestone & Checklist (Updated 2026.04.13) ##
 
 **1️⃣ Multi-modal AI Engine (Core)**
 
@@ -274,7 +274,7 @@ graph TD
 
 - [ ] 강의 분석 리포트 생성: 참여도 및 안정도 데이터를 활용한 자동 분석 리포트 생성 API 완성
 
-**4️⃣ Frontend Integration (Flutter)**
+**4️⃣ Frontend Integration (Flutter)** -> (26년 4월 24일 이후 최종 개발 예정.)
 
 - [ ] SSE 실시간 통신 연동: 백엔드 분석 데이터를 Flutter 클라이언트로 실시간 수신 및 가시화 테스트
 
