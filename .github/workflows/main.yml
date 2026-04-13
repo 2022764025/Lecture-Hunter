@@ -1,27 +1,42 @@
-name: Python CI
+name: Python CI & Docker Deploy
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
 
-      - name: Set up Python
+    steps:
+      # 1. 코드 체크아웃
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. 파이썬 환경 세팅
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
+      # 3. 의존성 설치
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      - name: Run Lint (Check code style)
+      # 4. 코드 스타일 체크 (Lint)
+      - name: Run Lint
         run: |
-          # 코드가 깔끔한지 봇이 체크하는 과정
           echo "Checking code quality..."
+          # 여기에 flake8 이나 black 같은 명령어를 넣을 수 있습니다.
 
+      # 5. PR에 성공 댓글 남기기 (PR 상황일 때만 작동)
       - name: Comment on PR (Success)
         if: github.event_name == 'pull_request' && success()
         uses: mshick/add-pr-comment@v2
@@ -33,4 +48,23 @@ jobs:
             - Dependencies Installation: OK
             - Code Style Check: OK
             
-            모든 체크가 끝났습니다.
+            모든 체크가 끝났습니다. 이제 리뷰 후 머지할 수 있습니다.
+
+      # --- 6. 도커 빌드 및 배포 (Main 브랜치 푸시일 때만 작동) ---
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/live-lecture-ai-backend:latest
+            ghcr.io/${{ github.repository_owner }}/live-lecture-ai-backend:${{ github.sha }}
