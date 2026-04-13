@@ -289,10 +289,12 @@ graph TD
 **Installation**
 ```Bash
 git clone https://github.com/2022764025/Lecture-Hunter.git
-cd LiveLectureAI
+cd Lecture-Hunter
 python3 -m venv pikmin
 source pikmin/bin/activate
 pip install -r requirements.txt
+cp .env.example .env  # .env 설정 파일 생성 (필수)
+# 그 후 .env 파일에 Supabase URL과 KEY를 입력하세요.
 ```
 
 **Usage**
@@ -303,6 +305,70 @@ uvicorn App.main:app --reload
 # Vision Engine test(Local)
 python3 services/test_vision.py
 ```
+
+---
+
+## 🚀 Deployment & Runtime Options ##
+
+본 시스템은 하드웨어 환경에 따라 세 가지 구동 모드를 지원합니다.
+
+**Option A: Local Inference (Lightweight)**
+
+개인용 노트북(MacBook M1/M2/M3 등)에서 테스트할 때 권장합니다.
+
+1. **Ollama** 기반 LLM 구동 (`Gemma2:2b`)
+
+2. **Faster-Whisper** `Medium` 모델 (CPU/MPS 가속)
+
+3. 환경 변수 설정:
+
+```Bash
+export RUNTIME_MODE=local
+uvicorn App.main:app --reload
+```
+
+**Option B: GPU Server (High-Performance)**
+
+RTX 5060 이상의 GPU 서버에서 권장합니다.
+
+1. **vLLM** 기반 LLM 구동 (`Gemma2:9b` or `27b`)
+
+2. **Faster-Whisper** `Large-v3` 모델 (CUDA 가속)
+
+3. 실행 명령어:
+
+```Bash
+# Start vLLM server (On GPU Server side)
+python -m vllm.entrypoints.openai.api_server --model google/gemma-2-9b-it
+
+# Start Backend server
+export RUNTIME_MODE=gpu
+uvicorn App.main:app --host 0.0.0.0
+```
+
+**Option C: Docker Container (On-premises)**
+
+일관된 개발 환경이 필요할 때 사용합니다.
+
+```Bash
+docker build -t livelecture-ai .
+docker run --gpus all -p 8000:8000 livelecture-ai
+```
+
+---
+
+## 💻 Hardware Requirements
+
+본 시스템은 구동 환경에 따라 최적화된 모델 사이즈를 지원합니다.
+
+| Component | Minimum (Laptop/Local) | Recommended (Server/GPU) |
+| :--- | :--- | :--- |
+| **GPU** | Apple Silicon (M1/M2/M3) | **NVIDIA RTX 5060 (12GB+ VRAM)** |
+| **Acceleration** | MPS (Metal) / CPU | **CUDA (vLLM / TensorRT)** |
+| **RAM** | 16GB | 32GB+ |
+| **STT Model** | Faster-Whisper **Medium** | Faster-Whisper **Large-v3** |
+| **LLM Model** | Gemma2-**2b** | Gemma2-**9b** or **27b** |
+| **Capacity** | 1인 분석 및 자막 | **강의실 전체(30인+) 실시간 분석** |
 
 ---
 

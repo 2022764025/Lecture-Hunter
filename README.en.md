@@ -287,10 +287,12 @@ graph TD
 **Installation**
 ```Bash
 git clone https://github.com/2022764025/Lecture-Hunter.git
-cd LiveLectureAI
+cd Lecture-Hunter
 python3 -m venv pikmin
 source pikmin/bin/activate
 pip install -r requirements.txt
+cp .env.example .env  # Create environment configuration (Required)
+# Then, enter your Supabase URL and KEY in the .env file.
 ```
 
 **Usage**
@@ -301,6 +303,70 @@ uvicorn App.main:app --reload
 # Vision Engine test(Local)
 python3 services/test_vision.py
 ```
+
+---
+
+## 🚀 Deployment & Runtime Options ##
+
+The system supports three runtime modes depending on your hardware environment.
+
+**Option A: Local Inference (Lightweight)**
+
+Recommended for testing on personal laptops (MacBook M1/M2/M3, etc.).
+
+1. **Ollama** based LLM (`Gemma2:2b`)
+
+2. **Faster-Whisper** `Medium` model (CPU/MPS acceleration)
+
+3. Environment Configuration:
+
+```Bash
+export RUNTIME_MODE=local
+uvicorn App.main:app --reload
+```
+
+**Option B: GPU Server (High-Performance)**
+
+Recommended for servers with NVIDIA RTX 5060 or higher.
+
+1. **vLLM** based LLM (`Gemma2:9b` or `27b`)
+
+2. **Faster-Whisper** `Large-v3` model (CUDA acceleration)
+
+3. Execution Commands:
+
+```Bash
+# Start vLLM server (On GPU Server side)
+python -m vllm.entrypoints.openai.api_server --model google/gemma-2-9b-it
+
+# Start Backend server
+export RUNTIME_MODE=gpu
+uvicorn App.main:app --host 0.0.0.0
+```
+
+**Option C: Docker Container (On-premises)**
+
+Use this for a consistent development environment across different machines.
+
+```Bash
+docker build -t livelecture-ai .
+docker run --gpus all -p 8000:8000 livelecture-ai
+```
+
+---
+
+## 💻 Hardware Requirements
+
+The system supports optimized model sizes based on the deployment environment.
+
+| Component | Minimum (Laptop/Local) | Recommended (Server/GPU) |
+| :--- | :--- | :--- |
+| **GPU** | Apple Silicon (M1/M2/M3) | **NVIDIA RTX 5060 (12GB+ VRAM)** |
+| **Acceleration** | MPS (Metal) / CPU | **CUDA (vLLM / TensorRT)** |
+| **RAM** | 16GB | 32GB+ |
+| **STT Model** | Faster-Whisper **Medium** | Faster-Whisper **Large-v3** |
+| **LLM Model** | Gemma2-**2b** | Gemma2-**9b** or **27b** |
+| **Capacity** | Single User Analysis | **Class-wide (30+) Real-time Analysis** |
 
 ---
 

@@ -287,10 +287,12 @@ graph TD
 **安裝 (Installation)**
 ```Bash
 git clone https://github.com/2022764025/Lecture-Hunter.git
-cd LiveLectureAI
+cd Lecture-Hunter
 python3 -m venv pikmin
 source pikmin/bin/activate
 pip install -r requirements.txt
+cp .env.example .env  # 创建环境变量配置文件（必填）
+# 然后，在 .env 文件中输入您的 Supabase URL 和 KEY。
 ```
 
 **運行 (Usage)**
@@ -301,6 +303,71 @@ uvicorn App.main:app --reload
 # 運行視覺引擎測試 (本地)
 python3 services/test_vision.py
 ```
+
+---
+
+## 🚀 部署与运行选项 ##
+
+本系统根据硬件环境支持三种运行模式。
+
+**选项 A: 本地推理 (轻量级)**
+
+建议在个人笔记本电脑（MacBook M1/M2/M3 等）上测试时使用。
+
+1. 基于 **Ollama** 的大语言模型 (`Gemma2:2b`)
+
+2. **Faster-Whisper** `Medium` 模型（支持 CPU/MPS 加速）
+
+3. 环境变量设置：
+
+```Bash
+export RUNTIME_MODE=local
+uvicorn App.main:app --reload
+```
+
+**选项 B: GPU 服务器 (高性能)**
+
+建议在配备 NVIDIA RTX 5060 或更高规格的服务器上使用。
+
+1. 基于 **vLLM** 的大语言模型 (`Gemma2:9b` 或 `27b`)
+
+2. **Faster-Whisper** `Large-v3` 模型（支持 CUDA 加速）
+
+3. 执行命令：
+
+```Bash
+# 启动 vLLM 服务器（在 GPU 服务器端）
+python -m vllm.entrypoints.openai.api_server --model google/gemma-2-9b-it
+
+# 启动后端服务器
+export RUNTIME_MODE=gpu
+uvicorn App.main:app --host 0.0.0.0
+```
+
+**选项 C: Docker 容器 (本地部署)**
+
+当需要一致的开发环境时使用。
+
+```Bash
+docker build -t livelecture-ai .
+docker run --gpus all -p 8000:8000 livelecture-ai
+```
+
+---
+
+## 💻 硬件要求 ##
+
+本系统根据运行环境支持优化的模型尺寸。
+
+| 组件 | 最低配置 (笔记本/本地) | 推荐配置 (服务器/GPU) |
+| :--- | :--- | :--- |
+| **GPU** | Apple Silicon (M1/M2/M3) | **NVIDIA RTX 5060 (12GB+ VRAM)** |
+| **加速技术** | MPS (Metal) / CPU | **CUDA (vLLM / TensorRT)** |
+| **内存 (RAM)** | 16GB | 32GB+ |
+| **STT 模型** | Faster-Whisper **Medium** | Faster-Whisper **Large-v3** |
+| **LLM 模型** | Gemma2-**2b** | Gemma2-**9b** or **27b** |
+| **处理能力** | 个人专注度分析与字幕 | **全班级 (30人+) 实时分析** |
+
 
 ---
 
