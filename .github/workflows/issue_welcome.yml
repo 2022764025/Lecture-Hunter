@@ -1,0 +1,21 @@
+name: Issue Welcome Bot
+
+on:
+  issues:
+    types: [opened] # 이슈가 새로 생성되었을 때
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write # 봇이 댓글 씀
+
+    steps:
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            @${{ github.event.issue.user.login }}님, 실시간 자막/질문 위젯 프로젝트에 관심을 가져주셔서 감사합니다!
+            
+            담당자가 내용을 확인하는 동안, [Wiki](https://github.com/${{ github.repository }}/wiki) 문서를 먼저 확인해 보세요.
