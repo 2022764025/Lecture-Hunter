@@ -5,14 +5,14 @@ import time
 import cv2
 import numpy as np
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette.sse import EventSourceResponse
 from supabase import create_client, Client
 
-# [서비스 레이어 임포트] - 민재님이 고생해서 만든 파일들
-from services.audio_service import process_lecture_audio # STT/번역/인덱싱 통합본
-from services.rag_service import get_answer_with_memory # 히스토리 기반 RAG
+# [서비스 레이어 임포트]
+from services.stt_service import process_audio_and_broadcast  # 최신 WebSocket 엔진
+from services.rag_service import get_answer_with_memory
 from services.summary_service import generate_lecture_summary
 from services.analytics_service import (
     get_heatmap_data, 
@@ -29,7 +29,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-app = FastAPI(title="EduSync AI - Final", version="1.0.0")
+app = FastAPI(title="EduSync AI - Final Integrated", version="1.1.0")
 
 # 비전 엔진 및 카메라 초기화
 detector = EngagementDetector()
@@ -37,12 +37,11 @@ cap = cv2.VideoCapture(0)
 
 class GlobalLectureState:
     def __init__(self):
-        # 실시간 익명 집계를 위한 저장소 {student_id: current_score}
         self.student_scores = {}
 
 state = GlobalLectureState()
 
-# 1. CORS 설정 (Flutter 앱 연동 필수)
+# 1. CORS 설정
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -55,7 +54,7 @@ app.include_router(websocket.router)
 
 @app.get("/")
 async def root():
-    return {"status": "running", "message": "EduSync AI Backend is fully integrated."}
+    return {"status": "running", "engine": "Integrated WebSocket & Vision Engine"}
 
 # --- [헬퍼] 비전 로그 저장 ---
 async def save_vision_log_to_supabase(lecture_id: str, student_id: str, result: dict):
@@ -83,55 +82,51 @@ async def stream_engagement(lecture_id: str, student_id: str, request: Request):
                 if student_id in state.student_scores:
                     del state.student_scores[student_id]
                 break
-
             ret, frame = cap.read()
             if not ret:
                 await asyncio.sleep(0.1)
                 continue
-            
             result = detector.analyze_frame(frame)
             if result:
                 state.student_scores[student_id] = result["engagement_score"]
                 await save_vision_log_to_supabase(lecture_id, student_id, result)
                 yield {
                     "event": "engagement_update",
-                    "id": str(int(time.time() * 1000)),
                     "data": json.dumps(result)
                 }
             await asyncio.sleep(0.2)
     return EventSourceResponse(event_generator())
 
-# --- [기능 2] 실시간 오디오 처리 (STT / 번역 / DB 인덱싱) ---
-@app.post("/lecture/audio/{lecture_id}")
-async def upload_audio_chunk(
-    lecture_id: str, 
-    target_lang: str = "Korean", # 기본값은 한국어로 설정
-    file: UploadFile = File(...)
-):
+# --- [기능 2] 실시간 오디오 처리 (WebSocket 방식 통합) ---
+@app.websocket("/ws/lecture/{lecture_id}/audio")
+async def websocket_audio_endpoint(websocket_conn: WebSocket, lecture_id: str, lang: str = "Korean"):
     """
-    [핵심] Flutter에서 보낸 오디오 데이터를 받아 
-    stt_service 로직을 통해 실시간 자막 생성 및 RAG용 DB 저장을 수행합니다.
+    [핵심] 실시간 오디오 데이터를 WebSocket으로 수신
+    VAD, Overlap, Semaphore가 적용된 엔진(stt_service)으로 전달합니다.
     """
+    await websocket_conn.accept()
+    print(f"{lecture_id} 오디오 스트리밍 연결됨")
+    
     try:
-        audio_data = await file.read()
-        # stt_service의 환각 필터, VAD, DB 저장 로직이 여기서 한꺼번에 실행됨
-        result = await process_lecture_audio(audio_data, lecture_id, target_lang)
-        return {"status": "success", "transcribed": result}
+        while True:
+            # 클라이언트(Flutter/Test Script)로부터 바이너리 오디오 수신
+            audio_chunk = await websocket_conn.receive_bytes()
+            
+            # [비차단 실행] 분석 중에도 다음 데이터를 받을 수 있게 task로 생성
+            asyncio.create_task(process_audio_and_broadcast(audio_chunk, lecture_id, lang))
+            
+    except WebSocketDisconnect:
+        print(f"{lecture_id} 오디오 연결 종료")
     except Exception as e:
-        print(f"Audio Processing Error: {e}")
-        return {"status": "error", "message": str(e)}
+        print(f"오디오 스트림 에러: {e}")
 
-# --- [기능 3] AI 조교 Q&A (RAG with Memory) ---
+# --- [기능 3] AI 조교 Q&A (RAG) ---
 @app.get("/lecture/ask")
 async def ask_ai_assistant(lecture_id: str, question: str, target_lang: str = "Korean"):
-    """
-    [핵심] Claude가 최적화해준 히스토리 기반 RAG 엔진을 호출합니다.
-    """
     try:
         answer = await get_answer_with_memory(question, lecture_id, target_lang)
         return {"question": question, "answer": answer}
     except Exception as e:
-        print(f"RAG Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- [기능 4] 교수용 실시간 통계 대시보드 ---
@@ -139,22 +134,12 @@ async def ask_ai_assistant(lecture_id: str, question: str, target_lang: str = "K
 async def get_fancy_dashboard(lecture_id: str):
     scores = list(state.student_scores.values())
     total = len(scores)
-    
     if total == 0:
         return {"message": "No active students", "active_students": 0}
-
     avg_score = sum(scores) / total
-    
-    recent_logs = supabase.table("lecture_logs") \
-        .select("emotion") \
-        .eq("lecture_id", lecture_id) \
-        .order("created_at", desc=True) \
-        .limit(total) \
-        .execute()
-    
+    recent_logs = supabase.table("lecture_logs").select("emotion").eq("lecture_id", lecture_id).order("created_at", desc=True).limit(total).execute()
     emotions = [d['emotion'] for d in recent_logs.data]
     emotion_dist = {emo: emotions.count(emo) for emo in set(emotions)}
-
     return {
         "lecture_id": lecture_id,
         "status": {
@@ -166,7 +151,7 @@ async def get_fancy_dashboard(lecture_id: str):
         "timestamp": time.time()
     }
 
-# --- [기능 5] 강의 사후 분석 (Heatmap, Timeline, QC, Instructor) ---
+# --- [기능 5] 강의 사후 분석 ---
 @app.get("/lecture/analytics/heatmap/{lecture_id}")
 async def fetch_heatmap(lecture_id: str):
     points = await get_heatmap_data(supabase, lecture_id)

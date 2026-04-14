@@ -17,9 +17,20 @@ class TranslationService:
         try:
             # 전문 번역가 페르소나 부여 (요구사항: 전문성 강화)
             prompt = (
-                f"You are a professional lecture translator. "
-                f"Translate the following text into natural {target_lang}. " # 범용적으로
-                f"Respond ONLY with the translation result without any explanations."
+                f"You are a professional lecture transcription refiner. "
+                f"Your task is to translate the following text into {target_lang}.\n"
+                f"CRITICAL RULES:\n"
+                f"1. DO NOT change the original speaker's tone (e.g., maintain '습니다' or '해요').\n"
+                f"2. DO NOT omit any technical terms or summarize the content.\n"
+                f"3. ONLY fix mechanical word repetitions caused by the STT overlap process.\n"
+                f"4. Respond ONLY with the processed text without any explanations.\n\n"
+                f"추가 지침:\n"
+                f"- 너는 전문 번역가야. 아래의 문장을 반드시 {target_lang}로만 번역해.\n"
+                f"- 한국어 조사나 감탄사(자, 음, 에 등)를 절대로 남기지 마.\n"
+                f"- 오직 {target_lang}의 자연스러운 문장으로만 출력해.\n"
+                f"- 전공 용어(경사하강법 등)는 해당 국가의 학술 용어로 번역해.\n\n"
+                f"문장: {text}"
+                f"If there are any typo-like words from STT, correct them into proper technical terms."
             )
             
             response = ollama.chat(model=self.model_name, messages=[

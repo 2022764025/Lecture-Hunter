@@ -45,13 +45,13 @@ async def index_lecture_content(lecture_id: str, original: str, translated: str)
             "content_embedding": q_emb_resp['embedding']
         }).execute()
 
-        print(f"✅ 자막 저장 완료: {original[:30]}...")
+        print(f"자막 저장 완료: {original[:30]}...")
 
     except Exception as e:
-        print(f"❌ index_lecture_content 오류: {e}")
+        print(f"index_lecture_content 오류: {e}")
         raise
 
-async def get_answer_with_memory(question: str, lecture_id: str) -> str:
+async def get_answer_with_memory(question: str, lecture_id: str, target_lang: str = "Korean") -> str:
     """
     RAG 기반 질문 답변 (강의 내용 + 대화 히스토리 참고)
     """
@@ -82,7 +82,8 @@ async def get_answer_with_memory(question: str, lecture_id: str) -> str:
 
         # 검색된 강의 내용 컨텍스트 구성
         context = "\n".join([
-            item['original_text'] for item in rpc_resp.data
+            f"[{item.get('source_lang', 'unknown')}] {item['original_text']}" 
+            for item in rpc_resp.data
         ]) if rpc_resp.data else "관련 강의 내용 없음"
 
         # 최근 3개 대화 히스토리
@@ -92,6 +93,8 @@ async def get_answer_with_memory(question: str, lecture_id: str) -> str:
 
         prompt = f"""
         당신은 강의 보조 AI입니다. 아래 [강의 내용]과 [이전 대화]를 참고하여 [학생의 질문]에 답하세요.
+        [강의 내용]의 각 문장은 [ko], [en], [zh], [ja] 등 원문 언어가 표시되어 있습니다. 특정 언어로 설명된 부분을 묻는다면 해당 표시를 참고하여 답변하세요.
+
         한국어로 답변하세요. 모르면 모른다고 하세요.
 
         [강의 내용]: {context}
