@@ -6,7 +6,7 @@ from pydub import AudioSegment
 # 1. 설정 (서버에 정의된 @app.websocket 주소와 일치해야 함)
 SESSION_ID = "lect01" 
 WS_URL = f"ws://localhost:8000/ws/lecture/{SESSION_ID}/audio?lang=Korean"
-FILE_PATH = os.path.expanduser("~/LiveLectureAI/test_samples/test_batch_ja.mp3")
+FILE_PATH = os.path.expanduser("~/LiveLectureAI/test_samples/test_batch_es.mp3")
 CHUNK_SIZE = 8000 # 0.25초
 
 async def start_test():

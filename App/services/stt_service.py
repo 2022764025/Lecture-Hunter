@@ -1,8 +1,28 @@
+"""
+<설명>
+(1) 리소스 최적화: int8 양자화와 Semaphore(1)
+    - compute_type="int8"와 asyncio.Semaphore(1)을 사용, 모델의 무게를 줄이고 
+    세마포어(Semaphore)를 통해 동시에 여러 추론이 발생해 서버가 터지는 것을 막는 기능
+(2) 지연 시간 제어: SILENCE_GAP 기반 트리거
+    - SILENCE_GAP = 1.0 (1초 침묵 시 즉시 처리), 3~5초 이내 지연을 맞추는 핵심 로직이며, 
+    교수님이 말을 멈추자마자 1초 만에 인식을 시작하므로, 실제 자막 노출까지 3초 내외면 충분하다.
+(3) 무의미한 연산 차단: Silero VAD Gate
+    - 소음만 있거나 아무 소리도 없을 때는 Whisper 모델을 아예 깨우지 않는다. GPU/CPU 자원을 아끼는 로직
+(4) 맥락 유지와 단어 잘림 방지: OVERLAP_SIZE
+    - OVERLAP_SIZE = 16000 (0.5초 오버랩), 오디오를 뚝뚝 끊어서 처리하면 단어가 잘릴 수 있는데, 
+    이전 데이터의 끝부분을 살짝 겹쳐서 처리함으로써 문장의 연속성을 확보
+(5) 논블로킹(Non-blocking) 후처리: asyncio.create_task
+    - 번역, 임베딩, DB 저장을 별도 태스크로 던짐. STT 결과가 나오자마자 바로 다음 음성을 들을 준비를 하고, 
+    시간이 걸리는 번역이나 DB 작업은 나중에 알아서 하라고 던져버린 기능 -> (실시간성 확보를 위한 선택)
+"""
+
 import numpy as np
 import ollama
 import asyncio
 import time
 import torch
+import re # 정규표현식 추가
+import json
 from concurrent.futures import ThreadPoolExecutor
 from core.config import settings
 from supabase import create_async_client, AsyncClient
@@ -113,7 +133,7 @@ async def process_audio_and_broadcast(audio_data: bytes, lecture_id: str, target
             # result_segments(리스트)와 info(객체)를 정확히 언패킹함
             result_segments, info = await loop.run_in_executor(executor, transcribe_sync)
             
-            # 🔥 [추가] Whisper가 감지한 언어 코드(ko, en, ja 등) 추출
+            # [추가] Whisper가 감지한 언어 코드(ko, en, ja 등) 추출
             detected_lang = info.language
 
             # 리스트화된 세그먼트에서 텍스트 추출
@@ -132,8 +152,76 @@ async def process_audio_and_broadcast(audio_data: bytes, lecture_id: str, target
             print(f"추론 내부 에러: {e}")
             return ""
 
+async def extract_and_save_glossary(client: AsyncClient, lecture_id: str, text: str):
+    """
+    [NEW] LLM을 이용해 전문 용어를 추출하고 정의하여 DB에 저장
+    """
+    print(f"[Glossary] 용어 추출 시도 중: {text[:20]}...")
+
+    # 테스트를 위해 필터 조건을 완화 (글자수 10자 이상이면 무조건 실행)
+    if len(text) < 10:
+        print("[Glossary] 문장이 너무 짧아 패스합니다.")
+        return
+
+    # [최적화 필터] 영어(외래어)가 포함되어 있거나 문장이 15자 이상인 경우에만 실행
+    # (단순 감탄사나 짧은 인사는 패스해서 리소스를 아낍니다)
+    if not (re.search(r'[a-zA-Z]', text) or len(text) > 15):
+        return
+
+    try:
+        # Gemma-2에게 용어 추출 및 정의 요청
+        prompt = f"""
+        당신은 AI 전공 용어 사전 편집자입니다.
+        다음 문장에서 전공 용어를 추출하되, '용어'와 '정의'가 정확히 일치해야 합니다.
+        반드시 JSON 리스트 형식으로만 답변하세요. 예: [{{"term": "용어", "definition": "설명"}}]
+        
+        문장: "{text}"
+        """
+
+        response = await ollama_client.generate(model='gemma2:2b', prompt=prompt, format='json')
+        
+        raw_res = response['response'].strip()
+        
+        # 캔버스 버그 방지용 백틱 처리
+        bt_marker = chr(96) * 3
+        if bt_marker in raw_res:
+            raw_res = raw_res.replace(f"{bt_marker}json", "").replace(bt_marker, "").strip()
+
+        data = json.loads(raw_res)
+
+        # 1. 리스트가 아닌 단일 객체([])로 왔을 경우 리스트로 감싸기
+        glossary_items = data if isinstance(data, list) else [data]
+
+        for item in glossary_items:
+            if isinstance(item, dict) and 'term' in item:
+                # [핵심 수정] term이 리스트로 왔을 경우를 대비한 방어 로직
+                term_val = item['term']
+                if isinstance(term_val, list):
+                    term_val = term_val[0] if term_val else "알 수 없음"
+                
+                term = str(term_val).strip()
+                definition = item.get('definition', '핵심 전공 용어입니다.')
+                
+                if isinstance(definition, list):
+                    definition = " ".join(definition)
+
+                # 중복 방지 UPSERT (Conflict 컬럼 지정)
+                await client.table("lecture_glossary").upsert({
+                    "lecture_id": lecture_id,
+                    "term": term,
+                    "definition": definition
+                }, on_conflict="lecture_id, term").execute()
+                
+                print(f"[Glossary] '{term}' 처리 완료")
+            
+    except Exception as e:
+        print(f"[Glossary] 에러 발생: {e}")
+
 async def handle_post_processing(client, lecture_id, original, target_lang, source_lang):
     try:
+        # --- [변경] 로그를 DB 저장 전으로 이동 ---
+        print(f"\n[디버그] 인식된 텍스트: {original}")
+
         # 1. 번역 및 임베딩 (이 과정은 연결이 끊겨도 독립적으로 실행됨)
         translated = await translation_engine.translate(original, target_lang)
         embed = await ollama_client.embeddings(model='nomic-embed-text', prompt=original)
@@ -147,6 +235,12 @@ async def handle_post_processing(client, lecture_id, original, target_lang, sour
             "source_lang": source_lang,
             "content_embedding": embed['embedding']
         }).execute()
+
+        # [추가] 실시간 전문 용어 추출 태스크 실행
+        # 비차단(Non-blocking)으로 실행하여 STT 흐름을 방해하지 않음
+        asyncio.create_task(extract_and_save_glossary(client, lecture_id, original))
+
+        print(f"--- DB 저장 완료: {original[:20]}... ---")
 
         # 3. 실시간 전송 (에러가 가장 많이 발생하는 구간)
         try:
@@ -168,4 +262,4 @@ async def handle_post_processing(client, lecture_id, original, target_lang, sour
 
     except Exception as e:
         # 'Set of Tasks/Futures is empty' 같은 에러가 여기서 잡힘
-        print(f"후처리 단계 에러 무시: {e}")
+        print(f"후처리 에러 발생: {type(e).__name__} - {e}")

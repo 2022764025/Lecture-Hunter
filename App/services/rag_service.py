@@ -1,3 +1,15 @@
+"""
+<설명>
+이 코드는 "질문 -> 검색 -> [이전 대화 기억] -> [언어 정보 참고] -> 답변"에 더해 "자막 저장(Indexing)" 기능이다.
+
+(1) 벡터 데이터 파이프라인
+    - index_lecture_content 함수가 STT 자막을 실시간으로 받아 벡터 좌표로 변환한 뒤 Supabase DB에 저장 (768차원 의미 공간에 배치)
+(2) 컨텍스트 강화 검색
+    - 학생이 질문하면, DB에서 가장 관련 있는 자막 3개를 찾아온다. 자막 앞에 [ko], [zh] 같은 꼬리표를 붙여서 AI가 "이건 중국어 설명이었구나"라고 인지
+(3) 슬라이딩 윈도우 메모리
+    - chat_histories를 통해 최근 10개의 대화를 기억한다. history.pop(0) 로직을 통해 고정된 메모리 크기(Sliding Window)를 유지
+"""
+
 import asyncio
 import ollama
 from core.config import settings

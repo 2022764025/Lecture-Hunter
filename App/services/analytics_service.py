@@ -1,3 +1,10 @@
+"""
+그래도 코드를 남겨둬야 하는 이유 (비즈니스 가치)
+기술 3번과 4번(QC 분석, 강사 리포트)은 이 프로젝트가 "돈이 되는 서비스(B2B)"임을 증명하는 핵심 로직입니다. 
+비전 데이터가 아니더라도, 나중에 "학생들의 퀴즈 정답률"이나 "질문 빈도" 데이터를 이 함수에 넣으면 똑같이 성과 지표를 뽑을 수 있거든요.
+-> get_content_qc_analysis (콘텐츠 품질 분석), get_instructor_report (강사 성과 지표)
+"""
+
 import pandas as pd
 from datetime import timedelta
 

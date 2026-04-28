@@ -1,3 +1,12 @@
+"""
+앞으로의 활용 방안 (빌드업)
+나중에 우리가 추가하기로 한 '3가지 신규 기능' 중에서, 오디오와 관련된 기능이 이 통로를 거치게 된다.
+
+잡음 제거(Denoising): 나중에 "교수님 마이크 소리가 너무 지지직거려요"라는 피드백이 오면, 
+                    stt_service로 넘기기 전에 여기서 잡음 제거 함수를 살짝 끼워 넣을 수 있는 '전략적 요충지'이다.
+"""
+
+
 import os
 from services.stt_service import process_audio_and_broadcast
 
