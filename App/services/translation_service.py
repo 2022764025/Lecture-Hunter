@@ -16,8 +16,9 @@
 '''
 
 import ollama
-from typing import Optional
-from services.rag_service import ollama_client
+
+# 순환 참조 방지: rag_service에서 가져오지 않고 독립 선언
+ollama_client = ollama.AsyncClient()
 
 class TranslationService:
     def __init__(self, model_name: str = "gemma2:2b"):
@@ -30,27 +31,24 @@ class TranslationService:
         try:
             # 전문 번역가 페르소나 부여 (요구사항: 전문성 강화)
             prompt = (
-                f"You are a professional lecture transcription refiner. "
-                f"Your task is to translate the following text into {target_lang}.\n"
-                f"CRITICAL RULES:\n"
-                f"1. DO NOT change the original speaker's tone (e.g., maintain '습니다' or '해요').\n"
-                f"2. DO NOT omit any technical terms or summarize the content.\n"
-                f"3. ONLY fix mechanical word repetitions caused by the STT overlap process.\n"
-                f"4. Respond ONLY with the processed text without any explanations.\n\n"
-                f"추가 지침:\n"
-                f"- 너는 전문 번역가야. 아래의 문장을 반드시 {target_lang}로만 번역해.\n"
-                f"- 한국어 조사나 감탄사(자, 음, 에 등)를 절대로 남기지 마.\n"
-                f"- 오직 {target_lang}의 자연스러운 문장으로만 출력해.\n"
-                f"- 전공 용어(경사하강법 등)는 해당 국가의 학술 용어로 번역해.\n\n"
+                f"너는 전문 강의 번역가야. 아래 문장을 {target_lang}로 번역해.\n"
+                f"규칙:\n"
+                f"1. 너는 전문 번역가야. 아래의 문장을 반드시 {target_lang}로만 번역해.\n"
+                f"2. 한국어 조사나 감탄사(자, 음, 에 등)를 절대로 남기지 마.\n"
+                f"3. 오직 {target_lang}의 자연스러운 문장으로만 출력해.\n"
+                f"4. 전공 용어는 해당 국가의 학술 용어로 번역해. (예: 경사하강법 → Gradient Descent)\n"
+                f"5. STT 중복 단어는 자연스럽게 교정해. (예: '오늘... 오늘 공부를' → '오늘 공부를')\n"
+                f"6. 번역문만 출력해. 설명이나 부연 금지.\n\n"
                 f"문장: {text}"
-                f"If there are any typo-like words from STT, correct them into proper technical terms."
             )
             
-            response = await ollama_client.chat(model=self.model_name, messages=[
-                {'role': 'system', 'content': prompt},
-                {'role': 'user', 'content': text},
-            ])
-            return response['message']['content'].strip()
+            # chat → generate로 통일 (stt_service, rag_service와 일관성)
+            response = await ollama_client.generate(
+                model=self.model_name,
+                prompt=prompt
+            )
+            return response['response'].strip()
+        
         except Exception as e:
             print(f"Translation Error: {e}")
             return f"[Error] {text}"

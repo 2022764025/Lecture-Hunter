@@ -1,19 +1,20 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from core.connection_manager import manager
-from services.stt_service import process_audio_and_broadcast
+from services.audio_service import process_lecture_audio
 
 router = APIRouter()
 
 @router.websocket("/ws/audio/{lecture_id}")
-async def audio_websocket(websocket: WebSocket, lecture_id: str):
-    await manager.connect(websocket, lecture_id)
+async def audio_websocket(
+    websocket: WebSocket,
+    lecture_id: str,
+    target_lang: str = "Korean"  # Flutter에서 ?target_lang=Korean 쿼리로 전달
+):
+    await websocket.accept()
     try:
         while True:
             data = await websocket.receive_bytes()
-            # STT 처리 후 결과를 같은 강의실 전원에게 브로드캐스트
-            await process_audio_and_broadcast(data, lecture_id, manager)
+            await process_lecture_audio(data, lecture_id, target_lang)
     except WebSocketDisconnect:
-        await manager.disconnect(websocket, lecture_id)
+        print(f"[{lecture_id}] 클라이언트 연결 종료")
     except Exception as e:
         print(f"WebSocket Error: {e}")
-        await manager.disconnect(websocket, lecture_id)

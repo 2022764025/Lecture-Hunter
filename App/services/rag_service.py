@@ -12,56 +12,33 @@
 
 import asyncio
 import ollama
+import time
 from core.config import settings
-from supabase import create_async_client
+from core.database import get_supabase
 
 # Ollama 비동기 클라이언트 (싱글톤)
 ollama_client = ollama.AsyncClient()
 
-# Supabase 클라이언트 캐싱
-_supabase_client = None
-async def get_supabase():
-    global _supabase_client
-    if _supabase_client is None:
-        _supabase_client = await create_async_client(
-            settings.SUPABASE_URL,
-            settings.SUPABASE_ANON_KEY
-        )
-    return _supabase_client
-
 # 학생/강의별 히스토리 분리 (lecture_id 기준)
 chat_histories: dict = {}
+history_last_access: dict = {} # TTL 추적용
+HISTORY_TTL_SEC = 3600 # 1시간 미접근 시 삭제
 
-async def index_lecture_content(lecture_id: str, original: str, translated: str):
+async def cleanup_old_histories():
     """
-    STT로 생성된 자막을 벡터화하여 DB에 저장
-    나중에 get_answer_with_memory에서 RAG 검색에 사용됨
+    TTL 기반 메모리 정리
+    미접근 강의 히스토리를 삭제하여 메모리 누수 방지
+    main.py의 lifespan 또는 주기적 태스크에서 호출
     """
-    if not original:
-        return
-
-    try:
-        supabase = await get_supabase()
-
-        # 텍스트를 벡터(768차원)로 변환 (비동기)
-        q_emb_resp = await ollama_client.embeddings(
-            model='nomic-embed-text',
-            prompt=original
-        )
-
-        # DB에 Insert
-        await supabase.table("lecture_contents").insert({
-            "lecture_id":        lecture_id,
-            "original_text":     original,
-            "translated_text":   translated,
-            "content_embedding": q_emb_resp['embedding']
-        }).execute()
-
-        print(f"자막 저장 완료: {original[:30]}...")
-
-    except Exception as e:
-        print(f"index_lecture_content 오류: {e}")
-        raise
+    now = time.time()
+    expired = [
+        lid for lid, t in history_last_access.items()
+        if now - t > HISTORY_TTL_SEC
+    ]
+    for lid in expired:
+        chat_histories.pop(lid, None)
+        history_last_access.pop(lid, None)
+        print(f"[History] {lid} 히스토리 만료 삭제")
 
 async def get_answer_with_memory(question: str, lecture_id: str, target_lang: str = "Korean") -> str:
     """
@@ -77,6 +54,7 @@ async def get_answer_with_memory(question: str, lecture_id: str, target_lang: st
         if lecture_id not in chat_histories:
             chat_histories[lecture_id] = []
         history = chat_histories[lecture_id]
+        history_last_access[lecture_id] = time.time()  # 접근 시간 갱신
 
         # 질문을 벡터로 변환 (비동기)
         q_emb_resp = await ollama_client.embeddings(
@@ -88,8 +66,8 @@ async def get_answer_with_memory(question: str, lecture_id: str, target_lang: st
         rpc_resp = await supabase.rpc('match_lecture_contents', {
             'query_embedding': q_emb_resp['embedding'],
             'match_threshold': 0.4,
-            'match_count':     3,
-            'p_lecture_id':    lecture_id
+            'match_count': 3,
+            'p_lecture_id': lecture_id
         }).execute()
 
         # 검색된 강의 내용 컨텍스트 구성
@@ -116,7 +94,7 @@ async def get_answer_with_memory(question: str, lecture_id: str, target_lang: st
 
         # LLM 답변 생성 (비동기)
         response = await ollama_client.generate(
-            model='gemma2:2b',
+            model=settings.LLM_MODEL,
             prompt=prompt
         )
         answer = response['response']
