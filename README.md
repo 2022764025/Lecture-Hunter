@@ -230,15 +230,6 @@ cd flutter_app && flutter run
 - [ ] 학습 참여도 분석 대시보드
 
 <br/>
-
-## 👥 팀
-
-<p align="center">
-  <b>과제헌터</b>
-</p>
-
-<br/>
-
 ---
 
 <p align="center">
