@@ -1,4 +1,4 @@
-![header](https://capsule-render.vercel.app/api?type=waving&height=300&color=gradient&text=Lecture%20Hunter&descAlign=50&textBg=false&descAlignY=58&fontAlignY=35&animation=fadeIn&desc=강의를%20더%20잘%20따라가게%20도와주는%20AI%20학습%20도우미&descSize=35)
+![header](https://capsule-render.vercel.app/api?type=waving&height=250&color=gradient&text=Lecture%20Hunter&descAlign=59&textBg=false&descAlignY=51&fontAlignY=35&animation=fadeIn&desc=강의를%20더%20잘%20따라가게%20도와주는%20AI%20학습%20도우미&descSize=22&fontSize=78)
 ![LiveLectureLogo](./assets/LiveLectureLogo2.png)
 
 
