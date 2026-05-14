@@ -1,3 +1,5 @@
+![LiveLectureLogo](./assets/LiveLectureLogo.PNG)
+
 # LiveLectureAI
 > **實證 AI 開發項目 I** > **任務獵人 (Task Hunter)** | 基於 Flutter 的實時字幕與提問組件，助力強化課堂互動
 
