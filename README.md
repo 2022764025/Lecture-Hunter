@@ -1,4 +1,4 @@
-![LiveLectureLogo](./assets/LiveLectureLogo.png)
+![LiveLectureLogo](./assets/LiveLectureLogo2.png)
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=F7136C&width=435&lines=Lecture-Hunter;%EA%B0%95%EC%9D%98%EB%A5%BC+%EB%8D%94+%EC%9E%98+%EB%94%B0%EB%9D%BC%EA%B0%80%EA%B2%8C+%EB%8F%84%EC%99%80%EC%A3%BC%EB%8A%94+AI+%ED%95%99%EC%8A%B5+%EB%8F%84%EC%9A%B0%EB%AF%B8)](https://git.io/typing-svg)
 
 # LiveLectureAI
