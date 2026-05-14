@@ -230,8 +230,7 @@ cd flutter_app && flutter run
 - [ ] 학습 참여도 분석 대시보드
 
 <br/>
----
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:667EEA,100:764BA2&height=120&section=footer&text=과제헌터🏹&fontSize=24&fontColor=ffffff&fontAlignY=70" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:667EEA,100:764BA2&height=120&section=footer&text=&fontSize=24&fontColor=ffffff&fontAlignY=70" />
 </p>
