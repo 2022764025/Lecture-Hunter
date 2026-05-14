@@ -242,5 +242,5 @@ cd flutter_app && flutter run
 ---
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:667EEA,100:764BA2&height=120&section=footer&text=Made%20with%20💜&fontSize=24&fontColor=ffffff&fontAlignY=70" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:667EEA,100:764BA2&height=120&section=footer&text=과제헌터🏹&fontSize=24&fontColor=ffffff&fontAlignY=70" />
 </p>
