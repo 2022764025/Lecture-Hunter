@@ -1,6 +1,6 @@
 ![LiveLectureLogo](./assets/LiveLectureLogo2.png)
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=F7136C&width=435&lines=Lecture-Hunter;%EA%B0%95%EC%9D%98%EB%A5%BC+%EB%8D%94+%EC%9E%98+%EB%94%B0%EB%9D%BC%EA%B0%80%EA%B2%8C+%EB%8F%84%EC%99%80%EC%A3%BC%EB%8A%94+AI+%ED%95%99%EC%8A%B5+%EB%8F%84%EC%9A%B0%EB%AF%B8)](https://git.io/typing-svg)
-
+[[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=F7136C&width=435&lines=Lecture-Hunter;%EA%B0%95%EC%9D%98%EB%A5%BC+%EB%8D%94+%EC%9E%98+%EB%94%B0%EB%9D%BC%EA%B0%80%EA%B2%8C+%EB%8F%84%EC%99%80%EC%A3%BC%EB%8A%94+AI+%ED%95%99%EC%8A%B5+%EB%8F%84%EC%9A%B0%EB%AF%B8)](https://git.io/typing-svg)
+](https://capsule-render.vercel.app/api?type=waving&height=300&color=gradient&text=Lecture%20Hunter&descAlign=50&textBg=false&descAlignY=58&fontAlignY=35&animation=fadeIn&desc=강의를%20더%20잘%20따라가게%20도와주는%20AI%20학습%20도우미&descSize=35)
 # LiveLectureAI
 > **실증적AI 개발프로젝트Ⅰ** > **과제헌터** | 강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯 개발
 
