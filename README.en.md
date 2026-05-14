@@ -1,4 +1,4 @@
-![LiveLectureLogo](./assets/LiveLectureLogo.PNG)
+![LiveLectureLogo](./assets/LiveLectureLogo.png)
 
 # LiveLectureAI
 > **Empirical AI Development Project I** > **Task Hunter** | Flutter-based Real-time Subtitle & Question Widget for Enhanced Lecture Interaction
