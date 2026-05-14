@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "LiveLectureAI (Debug)",
+      "request": "launch",
+      "type": "dart",
+      "args": ["--dart-define=MOCK_MODE=true"]
+    },
+    {
+      "name": "LiveLectureAI (Live - localhost)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define=MOCK_MODE=false",
+        "--dart-define=API_URL=http://localhost:8000"
+      ]
+    }
+  ]
+}

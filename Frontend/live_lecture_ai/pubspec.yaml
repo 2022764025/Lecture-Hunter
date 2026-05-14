@@ -1,0 +1,39 @@
+name: live_lecture_ai
+description: LiveLectureAI - 강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯
+
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 상태 관리
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # HTTP / SSE 스트리밍
+  http: ^1.2.1
+  dio: ^5.4.3
+
+  # 로컬 저장소 (자막 설정 저장)
+  shared_preferences: ^2.3.1
+
+  # 애니메이션
+  flutter_animate: ^4.5.0
+
+  # 아이콘
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.9
+  riverpod_generator: ^2.4.3
+
+flutter:
+  uses-material-design: true
