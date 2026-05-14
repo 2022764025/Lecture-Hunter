@@ -1,5 +1,6 @@
 ![LiveLectureLogo](./assets/LiveLectureLogo2.png)
 
+![header](https://capsule-render.vercel.app/api?type=waving&height=300&color=gradient&text=Lecture%20Hunter&descAlign=50&textBg=false&descAlignY=58&fontAlignY=35&animation=fadeIn&desc=강의를%20더%20잘%20따라가게%20도와주는%20AI%20학습%20도우미&descSize=35)
 
 # LiveLectureAI
 > **실증적AI 개발프로젝트Ⅰ** > **과제헌터** | 강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯 개발
