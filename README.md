@@ -33,7 +33,7 @@
 
 
 
-> [!PROJECT INFO]
+> [!IMPORTANT]
 > **동아대학교 AI학과** SW중심대학사업 현장미러형 연계 프로젝트
 
 > [!TIP]
