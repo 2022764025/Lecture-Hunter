@@ -25,8 +25,6 @@
   <a href="docs/README_jp.md">🇯🇵 日本語</a>
 </p>
 
-<br/>
-
 > [!IMPORTANT]
 > 이 저장소는 **LiveLectureAI의 프론트엔드 앱**을 다룹니다.  
 > 백엔드 서버, STT/LLM 모델, 데이터베이스 구성은 별도 서버 저장소 또는 백엔드 문서를 참고해 주세요.
@@ -323,6 +321,4 @@ git commit -m "feat: add your feature"
 
 4. Pull Request를 생성합니다.
 
-<br/>
-
-## 👥 과제헌터
+##
