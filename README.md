@@ -190,23 +190,36 @@ flowchart LR
 ## 📁 프로젝트 구조
 
 ```text
-Lecture-Hunter/
-├── App/
+Lecture-Hunter
+│
+├── 📂 App/                     # FastAPI backend
 │   ├── main.py
 │   └── ...
-├── flutter_app/
+│
+├── 📂 Frontend/               # Flutter application
+│   ├── android/
+│   ├── ios/
 │   ├── lib/
-│   ├── assets/
+│   ├── web/
+│   ├── macos/
+│   ├── windows/
+│   ├── linux/
 │   ├── test/
-│   └── pubspec.yaml
-├── assets/
+│   ├── pubspec.yaml
+│   └── analysis_options.yaml
+│
+├── 📂 assets/
 │   └── LiveLectureLogo2.png
-├── docs/
-│   ├── README_en.md
-│   └── README_jp.md
-├── requirements.txt
-├── .env.example
-└── README.md
+│
+├── 📄 README.md
+├── 📄 README.en.md
+├── 📄 README.zh.md
+├── 📄 CONTRIBUTING.md
+├── 📄 CODE_OF_CONDUCT.md
+├── 📄 SECURITY.md
+├── 📄 LICENSE
+├── 📄 Dockerfile
+└── 📄 requirements.txt
 ```
 
 <br/>
