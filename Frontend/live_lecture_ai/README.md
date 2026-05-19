@@ -328,13 +328,7 @@ git commit -m "feat: add your feature"
 ## 👥 팀
 
 <p align="center">
-  <b>과제헌터 팀</b>
+  <b>과제헌터</b>
 </p>
 
 <br/>
-
----
-
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:667EEA,100:764BA2&height=120&section=footer&text=LiveLectureAI%20Frontend&fontSize=24&fontColor=ffffff&fontAlignY=70" />
-</p>
