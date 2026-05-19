@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="100%" src="https://capsule-render.vercel.app/api?type=slice&height=180&color=gradient&text=Frontend&fontAlignY=25&fontAlign=70&rotate=12&animation=twinkling&desc=과제헌터_LiveLectureAI&descAlignY=43&descAlign=58" />
+  <img width="100%" src="https://capsule-render.vercel.app/api?type=speech&height=180&color=gradient&text=Frontend&fontAlignY=40&fontAlign=50&animation=twinkling&desc=과제헌터_LiveLectureAI&descAlignY=60&descAlign=55" />
 </p>
 
 <p align="center">
