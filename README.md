@@ -209,8 +209,6 @@ Lecture-Hunter/
 └── README.md
 ```
 
-> 실제 폴더명이 다르다면 현재 프로젝트 구조에 맞게 일부 경로만 수정하면 됩니다.
-
 <br/>
 
 ## 🚀 시작하기
@@ -259,8 +257,6 @@ SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_key
 OLLAMA_BASE_URL=http://localhost:11434
 ```
-
-> 실제 환경 변수 이름은 `.env.example` 파일에 맞춰 작성해주세요.
 
 <br/>
 
