@@ -1,6 +1,3 @@
-<p align="center">
-  <img src="./assets/LectureHunter_Logo.png" alt="Lecture Hunter Logo" width="100%" />
-</p>
 
 <p align="center">
   <a href="#-시작하기">
