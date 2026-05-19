@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:667EEA,100:764BA2&height=320&section=header&text=LiveLectureAI%20Frontend&fontSize=70&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=실시간%20강의%20자막과%20AI%20학습%20도우미를%20제공하는%20Flutter%20앱&descAlignY=60&descSize=20&descAlign=50" />
+  <img width="100%" src="https://capsule-render.vercel.app/api?type=slice&height=220&color=gradient&text=Frontend&fontAlignY=35&fontAlign=70&rotate=15&animation=twinkling&desc=과제헌터&descAlignY=38&descAlign=48" />
 </p>
 
 <p align="center">
