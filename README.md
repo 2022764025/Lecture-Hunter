@@ -1,6 +1,10 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&height=200&color=gradient&text=Lecture%20Hunter&desc=Flutter기반%20실시간%20자막·질문%20위젯%20개발&fontAlignY=35&descAlignY=55" />
 
 <p align="center">
+  <img src="./assets/Lecture_Hunter.png" alt="Lecture Hunter Logo" width="560" />
+</p>
+
+<p align="center">
   <a href="#-시작하기">
     <img src="https://img.shields.io/badge/QUICK%20START-4FC08D?style=for-the-badge&logoColor=white" alt="Quick Start" />
   </a>
@@ -33,8 +37,8 @@
 
 
 
-> [!IMPORTANT]
-> **동아대학교 AI학과** SW중심대학사업 현장미러형 연계 프로젝트
+> [!NOTE]
+> 🎓 **동아대학교 AI학과** SW중심대학사업 현장미러형 연계 프로젝트
 
 > [!TIP]
 > 처음 보는 분이라면 [이런 문제를 해결합니다](#-이런-문제를-해결합니다) → [핵심 기능](#-핵심-기능) → [사용 예시](#-사용-예시) 순서로 읽으면 빠르게 이해할 수 있습니다.
