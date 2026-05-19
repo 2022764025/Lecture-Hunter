@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/LectureHunter_Logo.png" alt="Lecture Hunter Logo" width="100%" />
+  <img src="./assets/LectureHunter_Logo.png" alt="Lecture Hunter Logo"/>
 </p>
 
 <p align="center">
