@@ -1,6 +1,14 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&height=200&color=gradient&text=Lecture%20Hunter&desc=Flutter기반%20실시간%20자막·질문%20위젯%20개발&fontAlignY=35&descAlignY=55" />
 
 <p align="center">
+  <img
+    src="./assets/LectureHunter_Logo.png"
+    alt="Lecture Hunter Banner"
+    width="100%"
+  />
+</p>
+
+<p align="center">
   <img src="./assets/Lecture_Hunter.png" alt="Lecture Hunter Logo" width="560" />
 </p>
 
