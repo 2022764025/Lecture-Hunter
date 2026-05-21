@@ -8,17 +8,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/question_model.dart';
 import '../../../caption/presentation/controllers/caption_controller.dart';
 
-class GlossaryPanelWidget extends ConsumerStatefulWidget {
+class GlossaryTab extends ConsumerStatefulWidget {
   final bool embedded; // 질문 패널 내 임베드 여부
 
-  const GlossaryPanelWidget({super.key, this.embedded = false});
+  const GlossaryTab({super.key, this.embedded = false});
 
   @override
-  ConsumerState<GlossaryPanelWidget> createState() =>
-      _GlossaryPanelWidgetState();
+  ConsumerState<GlossaryTab> createState() =>
+      _GlossaryTabState();
 }
 
-class _GlossaryPanelWidgetState extends ConsumerState<GlossaryPanelWidget> {
+class _GlossaryTabState extends ConsumerState<GlossaryTab> {
   final TextEditingController _controller = TextEditingController();
 
   @override

@@ -9,14 +9,14 @@ import '../../../caption/presentation/widgets/caption_overlay.dart';
 import '../../../assistant/presentation/panels/assistant_panel.dart';
 import '../widgets/status_bar.dart';
 
-class LectureScreen extends ConsumerStatefulWidget {
-  const LectureScreen({super.key});
+class OverlayPage extends ConsumerStatefulWidget {
+  const OverlayPage({super.key});
 
   @override
-  ConsumerState<LectureScreen> createState() => _LectureScreenState();
+  ConsumerState<OverlayPage> createState() => _OverlayPageState();
 }
 
-class _LectureScreenState extends ConsumerState<LectureScreen> {
+class _OverlayPageState extends ConsumerState<OverlayPage> {
   @override
   void initState() {
     super.initState();
@@ -48,18 +48,18 @@ class _LectureScreenState extends ConsumerState<LectureScreen> {
             _LectureBackground(),
 
             // ── [Step 1] 자막 오버레이 ───────────────────────────
-            const SubtitleOverlayWidget(),
+            const CaptionOverlay(),
 
             // ── [Step 2+3] 질문/용어집 패널 ─────────────────────
             if (questionPanelVisible)
               const Positioned(
                 right: 12,
                 top: 80,
-                child: QuestionPanelWidget(),
+                child: AssistantPanel(),
               ),
 
             // ── 자막 숨김 시 복원 버튼 ──────────────────────────
-            const ConnectionBarWidget(),
+            const StatusBar(),
 
             // ── 디버그 컨트롤 바 (개발용) ────────────────────────
             const Positioned(

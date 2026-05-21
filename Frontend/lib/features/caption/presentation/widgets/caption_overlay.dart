@@ -7,8 +7,8 @@ import '../../../assistant/presentation/controllers/question_model.dart';
 import '../controllers/caption_controller.dart';
 import '../../../overlay/presentation/controllers/overlay_controller.dart'; // ✨ 테마 Provider 임포트 추가!
 
-class SubtitleOverlayWidget extends ConsumerWidget {
-  const SubtitleOverlayWidget({super.key});
+class CaptionOverlay extends ConsumerWidget {
+  const CaptionOverlay({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

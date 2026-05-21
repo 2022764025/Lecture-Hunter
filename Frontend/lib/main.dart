@@ -22,7 +22,7 @@ class LiveLectureApp extends StatelessWidget {
       title: 'LiveLectureAI',
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
-      home: const LectureScreen(),
+      home: const OverlayPage(),
     );
   }
 

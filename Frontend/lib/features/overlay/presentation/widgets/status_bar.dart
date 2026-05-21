@@ -7,8 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../assistant/presentation/controllers/question_model.dart';
 import '../../../caption/presentation/controllers/caption_controller.dart';
 
-class ConnectionBarWidget extends ConsumerWidget {
-  const ConnectionBarWidget({super.key});
+class StatusBar extends ConsumerWidget {
+  const StatusBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -9,15 +9,15 @@ import '../../../caption/presentation/controllers/caption_controller.dart';
 import '../controllers/question_model.dart';
 import '../widgets/glossary_tab.dart';
 
-class QuestionPanelWidget extends ConsumerStatefulWidget {
-  const QuestionPanelWidget({super.key});
+class AssistantPanel extends ConsumerStatefulWidget {
+  const AssistantPanel({super.key});
 
   @override
-  ConsumerState<QuestionPanelWidget> createState() =>
-      _QuestionPanelWidgetState();
+  ConsumerState<AssistantPanel> createState() =>
+      _AssistantPanelState();
 }
 
-class _QuestionPanelWidgetState extends ConsumerState<QuestionPanelWidget> {
+class _AssistantPanelState extends ConsumerState<AssistantPanel> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
@@ -83,7 +83,7 @@ class _QuestionPanelWidgetState extends ConsumerState<QuestionPanelWidget> {
                   _ResponseCard(state: responseState),
               ] else ...[
                 // 용어집 모드 - GlossaryPanel 임베드
-                const GlossaryPanelWidget(embedded: true),
+                const GlossaryTab(embedded: true),
               ],
             ],
           ),
