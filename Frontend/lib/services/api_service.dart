@@ -3,7 +3,7 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/question_model.dart';
+import '../features/assistant/presentation/controllers/question_model.dart';
 
 class ApiService {
   static const String _baseUrl = 'http://localhost:8000';

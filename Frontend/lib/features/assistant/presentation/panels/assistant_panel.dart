@@ -5,9 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/subtitle_provider.dart';
-import '../models/question_model.dart';
-import 'glossary_panel_widget.dart';
+import '../../../caption/presentation/controllers/caption_controller.dart';
+import '../controllers/question_model.dart';
+import '../widgets/glossary_tab.dart';
 
 class QuestionPanelWidget extends ConsumerStatefulWidget {
   const QuestionPanelWidget({super.key});

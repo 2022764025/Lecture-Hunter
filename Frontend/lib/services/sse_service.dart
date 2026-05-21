@@ -4,8 +4,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/subtitle_model.dart';
-import '../models/question_model.dart';
+import '../features/caption/presentation/controllers/subtitle_model.dart';
+import '../features/assistant/presentation/controllers/question_model.dart';
 
 class SseService {
   static const String _baseUrl = 'http://localhost:8000'; // FastAPI 서버

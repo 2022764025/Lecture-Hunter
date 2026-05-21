@@ -3,7 +3,7 @@
 
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/subtitle_model.dart';
+import '../features/caption/presentation/controllers/subtitle_model.dart';
 
 class SettingsService {
   static const String _key = 'subtitle_settings';

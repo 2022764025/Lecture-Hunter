@@ -5,8 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/question_model.dart';
-import '../providers/subtitle_provider.dart';
+import '../controllers/question_model.dart';
+import '../../../caption/presentation/controllers/caption_controller.dart';
 
 class GlossaryPanelWidget extends ConsumerStatefulWidget {
   final bool embedded; // 질문 패널 내 임베드 여부

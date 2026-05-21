@@ -4,10 +4,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/subtitle_provider.dart';
-import '../widgets/subtitle_overlay_widget.dart';
-import '../widgets/question_panel_widget.dart';
-import '../widgets/connection_bar_widget.dart';
+import '../../../caption/presentation/controllers/caption_controller.dart';
+import '../../../caption/presentation/widgets/caption_overlay.dart';
+import '../../../assistant/presentation/panels/assistant_panel.dart';
+import '../widgets/status_bar.dart';
 
 class LectureScreen extends ConsumerStatefulWidget {
   const LectureScreen({super.key});

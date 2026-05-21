@@ -3,11 +3,11 @@
 
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/subtitle_model.dart';
-import '../models/question_model.dart';
-import '../services/sse_service.dart';
-import '../services/api_service.dart';
-import '../services/settings_service.dart';
+import 'subtitle_model.dart';
+import '../../../assistant/presentation/controllers/question_model.dart';
+import '../../../../services/sse_service.dart';
+import '../../../../services/api_service.dart';
+import '../../../../services/settings_service.dart';
 
 // ─── Service Providers ────────────────────────────────────────
 

@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/subtitle_model.dart';
-import '../models/question_model.dart';
-import '../providers/subtitle_provider.dart';
-import '../providers/theme_provider.dart'; // ✨ 테마 Provider 임포트 추가!
+import '../controllers/subtitle_model.dart';
+import '../../../assistant/presentation/controllers/question_model.dart';
+import '../controllers/caption_controller.dart';
+import '../../../overlay/presentation/controllers/overlay_controller.dart'; // ✨ 테마 Provider 임포트 추가!
 
 class SubtitleOverlayWidget extends ConsumerWidget {
   const SubtitleOverlayWidget({super.key});
@@ -181,18 +181,27 @@ class _HeaderBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.blueAccent.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              settings.targetLanguage.toUpperCase(),
-              style: TextStyle(
-                color: isDark ? Colors.lightBlueAccent : Colors.blue[800], // ✨
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
+          GestureDetector(
+            onTap: () {
+              final nextLanguage = settings.targetLanguage == 'ko' ? 'en' : 'ko';
+
+              ref
+                .read(subtitleSettingsProvider.notifier)
+                .update(settings.copyWith(targetLanguage: nextLanguage));
+          },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.blueAccent.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                settings.targetLanguage.toUpperCase(),
+                style: TextStyle(
+                  color: isDark ? Colors.lightBlueAccent : Colors.blue[800],
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),

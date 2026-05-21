@@ -4,8 +4,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/question_model.dart';
-import '../providers/subtitle_provider.dart';
+import '../../../assistant/presentation/controllers/question_model.dart';
+import '../../../caption/presentation/controllers/caption_controller.dart';
 
 class ConnectionBarWidget extends ConsumerWidget {
   const ConnectionBarWidget({super.key});
