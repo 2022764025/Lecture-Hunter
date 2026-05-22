@@ -116,12 +116,40 @@ flowchart LR
 
 ## 🖼 화면 구성
 
-> [!NOTE]
-> 데모 스크린샷과 GIF는 추후 추가 예정입니다.
-
-| 자막 오버레이 | 질문 패널 | 용어집 |
-| --- | --- | --- |
-| *스크린샷 준비 중* | *스크린샷 준비 중* | *스크린샷 준비 중* |
+<p align="center">
+  <table>
+    <tr>
+      <th align="center">자막 화면</th>
+      <th align="center">용어집</th>
+      <th align="center">질문 패널</th>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="./assets/screens/caption_screen.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/glossary_tab.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/question_panel.png" width="300"/>
+      </td>
+    </tr>
+    <tr>
+      <th align="center">자막 설정</th>
+      <th align="center">자막 히스토리</th>
+      <th align="center">-</th>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="./assets/screens/caption_settings.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/caption_history.png" width="300"/>
+      </td>
+      <td align="center">-</td>
+    </tr>
+  </table>
+</p>
 
 <br/>
 
