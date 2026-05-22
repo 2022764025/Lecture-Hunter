@@ -18,9 +18,8 @@
 </p>
 
 <p align="center">
-  <b>강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯 개발</b>
- 
-</p> 
+  <b>강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯 개발</b>
+</p>
 
 <p align="center">
   <b>🇰🇷 한국어</b>
@@ -29,8 +28,6 @@
   ·
   <a href="docs/README_jp.md">🇯🇵 日本語</a>
 </p>
-
-
 
 > [!NOTE]
 > 🎓 **동아대학교 AI학과** SW중심대학사업 현장미러형 연계 프로젝트
@@ -66,6 +63,7 @@
 - [프로젝트 구조](#-프로젝트-구조)
 - [시작하기](#-시작하기)
 - [개발 명령어](#-개발-명령어)
+- [현재 프론트엔드 연결 상태](#-현재-프론트엔드-연결-상태)
 - [진행 상황](#-진행-상황)
 
 <br/>
@@ -157,10 +155,11 @@ flowchart LR
 
 | 기술 | 역할 |
 | --- | --- |
-| Flutter 3.x | 모바일·데스크톱 앱 개발 |
+| Flutter 3.x | Web 기반 실시간 자막 오버레이 UI 개발 |
 | Dart | Flutter 앱 개발 언어 |
-| Riverpod | 상태 관리 |
-| WebSocket / SSE | 실시간 자막, 번역, 이벤트 수신 |
+| Riverpod | 자막, 테마, 질문 패널 상태 관리 |
+| HTTP API | 질문, 용어집, 요약 API 연결 준비 |
+| SSE / WebSocket | 실시간 자막 수신 및 오디오 스트리밍 연결 준비 |
 
 <br/>
 
@@ -195,22 +194,33 @@ Lecture-Hunter
 │
 ├── 📂 App/                     # FastAPI backend
 │   ├── main.py
+│   ├── api/
+│   ├── core/
+│   ├── services/
+│   ├── setup_db.sql
 │   └── ...
 │
-├── 📂 Frontend/               # Flutter application
+├── 📂 Frontend/                # Flutter application
 │   ├── android/
 │   ├── ios/
 │   ├── lib/
+│   │   ├── core/
+│   │   ├── features/
+│   │   │   ├── assistant/
+│   │   │   ├── caption/
+│   │   │   └── overlay/
+│   │   ├── services/
+│   │   ├── shared/
+│   │   └── main.dart
 │   ├── web/
 │   ├── macos/
 │   ├── windows/
 │   ├── linux/
-│   ├── test/
 │   ├── pubspec.yaml
 │   └── analysis_options.yaml
 │
 ├── 📂 assets/
-│   └── LiveLectureLogo2.png
+│   └── LectureHunter_Logo3.jpeg
 │
 ├── 📄 README.md
 ├── 📄 README.en.md
@@ -268,8 +278,12 @@ cp .env.example .env
 
 ```env
 SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_key
-OLLAMA_BASE_URL=http://localhost:11434
+SUPABASE_ANON_KEY=your_supabase_anon_key
+LLM_MODEL=gemma2:2b
+VLM_MODEL=llama3.2-vision:11b
+WHISPER_MODEL_SIZE=medium
+WHISPER_DEVICE=auto
+VAD_THRESHOLD=0.3
 ```
 
 <br/>
@@ -277,7 +291,7 @@ OLLAMA_BASE_URL=http://localhost:11434
 ### 5. Flutter 앱 설정
 
 ```bash
-cd flutter_app
+cd Frontend
 flutter pub get
 flutter doctor
 cd ..
@@ -305,8 +319,8 @@ uvicorn App.main:app --reload
 #### Terminal 3. Flutter 앱 실행
 
 ```bash
-cd flutter_app
-flutter run
+cd Frontend
+flutter run -d chrome
 ```
 
 <br/>
@@ -316,8 +330,11 @@ flutter run
 정상적으로 실행되면 다음 항목을 확인합니다.
 
 - 백엔드 서버가 `http://127.0.0.1:8000`에서 실행되는지 확인
-- Flutter 앱이 에뮬레이터, 시뮬레이터, Chrome, 데스크톱 중 하나에서 실행되는지 확인
-- 자막, 번역, 질문 답변 기능이 백엔드와 연결되는지 확인
+- Flutter 앱이 Chrome에서 실행되는지 확인
+- LiveLectureAI 화면이 정상 표시되는지 확인
+- 자막 오버레이, 질문 패널, 용어집 UI가 표시되는지 확인
+- 현재 프론트엔드는 Mock 기반 UI 동작 확인 완료 상태
+- 실제 백엔드 연결은 API 경로 정합성 수정 후 진행 예정
 
 <br/>
 
@@ -326,7 +343,7 @@ flutter run
 ### Flutter
 
 ```bash
-cd flutter_app
+cd Frontend
 
 # 패키지 설치
 flutter pub get
@@ -337,11 +354,8 @@ dart format .
 # 정적 분석
 flutter analyze
 
-# 테스트
-flutter test
-
 # 앱 실행
-flutter run
+flutter run -d chrome
 ```
 
 <br/>
@@ -361,20 +375,70 @@ pip install -r requirements.txt
 
 <br/>
 
+## 🔌 현재 프론트엔드 연결 상태
+
+현재 프론트엔드는 Mock 기반 UI 동작 확인까지 완료되었으며, 백엔드 실제 엔드포인트와의 API 경로 정합성 수정 단계에 있습니다.
+
+### 확인 완료 항목
+
+- `api_service.dart` 백엔드 HTTP 호출 구조 확인
+- `sse_service.dart` 실시간 자막 스트림 수신 구조 확인
+- `caption_controller.dart` Provider 연결 구조 확인
+- `overlay_page.dart` Mock / 실서버 전환 구조 확인
+- 백엔드 실제 엔드포인트 목록 확인
+
+### 현재 프론트 연결 구조
+
+- `ApiService` 기반 HTTP API 호출 구조 존재
+- `SseService` 기반 실시간 자막 스트림 수신 구조 존재
+- `sseServiceProvider` 등록 완료
+- `connectionStatusProvider` 연결 완료
+- `subtitleStreamProvider` 연결 완료
+- `currentSubtitleProvider` 기반 최신 자막 표시 구조 존재
+- Mock 모드 / 실서버 연결 전환 구조 존재
+
+### 확인된 경로 불일치
+
+| 구분 | 현재 프론트 경로 | 현재 백엔드 경로 |
+| --- | --- | --- |
+| 질문 API | `POST /api/v1/qa/ask` | `GET /lecture/ask` |
+| 용어집 API | `GET /api/v1/glossary/search` | 백엔드 엔드포인트 미확인 |
+| 실시간 자막 수신 | `GET /api/v1/subtitle/stream` | `WS /ws/audio/{lecture_id}` |
+
+### 다음 수정 예정
+
+- `api_service.dart` 질문 API 경로 수정
+- `/lecture/ask` 요청 방식 및 파라미터 구조 확인
+- 용어집 API 백엔드 엔드포인트 추가 여부 확인
+- `sse_service.dart` 유지 여부 결정
+- 백엔드 WebSocket 구조와 프론트 실시간 자막 수신 구조 매칭
+
+<br/>
+
 ## 📊 진행 상황
 
 ### ✅ 완료된 기능
 
-- [x] 음성 → 자막 변환 구조
-- [x] 슬라이드 이미지 분석 구조
-- [x] 강의 내용 기반 AI 답변 구조
-- [x] WebSocket 기반 실시간 통신 구조
+- [x] 음성 → 자막 변환 백엔드 구조
+- [x] 슬라이드 이미지 분석 백엔드 구조
+- [x] 강의 내용 기반 AI 답변 백엔드 구조
+- [x] FastAPI WebSocket 오디오 수신 구조
 - [x] 다국어 번역 엔진 연동 구조
+- [x] Flutter 실시간 자막 UI 구조
+- [x] Flutter Mock 자막 스트림 구조
+- [x] Flutter API/SSE 서비스 계층 구조
+- [x] Flutter feature 기반 폴더 구조 정리
+- [x] Flutter 주요 UI 버튼 동작 확인
+- [x] Flutter analyze No issues found 확인
 
 <br/>
 
 ### 🚧 작업 중인 기능
 
+- [ ] STT/API/SSE 실제 연결 경로 정합성 수정
+- [ ] 질문 API `/lecture/ask` 프론트 연결
+- [ ] 용어집 API 엔드포인트 추가 또는 프론트 경로 수정
+- [ ] 실시간 자막 수신 방식 결정: SSE 유지 또는 WebSocket 구조 전환
 - [ ] Flutter 앱 UI 마무리
 - [ ] 자동 강의 요약 기능
 - [ ] 다중 사용자 동시 접속 안정성 테스트
@@ -389,5 +453,5 @@ pip install -r requirements.txt
 - [ ] 북마크 기능
 - [ ] 사용자 설정 화면
 - [ ] 강의 복습용 요약 리포트
-
-##
+- [ ] 외부 사이트 적용을 위한 iframe 구조 검토
+- [ ] Chrome Extension 기반 오버레이 적용 구조 검토
