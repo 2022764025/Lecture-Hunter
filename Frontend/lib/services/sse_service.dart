@@ -162,7 +162,7 @@ class SseService {
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           originalText: text,
           translatedText: text.contains(RegExp(r'[a-zA-Z]{4,}'))
-              ? '${text} (번역됨)'
+              ? '$text (번역됨)'
               : null,
           language: text.contains(RegExp(r'[a-zA-Z]{4,}')) ? 'en' : 'ko',
           timestamp: DateTime.now(),

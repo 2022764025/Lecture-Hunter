@@ -89,12 +89,12 @@ class _SubtitleBox extends ConsumerWidget {
           color: isDark ? Colors.black87 : Colors.white, // ✨ 배경색 자동 전환
           borderRadius: _borderRadius(settings.position),
           border: Border.all(
-            color: _statusColor(connectionStatus).withOpacity(0.6),
+            color: _statusColor(connectionStatus).withValues(alpha: 0.6),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -165,7 +165,7 @@ class _HeaderBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: Row(
@@ -192,7 +192,7 @@ class _HeaderBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.blueAccent.withOpacity(0.3),
+                color: Colors.blueAccent.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -378,8 +378,8 @@ class _SubtitleContent extends ConsumerWidget {
               subtitle!.translatedText!,
               style: TextStyle(
                 color: isDark 
-                    ? Colors.lightBlueAccent.withOpacity(0.85) 
-                    : Colors.blue[700]!.withOpacity(0.85), // ✨ 글자색
+                    ? Colors.lightBlueAccent.withValues(alpha: 0.85) 
+                    : Colors.blue[700]!.withValues(alpha: 0.85), // ✨ 글자색
                 fontSize: settings.fontSize - 2,
                 height: 1.4,
               ),
@@ -392,9 +392,9 @@ class _SubtitleContent extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.purpleAccent.withOpacity(0.2),
+                color: Colors.purpleAccent.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.purpleAccent.withOpacity(0.4)),
+                border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.4)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -521,7 +521,7 @@ class SubtitleSettingsSheet extends ConsumerWidget {
               subtitle: Text('원문 아래 번역문 표시',
                   style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 12)),
               value: settings.showTranslation,
-              activeColor: Colors.blueAccent,
+              activeThumbColor: Colors.blueAccent,
               onChanged: (v) => ref
                   .read(subtitleSettingsProvider.notifier)
                   .update(settings.copyWith(showTranslation: v)),

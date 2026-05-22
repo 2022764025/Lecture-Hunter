@@ -27,10 +27,10 @@ class StatusBar extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1A2E).withOpacity(0.9),
+            color: const Color(0xFF1A1A2E).withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: _statusColor(status).withOpacity(0.5),
+              color: _statusColor(status).withValues(alpha: 0.5),
             ),
           ),
           child: Row(

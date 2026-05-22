@@ -114,10 +114,10 @@ class _PanelContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1A1A2E),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(-4, 4),
           ),
@@ -179,7 +179,7 @@ class _ModeToggle extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -277,10 +277,10 @@ class _QuestionInput extends StatelessWidget {
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.white30, fontSize: 13),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.06),
+        fillColor: Colors.white.withValues(alpha: 0.06),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.blueAccent.withOpacity(0.3)),
+          borderSide: BorderSide(color: Colors.blueAccent.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -288,7 +288,7 @@ class _QuestionInput extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         contentPadding: const EdgeInsets.all(12),
       ),
@@ -348,9 +348,9 @@ class _ResponseCard extends StatelessWidget {
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.blueAccent.withOpacity(0.2)),
+        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.2)),
       ),
       child: _buildContent(),
     ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0);
@@ -456,10 +456,10 @@ class _ResponseCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.blueAccent.withOpacity(0.15),
+                          color: Colors.blueAccent.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: Colors.blueAccent.withOpacity(0.3)),
+                              color: Colors.blueAccent.withValues(alpha: 0.3)),
                         ),
                         child: Text(
                           kp,

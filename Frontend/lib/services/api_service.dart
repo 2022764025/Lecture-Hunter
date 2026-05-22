@@ -76,7 +76,7 @@ class ApiService {
         keyPoints: ['오차 역전파', '경사 하강법', '가중치 업데이트'],
         source: '강의 23:15 구간 참고',
       ),
-      'professor': QuestionResponse(
+      'professor': const QuestionResponse(
         answer: '교수님 답변: 방금 설명드린 내용에서 **기울기 소실 문제**는 '
             'Sigmoid 활성화 함수를 사용할 때 미분값이 0에 가까워지면서 발생합니다. '
             'ReLU를 사용하면 이 문제를 완화할 수 있습니다.',
@@ -87,7 +87,7 @@ class ApiService {
     };
 
     return answers[request.mode] ??
-        QuestionResponse(
+        const QuestionResponse(
           answer: '질문을 이해했습니다. 강의 맥락을 검색 중...',
           keyPoints: [],
         );
@@ -105,7 +105,7 @@ class ApiService {
       ),
       GlossaryEntry(
         term: '${term}_관련',
-        definition: '${term}과 관련된 심화 개념입니다.',
+        definition: '$term과 관련된 심화 개념입니다.',
         source: '추가 참고자료',
       ),
     ];

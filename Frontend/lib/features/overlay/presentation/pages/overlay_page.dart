@@ -101,13 +101,13 @@ class _LectureBackground extends StatelessWidget {
             Icon(
               Icons.play_circle_outline,
               size: 80,
-              color: Colors.white.withOpacity(0.06),
+              color: Colors.white.withValues(alpha: 0.06),
             ),
             const SizedBox(height: 16),
             Text(
               '강의 영상 영역',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.08),
                 fontSize: 18,
                 letterSpacing: 2,
               ),
@@ -116,7 +116,7 @@ class _LectureBackground extends StatelessWidget {
             Text(
               'LiveLectureAI Overlay Demo',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 fontSize: 12,
               ),
             ),
@@ -135,8 +135,6 @@ class _DevControlBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMock = ref.watch(mockModeProvider);
-    final connectionStatus = ref.watch(connectionStatusProvider);
-    final status = connectionStatus.value;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -159,8 +157,8 @@ class _DevControlBar extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: isMock
-                  ? Colors.orangeAccent.withOpacity(0.3)
-                  : Colors.greenAccent.withOpacity(0.3),
+                  ? Colors.orangeAccent.withValues(alpha: 0.3)
+                  : Colors.greenAccent.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
@@ -234,7 +232,7 @@ class _DevControlBar extends ConsumerWidget {
               : ListView.separated(
                   itemCount: history.length,
                   separatorBuilder: (_, __) => Divider(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                   ),
                   itemBuilder: (_, i) {
                     final seg = history[history.length - 1 - i]; // 최신 순

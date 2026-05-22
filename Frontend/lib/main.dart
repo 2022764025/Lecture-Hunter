@@ -48,7 +48,7 @@ class LiveLectureApp extends StatelessWidget {
         activeTrackColor: Colors.blueAccent,
         inactiveTrackColor: Colors.white12,
         thumbColor: Colors.blueAccent,
-        overlayColor: Colors.blueAccent.withOpacity(0.2),
+        overlayColor: Colors.blueAccent.withValues(alpha: 0.2),
       ),
 
       // 스위치 테마

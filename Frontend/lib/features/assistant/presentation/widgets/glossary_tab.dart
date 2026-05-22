@@ -56,7 +56,7 @@ class _GlossaryTabState extends ConsumerState<GlossaryTab> {
   Widget _buildResults(GlossarySearchState state) {
     switch (state.status) {
       case ResponseStatus.idle:
-        return _EmptyState(
+        return const _EmptyState(
           icon: Icons.search,
           message: '용어를 입력하면\nAI가 즉시 뜻풀이를 제공합니다',
         );
@@ -140,7 +140,7 @@ class _GlossarySearchInput extends StatelessWidget {
               )
             : null,
         filled: true,
-        fillColor: Colors.white.withOpacity(0.06),
+        fillColor: Colors.white.withValues(alpha: 0.06),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,
@@ -169,9 +169,9 @@ class _GlossaryCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.blueAccent.withOpacity(0.15)),
+        border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +183,7 @@ class _GlossaryCard extends StatelessWidget {
                 width: 20,
                 height: 20,
                 decoration: BoxDecoration(
-                  color: Colors.blueAccent.withOpacity(0.2),
+                  color: Colors.blueAccent.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 alignment: Alignment.center,
@@ -225,10 +225,10 @@ class _GlossaryCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.greenAccent.withOpacity(0.05),
+                color: Colors.greenAccent.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                    color: Colors.greenAccent.withOpacity(0.2)),
+                    color: Colors.greenAccent.withValues(alpha: 0.2)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,7 +328,7 @@ class _EmptyState extends StatelessWidget {
               label: const Text('용어 추가 요청'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.blueAccent,
-                side: BorderSide(color: Colors.blueAccent.withOpacity(0.4)),
+                side: BorderSide(color: Colors.blueAccent.withValues(alpha: 0.4)),
                 textStyle: const TextStyle(fontSize: 12),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               ),
