@@ -14,7 +14,7 @@
   <img alt="Flutter" src="https://img.shields.io/badge/Flutter-3.x-02569B?style=flat-square&logo=flutter&logoColor=white" />
   <img alt="Dart" src="https://img.shields.io/badge/Dart-0175C2?style=flat-square&logo=dart&logoColor=white" />
   <img alt="Riverpod" src="https://img.shields.io/badge/Riverpod-상태관리-0099E5?style=flat-square" />
-  <img alt="Platform" src="https://img.shields.io/badge/platform-Mobile%20%7C%20Desktop-lightgrey?style=flat-square" />
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Web%20%7C%20Desktop%20%7C%20Mobile-lightgrey?style=flat-square" />
 </p>
 
 <p align="center">
@@ -26,8 +26,8 @@
 </p>
 
 > [!IMPORTANT]
-> 이 저장소는 **LiveLectureAI의 프론트엔드 앱**을 다룹니다.  
-> 백엔드 서버, STT/LLM 모델, 데이터베이스 구성은 별도 서버 저장소 또는 백엔드 문서를 참고해 주세요.
+> 이 저장소의 `Frontend` 폴더는 **LiveLectureAI의 Flutter 프론트엔드 앱**을 다룹니다.  
+> 백엔드 서버, STT/LLM 모델, 데이터베이스 구성은 `App` 폴더 또는 백엔드 문서를 참고해 주세요.
 
 <br/>
 
@@ -41,7 +41,8 @@
 6. [환경 변수](#-환경-변수)
 7. [프로젝트 구조](#-프로젝트-구조)
 8. [개발 명령어](#-개발-명령어)
-9. [진행 상황](#-진행-상황)
+9. [백엔드 연동 상태](#-백엔드-연동-상태)
+10. [진행 상황](#-진행-상황)
 
 <br/>
 
@@ -89,7 +90,7 @@
     </td>
     <td width="50%" valign="top">
       <h3>6️⃣ 실시간 서버 연동</h3>
-      WebSocket 또는 SSE 기반 통신을 통해 자막·요약·질문 응답 데이터를 빠르게 반영합니다.
+      WebSocket 또는 SSE 기반 통신을 통해 자막·요약·질문 응답 데이터를 빠르게 반영하는 구조를 준비합니다.
     </td>
   </tr>
 </table>
@@ -121,15 +122,15 @@
 
 <img src="https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white"/> <img src="https://img.shields.io/badge/Dart-0175C2?style=flat-square&logo=dart&logoColor=white"/> <img src="https://img.shields.io/badge/Riverpod-0099E5?style=flat-square"/>
 
-- **Flutter** — 모바일·데스크탑 크로스 플랫폼 앱 개발
+- **Flutter** — Web 기반 실시간 자막 오버레이 UI 개발
 - **Dart** — 앱 로직 및 UI 구현
-- **Riverpod** — 전역 상태 관리
-- **WebSocket / SSE** — 실시간 자막·질문 응답 수신
-- **REST API** — 강의 세션, 요약, 용어집 데이터 요청
+- **Riverpod** — 자막, 테마, 질문 패널 상태 관리
+- **HTTP API** — 질문, 용어집, 요약 API 연결 준비
+- **SSE / WebSocket** — 실시간 자막 수신 및 오디오 스트리밍 연결 준비
 
 ### 🔗 연동 대상
 
-프론트엔드는 다음 백엔드 기능과 연동됩니다.
+프론트엔드는 다음 백엔드 기능과 연동될 예정입니다.
 
 - 음성 인식 결과 수신
 - 번역 자막 수신
@@ -145,7 +146,6 @@
 
 - Flutter 3.x
 - Dart SDK
-- Android Studio 또는 Xcode
 - Chrome, Android Emulator, iOS Simulator, macOS Desktop 중 실행 대상 1개 이상
 - LiveLectureAI 백엔드 서버
 
@@ -153,10 +153,8 @@
 
 ```bash
 git clone https://github.com/2022764025/Lecture-Hunter.git
-cd Lecture-Hunter/flutter_app
+cd Lecture-Hunter/Frontend
 ```
-
-> 프론트엔드 전용 저장소로 분리되어 있다면 `cd flutter_app` 과정은 생략하고, 클론한 저장소 루트에서 아래 명령어를 실행하면 됩니다.
 
 ### 3. 패키지 설치
 
@@ -172,8 +170,10 @@ flutter doctor
 
 ### 5. 앱 실행
 
+Chrome 기준 실행:
+
 ```bash
-flutter run
+flutter run -d chrome
 ```
 
 실행 대상을 직접 지정하려면 다음처럼 사용할 수 있습니다.
@@ -189,9 +189,13 @@ flutter run -d <device-id>
 
 ## 🔐 환경 변수
 
-프론트엔드는 백엔드 API 주소와 실시간 통신 주소가 필요합니다.
+현재 프론트엔드는 서비스 파일 내부에서 로컬 백엔드 주소를 사용합니다.
 
-### 권장 실행 방식
+```dart
+http://localhost:8000
+```
+
+추후 환경별 실행을 위해 아래 방식으로 분리 예정입니다.
 
 ```bash
 flutter run \
@@ -207,27 +211,59 @@ flutter run \
 | `WS_BASE_URL` | WebSocket 서버 주소 | `ws://localhost:8000` |
 | `APP_ENV` | 실행 환경 | `local`, `dev`, `prod` |
 
-> 실제 프로젝트에서 `.env` 파일 또는 별도 config 파일을 사용한다면, 위 변수명을 프로젝트 설정 방식에 맞게 매핑해 주세요.
-
 <br/>
 
 ## 📁 프로젝트 구조
 
-아래 구조는 Flutter 프론트엔드 기준의 권장 구성입니다. 실제 폴더명은 프로젝트 상황에 맞게 조정될 수 있습니다.
+현재 프론트엔드는 feature 기반 구조로 정리되어 있습니다.
 
 ```text
-lib/
-├── main.dart                 # 앱 진입점
-├── app/                      # 앱 공통 설정, 라우팅, 테마
-├── core/                     # 상수, 네트워크, 예외 처리, 유틸
-├── features/                 # 기능 단위 화면 및 상태
-│   ├── lecture/              # 강의 세션
-│   ├── caption/              # 실시간 자막
-│   ├── chat/                 # AI 질문
-│   ├── summary/              # 강의 요약
-│   └── glossary/             # 용어집
-├── shared/                   # 공통 위젯, 공통 모델
-└── services/                 # API, WebSocket, 로컬 저장소 연동
+Frontend/
+├── main.dart
+├── pubspec.yaml
+├── pubspec.lock
+├── analysis_options.yaml
+├── android/
+├── ios/
+├── web/
+├── macos/
+├── windows/
+├── linux/
+└── lib/
+    ├── main.dart
+    ├── core/
+    │   ├── constants/
+    │   └── theme/
+    ├── shared/
+    │   └── widgets/
+    ├── services/
+    │   ├── api_service.dart
+    │   ├── sse_service.dart
+    │   └── settings_service.dart
+    └── features/
+        ├── overlay/
+        │   └── presentation/
+        │       ├── pages/
+        │       │   └── overlay_page.dart
+        │       ├── widgets/
+        │       │   └── status_bar.dart
+        │       └── controllers/
+        │           └── overlay_controller.dart
+        ├── caption/
+        │   └── presentation/
+        │       ├── widgets/
+        │       │   └── caption_overlay.dart
+        │       └── controllers/
+        │           ├── caption_controller.dart
+        │           └── subtitle_model.dart
+        └── assistant/
+            └── presentation/
+                ├── panels/
+                │   └── assistant_panel.dart
+                ├── widgets/
+                │   └── glossary_tab.dart
+                └── controllers/
+                    └── question_model.dart
 ```
 
 <br/>
@@ -246,10 +282,10 @@ dart format .
 flutter analyze
 ```
 
-### 테스트
+현재 기준:
 
-```bash
-flutter test
+```text
+No issues found!
 ```
 
 ### 빌드
@@ -270,15 +306,43 @@ flutter build macos
 
 <br/>
 
-## 📡 백엔드 연동 체크리스트
+## 📡 백엔드 연동 상태
 
-프론트엔드 실행 전 아래 항목을 확인해 주세요.
+현재 프론트엔드는 Mock 기반 UI 동작 확인까지 완료되었으며, 백엔드 실제 엔드포인트와의 API 경로 정합성 수정 단계입니다.
 
-- [ ] 백엔드 서버가 실행 중인가요?
-- [ ] `API_BASE_URL` 주소가 백엔드 서버 주소와 일치하나요?
-- [ ] `WS_BASE_URL` 주소가 WebSocket 주소와 일치하나요?
-- [ ] CORS 또는 WebSocket 연결 정책이 클라이언트 실행 주소를 허용하나요?
-- [ ] 강의 세션 생성·자막 수신·질문 응답 API가 정상 동작하나요?
+### 확인 완료 항목
+
+- `api_service.dart` 백엔드 HTTP 호출 구조 확인
+- `sse_service.dart` 실시간 자막 스트림 수신 구조 확인
+- `caption_controller.dart` Provider 연결 구조 확인
+- `overlay_page.dart` Mock / 실서버 전환 구조 확인
+- 백엔드 실제 엔드포인트 목록 확인
+
+### 현재 프론트 연결 구조
+
+- `ApiService` 기반 HTTP API 호출 구조 존재
+- `SseService` 기반 실시간 자막 스트림 수신 구조 존재
+- `sseServiceProvider` 등록 완료
+- `connectionStatusProvider` 연결 완료
+- `subtitleStreamProvider` 연결 완료
+- `currentSubtitleProvider` 기반 최신 자막 표시 구조 존재
+- Mock 모드 / 실서버 연결 전환 구조 존재
+
+### 확인된 경로 불일치
+
+| 구분 | 현재 프론트 경로 | 현재 백엔드 경로 |
+|---|---|---|
+| 질문 API | `POST /api/v1/qa/ask` | `GET /lecture/ask` |
+| 용어집 API | `GET /api/v1/glossary/search` | 백엔드 엔드포인트 미확인 |
+| 실시간 자막 수신 | `GET /api/v1/subtitle/stream` | `WS /ws/audio/{lecture_id}` |
+
+### 다음 수정 예정
+
+- `api_service.dart` 질문 API 경로 수정
+- `/lecture/ask` 요청 방식 및 파라미터 구조 확인
+- 용어집 API 백엔드 엔드포인트 추가 여부 확인
+- `sse_service.dart` 유지 여부 결정
+- 백엔드 WebSocket 구조와 프론트 실시간 자막 수신 구조 매칭
 
 <br/>
 
@@ -287,19 +351,30 @@ flutter build macos
 ### ✅ 완료
 
 - [x] Flutter 앱 기본 구조 구성
-- [x] 실시간 자막 화면 UI
+- [x] feature 기반 폴더 구조 정리
+- [x] 파일명과 클래스명 네이밍 통일
+- [x] 실시간 자막 오버레이 UI
 - [x] 질문 패널 UI
+- [x] 용어집 탭 UI
 - [x] Riverpod 기반 상태 관리 구조
-- [x] 백엔드 실시간 통신 연동 구조
+- [x] Mock 자막 스트림 구조
+- [x] Mock 질문/용어집 응답 구조
+- [x] KO/EN 언어 전환 버튼
+- [x] 주요 UI 버튼 동작 확인
+- [x] Flutter analyze No issues found 확인
+- [x] GitHub main 브랜치 최신 반영
 
 ### 🚧 작업 중
 
+- [ ] STT/API/SSE 실제 연결 경로 정합성 수정
+- [ ] 질문 API `/lecture/ask` 프론트 연결
+- [ ] 용어집 API 엔드포인트 추가 또는 프론트 경로 수정
+- [ ] 실시간 자막 수신 방식 결정: SSE 유지 또는 WebSocket 구조 전환
 - [ ] 강의 요약 카드 UI 고도화
 - [ ] 용어집 화면 고도화
 - [ ] 강의 세션 히스토리 화면
 - [ ] 에러·로딩 상태 UX 개선
 - [ ] 반응형 레이아웃 정리
-- [ ] 테스트 코드 보강
 
 <br/>
 
@@ -319,5 +394,3 @@ git commit -m "feat: add your feature"
 ```
 
 4. Pull Request를 생성합니다.
-
-##
