@@ -14,4 +14,4 @@ __pycache__/
 .packages
 .flutter-plugins
 .flutter-plugins-dependencies
-build/
+build/App/.env
