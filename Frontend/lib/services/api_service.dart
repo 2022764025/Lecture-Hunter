@@ -14,7 +14,7 @@ class ApiService {
 
   ApiService({http.Client? client}) : _client = client ?? http.Client();
 
-  // ─── 교수에게 질문 (RAG Q&A) ─────────────────────────────────
+  // ─── 강의 AI 질문 (RAG Q&A) ─────────────────────────────────
   Future<QuestionResponse> askQuestion(QuestionRequest request) async {
     try {
       final uri = Uri.parse('$_baseUrl/lecture/ask').replace(
