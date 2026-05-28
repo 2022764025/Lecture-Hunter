@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     VLM_MODEL: str = "llama3.2-vision:11b" # RTX 5060: llava:13b, 빠르게 테스트 하고 싶으면 llava
     
     # VAD
-    VAD_THRESHOLD: float = 0.3 # 0.5
+    VAD_THRESHOLD: float = 0.3 # 기본값 0.3, 소음 환경이면 0.5로 올릴 것
 
     class Config:
         env_file = ".env"

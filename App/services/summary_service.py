@@ -9,9 +9,14 @@
 (3) 데이터 영속화 (Persistence)
     - 결과를 단순히 보여주고 끝내는 게 아니라 lecture_summaries 테이블에 따로 저장.
     나중에 학생 대시보드나 모바일 앱에서 '복습 탭'을 누르면 즉시 요약을 보여줄 수 있는 근거 데이터가 된다.
+(4) Adaptive Briefing (구간별 요약)
+    - 최근 N분간의 자막만 긁어와서 3줄로 요약. 지각생이나 잠깐 딴생각한 학생이 '지금까지 요약' 버튼 누를 때 호출.
+    - lecture_summaries 테이블에 type='adaptive'로 저장하여 전체 요약과 구분.
 """
 
 import ollama
+from datetime import datetime, timezone, timedelta
+from core.config import settings
 from core.database import get_supabase # 싱글턴 중앙화
 
 # 순환 참조 방지: rag_service에서 가져오지 않고 독립 선언
@@ -32,7 +37,10 @@ async def _summarize_chunk(chunk_text: str, chunk_index: int) -> str:
     {chunk_text}
     """
     try:
-        response = await ollama_client.generate(model='gemma2:2b', prompt=prompt)
+        response = await ollama_client.generate(
+            model=settings.LLM_MODEL, 
+            prompt=prompt
+        )
         result = response['response'].strip()
         print(f"[Summary] 청크 {chunk_index} 요약 완료")
         return result
@@ -55,7 +63,10 @@ async def _final_summarize(chunk_summaries: list[str]) -> str:
     {combined}
     """
     try:
-        response = await ollama_client.generate(model='gemma2:2b', prompt=prompt)
+        response = await ollama_client.generate(
+            model=settings.LLM_MODEL,
+            prompt=prompt
+        )
         return response['response'].strip()
     except Exception as e:
         print(f"[Summary] 최종 요약 에러: {e}")
@@ -63,6 +74,7 @@ async def _final_summarize(chunk_summaries: list[str]) -> str:
 
 
 async def generate_lecture_summary(lecture_id: str) -> str:
+    """강의 전체 요약 (강의 종료 시 호출)"""
     supabase = await get_supabase()
 
     # 1. 전체 자막 가져오기 (시간순)
@@ -112,10 +124,73 @@ async def generate_lecture_summary(lecture_id: str) -> str:
     try:
         await supabase.table("lecture_summaries").upsert({
             "lecture_id": lecture_id,
-            "summary_text": summary_result
+            "summary_text": summary_result,
+            "summary_type": "full"
         }, on_conflict="lecture_id").execute()
-        print(f"[Summary] DB 저장 완료: {lecture_id}")
+        print(f"[Summary] 전체 요약 DB 저장 완료: {lecture_id}")
     except Exception as e:
         print(f"[Summary] DB 저장 에러: {e}")
+
+    return summary_result
+
+# 신규 추가: Adaptive Briefing
+async def generate_adaptive_summary(lecture_id: str, minutes: int = 5) -> str:
+    """
+    최근 N분간의 자막을 3줄로 요약 (Adaptive Briefing)
+    학생이 '지금까지 요약' 버튼 누를 때 호출
+    """
+    supabase = await get_supabase()
+
+    # 1. 최근 N분간의 자막만 가져오기
+    since = (datetime.now(timezone.utc) - timedelta(minutes=minutes)).isoformat()
+
+    resp = await supabase.table("lecture_contents") \
+        .select("original_text") \
+        .eq("lecture_id", lecture_id) \
+        .gte("created_at", since) \
+        .order("created_at", desc=False) \
+        .execute()
+
+    if not resp.data:
+        return f"최근 {minutes}분간 강의 내용이 없습니다."
+
+    sentences = [item['original_text'] for item in resp.data if item['original_text']]
+
+    if not sentences:
+        return f"최근 {minutes}분간 요약할 내용이 없습니다."
+
+    print(f"[Adaptive] 최근 {minutes}분 | {len(sentences)}문장 요약 시작")
+
+    # 2. 단일 프롬프트로 바로 요약 (구간이 짧으니 Recursive 불필요)
+    full_text = " ".join(sentences)
+    prompt = f"""
+    아래는 최근 {minutes}분간의 강의 내용입니다.
+    지각생이나 잠깐 딴생각한 학생을 위해 핵심 내용을 3줄로 요약하세요.
+    형식: [요약] 내용...
+
+    [강의 내용]:
+    {full_text}
+    """
+
+    try:
+        response = await ollama_client.generate(
+            model=settings.LLM_MODEL,
+            prompt=prompt
+        )
+        summary_result = response['response'].strip()
+    except Exception as e:
+        print(f"[Adaptive] LLM 요약 에러: {e}")
+        return "요약 생성 중 오류가 발생했습니다."
+
+    # 3. DB 저장 (adaptive 타입으로 별도 저장)
+    try:
+        await supabase.table("lecture_summaries").insert({
+            "lecture_id":   lecture_id,
+            "summary_text": summary_result,
+            "summary_type": "adaptive"      # 전체 요약과 구분
+        }).execute()
+        print(f"[Adaptive] DB 저장 완료: {lecture_id} | {minutes}분 요약")
+    except Exception as e:
+        print(f"[Adaptive] DB 저장 에러: {e}")
 
     return summary_result

@@ -1,4 +1,6 @@
 import asyncio
+from datetime import datetime, timedelta
+from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,9 +8,14 @@ from core.database import get_supabase
 
 # [서비스 레이어 임포트]
 from services.rag_service import get_answer_with_memory
-from services.summary_service import generate_lecture_summary
-from services.analytics_service import get_content_qc_analysis, get_instructor_report
+from services.analytics_service import (
+    get_interaction_intensity,
+    get_student_inactivity_timeline,
+    get_content_qc_analysis,
+    get_instructor_report
+)
 from services.vlm_service import vlm_engine
+from services.summary_service import generate_lecture_summary, generate_adaptive_summary
 from api.v1 import websocket 
 
 # (0.1) 전역 상태 관리
@@ -92,7 +99,7 @@ async def ask_ai_assistant(lecture_id: str, question: str, target_lang: str = "K
 @app.get("/lecture/analytics/qc/{lecture_id}", tags=["Analytics"])
 async def fetch_qc_report(lecture_id: str):
     try:
-        supabase = await get_supabase()  # 비동기 클라이언트로 교체
+        supabase = await get_supabase()
         return await get_content_qc_analysis(supabase, lecture_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -100,8 +107,26 @@ async def fetch_qc_report(lecture_id: str):
 @app.get("/lecture/analytics/instructor/{lecture_id}", tags=["Analytics"])
 async def fetch_instructor_report(lecture_id: str):
     try:
-        supabase = await get_supabase()  # 비동기 클라이언트로 교체
+        supabase = await get_supabase()
         return await get_instructor_report(supabase, lecture_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 신규 추가: 인터랙션 분포
+@app.get("/lecture/analytics/interaction/{lecture_id}", tags=["Analytics"])
+async def fetch_interaction_intensity(lecture_id: str):
+    try:
+        supabase = await get_supabase()
+        return await get_interaction_intensity(supabase, lecture_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 신규 추가: 집중 공백 타임라인
+@app.get("/lecture/analytics/inactivity/{lecture_id}", tags=["Analytics"])
+async def fetch_inactivity_timeline(lecture_id: str, student_id: str):
+    try:
+        supabase = await get_supabase()
+        return await get_student_inactivity_timeline(supabase, lecture_id, student_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -134,50 +159,185 @@ async def end_lecture(lecture_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- [기능 5] 슬라이드 분석 (VLM) ---
+# --- [기능 5] 슬라이드 분석 및 정밀 앵커링 (VLM) ---
 @app.post("/lecture/analyze-slide/{lecture_id}", tags=["Multimodal"])
-async def analyze_slide(lecture_id: str, target_lang: str = "Korean", file: UploadFile = File(...)):
+async def analyze_slide(
+    lecture_id: str,
+    file: UploadFile = File(...),
+    target_lang: str = "Korean",                # Query Parameter 유지
+    client_timestamp: Optional[str] = None      # Flutter 캡처 시점 (ISO 8601)
+):
     try:
-        # (1) VLM 분석
+        # 1. VLM 분석
         image_bytes = await file.read()
-        analysis = await vlm_engine.analyze_lecture_screen(image_bytes, target_lang=target_lang)
+        analysis = await vlm_engine.analyze_lecture_screen(
+            image_bytes,
+            target_lang=target_lang
+        )
 
-        has_visual = analysis["has_visual"]
-        visual_context = analysis["summary"]
+        has_visual = analysis.get("has_visual", False)
+        visual_context = analysis.get("summary", "")
 
-        # (2) 시각 자료 감지 시 최신 자막에 앵커링
-        if has_visual:
-            supabase = await get_supabase()
+        # 시각 자료 없으면 DB 탐색 없이 즉시 리턴
+        if not has_visual:
+            return {
+                "status": "success",
+                "has_visual": False,
+                "message": "시각 자료가 감지되지 않았습니다."
+            }
 
-            # (2-1) 현재 강의의 최신 자막 ID 조회
-            latest_content = await supabase.table('lecture_contents') \
+        supabase = await get_supabase()
+        match_id = None
+
+        # 2. 정밀 앵커링: client_timestamp 있을 때
+        if client_timestamp:
+            try:
+                # iso8601 라이브러리 없이 내장 모듈로 파싱
+                client_dt = datetime.fromisoformat(
+                    client_timestamp.replace("Z", "+00:00")
+                )
+            except ValueError:
+                raise HTTPException(
+                    status_code=400,
+                    detail="client_timestamp 형식 오류. ISO 8601 형식으로 보내주세요. 예: 2026-05-19T14:00:05Z"
+                )
+
+            # ±5초 시간 윈도우로 후보 자막 조회
+            start_window = (client_dt - timedelta(seconds=5)).isoformat()
+            end_window   = (client_dt + timedelta(seconds=5)).isoformat()
+
+            candidates = await supabase.table('lecture_contents') \
+                .select('id, created_at') \
+                .eq('lecture_id', lecture_id) \
+                .gte('created_at', start_window) \
+                .lte('created_at', end_window) \
+                .execute()
+
+            if candidates.data:
+                # 시간 차이가 가장 작은 자막에 앵커링
+                best = min(
+                    candidates.data,
+                    key=lambda x: abs((
+                        datetime.fromisoformat(
+                            x['created_at'].replace("Z", "+00:00")
+                        ) - client_dt
+                    ).total_seconds())
+                )
+                match_id = best['id']
+                diff = abs((
+                    datetime.fromisoformat(
+                        best['created_at'].replace("Z", "+00:00")
+                    ) - client_dt
+                ).total_seconds())
+                print(f"[Anchor] 정밀 매칭 성공 | 자막 ID: {match_id} | 오차: {diff}초")
+
+            else:
+                # Fallback: 윈도우 벗어난 경우 캡처 시점 직전 최신 자막
+                fallback = await supabase.table('lecture_contents') \
+                    .select('id') \
+                    .eq('lecture_id', lecture_id) \
+                    .lte('created_at', client_timestamp) \
+                    .order('created_at', desc=True) \
+                    .limit(1) \
+                    .execute()
+
+                if fallback.data:
+                    match_id = fallback.data[0]['id']
+                    print(f"[Anchor] Fallback 매칭 | 자막 ID: {match_id}")
+
+        else:
+            # client_timestamp 없을 때: 단순 최신 자막에 앵커링
+            latest = await supabase.table('lecture_contents') \
                 .select('id') \
                 .eq('lecture_id', lecture_id) \
                 .order('created_at', desc=True) \
                 .limit(1) \
                 .execute()
 
-            # (2-2) 최신 자막에 시각 자료 플래그 + 요약 업데이트
-            if latest_content.data:
-                target_id = latest_content.data[0]['id']
-                await supabase.table('lecture_contents') \
-                    .update({
-                        'has_visual': True,
-                        'visual_summary': visual_context
-                    }) \
-                    .eq('id', target_id) \
-                    .execute()
-                print(f"[Anchor] 자막 ID({target_id})에 {target_lang}으로 슬라이드 정보 매핑 완료")
+            if latest.data:
+                match_id = latest.data[0]['id']
+                print(f"[Anchor] 최신 자막 매칭 | 자막 ID: {match_id}")
+
+        # 3. DB 업데이트
+        if match_id:
+            await supabase.table('lecture_contents') \
+                .update({
+                    'has_visual': True,
+                    'visual_summary': visual_context
+                }) \
+                .eq('id', match_id) \
+                .execute()
+
+            return {
+                "status": "success",
+                "has_visual": True,
+                "anchored_content_id": match_id,
+                "visual_context": visual_context,
+                "target_lang": target_lang
+            }
+
+        return {
+            "status": "success",
+            "has_visual": True,
+            "message": "시각 자료는 감지됐으나 매칭할 자막을 찾지 못했습니다."
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[Anchor Error] {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- [기능 6] 실시간 전문 용어 사전 조회 ---
+@app.get("/lecture/glossary/{lecture_id}", tags=["Glossary"])
+async def get_glossary(lecture_id: str, keyword: str = None):
+    """
+    해당 강의의 전문 용어 사전 조회
+    keyword 파라미터로 특정 용어 검색 가능
+    Flutter 용어 위젯에서 호출
+    """
+    try:
+        supabase = await get_supabase()
+
+        query = supabase.table("lecture_glossary") \
+            .select("term, definition, created_at") \
+            .eq("lecture_id", lecture_id) \
+            .order("created_at", desc=True)
+
+        # 키워드 검색 필터
+        if keyword:
+            query = query.ilike("term", f"%{keyword}%")
+
+        result = await query.execute()
 
         return {
             "lecture_id": lecture_id,
-            "has_visual": has_visual,
-            "visual_context": visual_context,
-            "target_lang": target_lang # 결과에 어떤 언어로 처리됐는지 포함
+            "keyword": keyword,
+            "count": len(result.data),
+            "glossary": result.data
         }
 
     except Exception as e:
-        print(f"[API 에러] 슬라이드 분석 중 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# --- [기능 7] 실시간 구간별 요약 브리핑 (Adaptive Briefing) ---
+@app.get("/lecture/summary/adaptive/{lecture_id}", tags=["Summary"])
+async def get_adaptive_summary(lecture_id: str, minutes: int = 5):
+    """
+    최근 N분간의 강의 내용을 3줄로 요약
+    학생이 '지금까지 요약' 버튼 누를 때 호출
+    minutes: 요약할 구간 (기본 5분, 최대 30분)
+    """
+    try:
+        # 최대 30분으로 제한 (너무 길면 토큰 초과)
+        minutes = min(minutes, 30)
+        summary = await generate_adaptive_summary(lecture_id, minutes=minutes)
+        return {
+            "lecture_id": lecture_id,
+            "minutes": minutes,
+            "summary": summary
+        }
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
