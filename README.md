@@ -1,19 +1,24 @@
-![LiveLectureLogo](./assets/LiveLectureLogo2.png)
-![header](https://capsule-render.vercel.app/api?type=waving&height=250&color=gradient&text=Lecture%20Hunter&descAlign=59&textBg=false&descAlignY=51&fontAlignY=35&animation=fadeIn&desc=강의를%20더%20잘%20따라가게%20도와주는%20AI%20학습%20도우미&descSize=22&fontSize=78)
+<p align="center">
+  <img src="./assets/LectureHunter_Logo3.jpeg" alt="Lecture Hunter Logo" width="100%" />
+</p>
 
-<p align="center">    
+<p align="center">
   <a href="#-시작하기">
-    <img src="https://img.shields.io/badge/QUICK%20START-4FC08D?style=for-the-badge&logoColor=white"/>
+    <img src="https://img.shields.io/badge/QUICK%20START-4FC08D?style=for-the-badge&logoColor=white" alt="Quick Start" />
   </a>
   <a href="#-사용-예시">
-    <img src="https://img.shields.io/badge/DEMO-5C86FA?style=for-the-badge&logoColor=white"/>
+    <img src="https://img.shields.io/badge/DEMO-5C86FA?style=for-the-badge&logoColor=white" alt="Demo" />
   </a>
-  <br/><br/>
+  <br/>
   <img alt="Status" src="https://img.shields.io/badge/status-개발중-orange?style=flat-square" />
   <img alt="License" src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" />
   <img alt="Flutter" src="https://img.shields.io/badge/Flutter-3.x-02569B?style=flat-square&logo=flutter&logoColor=white" />
   <img alt="Python" src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white" />
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" />
+</p>
+
+<p align="center">
+  <b>강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯 개발</b>
 </p>
 
 <p align="center">
@@ -24,89 +29,124 @@
   <a href="docs/README_jp.md">🇯🇵 日本語</a>
 </p>
 
-<br/>
+> [!NOTE]
+> 🎓 **동아대학교 AI학과** SW중심대학사업 현장미러형 연계 프로젝트
 
 > [!TIP]
-> 처음 오셨나요? **[이런 적 있으세요?](#-이런-적-있으세요)** 섹션부터 읽어보시면 빠르게 감이 잡혀요.
-
-> [!IMPORTANT]
-> 현재 개발 중인 프로젝트입니다. 기능별 진행 상황은 [진행 상황](#-진행-상황) 섹션에서 확인하실 수 있어요.
+> 처음 보는 분이라면 [이런 문제를 해결합니다](#-이런-문제를-해결합니다) → [핵심 기능](#-핵심-기능) → [사용 예시](#-사용-예시) 순서로 읽으면 빠르게 이해할 수 있습니다.
 
 <br/>
 
-## 🧭 Navigation
+## 📌 프로젝트 소개
 
-1. [이런 적 있으세요?](#-이런-적-있으세요)
-2. [LiveLectureAI가 해주는 일](#-livelectureai가-해주는-일)
-3. [어떻게 생겼나요?](#-어떻게-생겼나요)
-4. [사용 예시](#-사용-예시)
-5. [기술 스택](#-기술-스택)
-6. [시작하기](#-시작하기)
-7. [진행 상황](#-진행-상황)
-8. [팀](#-팀)
+**Lecture Hunter**는 실시간 강의를 더 쉽게 이해하고 복습할 수 있도록 도와주는 AI 기반 학습 도우미입니다.
 
-<br/>
+강의 중 발생하는 음성, 슬라이드 화면, 질문 내용을 함께 분석하여 다음과 같은 기능을 제공합니다.
 
-## 🤔 이런 적 있으세요?
-
-> *"영어 강의인데 한 단어 놓치니까 그 뒤로 다 못 알아듣겠어…"*  
-> *"수업 중에 모르는 용어가 나왔는데, 손 들고 물어보기는 좀 부담스러워…"*  
-> *"10분 늦게 들어왔는데, 지금 무슨 얘기 하는지 모르겠어…"*  
-> *"복습할 때 1시간짜리 강의를 다시 듣기는 너무 길어…"*
-
-**이런 순간들을 위한 학습 도우미입니다.**
+- 교수님 음성을 실시간 자막으로 변환
+- 외국어 강의를 한국어로 번역
+- 슬라이드 속 도표, 수식, 그림까지 함께 분석
+- 강의 흐름을 놓쳤을 때 핵심 내용 요약
+- 강의 맥락을 반영한 AI 질문 답변
+- 어려운 용어를 자동으로 정리하는 용어집 제공
 
 <br/>
 
-## ✨ LiveLectureAI가 해주는 일
+## 📚 목차
 
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <h3>1️⃣ 실시간 자막</h3>
-      교수님이 말하는 걸 AI가 받아 적어서 화면에 띄워줍니다. <b>외국어 강의는 한국어로 번역</b>해서 같이 보여줘요.
-    </td>
-    <td width="50%" valign="top">
-      <h3>2️⃣ 슬라이드까지 이해하는 AI</h3>
-      화면에 떠 있는 <b>슬라이드 속 도표·수식·그림</b>까지 AI가 함께 봐요. 그래서 강의 맥락을 통째로 이해합니다.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <h3>3️⃣ 강의 중 바로 질문</h3>
-      모르는 게 나오면 위젯에 질문하세요. 지금까지의 강의 내용을 기억해서 <b>"방금 그게 무슨 뜻이에요?"</b> 같은 질문도 가능해요.
-    </td>
-    <td width="50%" valign="top">
-      <h3>4️⃣ 5~10분 단위 핵심 요약</h3>
-      흐름을 놓쳤을 때, 최근 강의 내용을 짧게 정리해줍니다. <b>늦게 들어오거나 복습할 때</b> 특히 유용해요.
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2" valign="top">
-      <h3>5️⃣ 자동 용어집</h3>
-      수업에 나온 어려운 용어들을 자동으로 정리해주고, 모르는 단어가 나오면 바로 검색할 수 있어요.
-    </td>
-  </tr>
-</table>
+- [이런 문제를 해결합니다](#-이런-문제를-해결합니다)
+- [핵심 기능](#-핵심-기능)
+- [사용 흐름](#-사용-흐름)
+- [화면 구성](#-화면-구성)
+- [사용 예시](#-사용-예시)
+- [기술 스택](#-기술-스택)
+- [프로젝트 구조](#-프로젝트-구조)
+- [시작하기](#-시작하기)
+- [개발 명령어](#-개발-명령어)
+- [현재 프론트엔드 연결 상태](#-현재-프론트엔드-연결-상태)
+- [진행 상황](#-진행-상황)
 
 <br/>
 
-## 🖼 어떻게 생겼나요?
+## 🤔 이런 문제를 해결합니다
 
-> [!NOTE]
-> 📸 데모 스크린샷·GIF는 곧 추가될 예정입니다!
+> *"영어 강의인데 한 단어 놓치니까 그 뒤로 다 못 알아듣겠어…"*
+
+> *"수업 중에 모르는 용어가 나왔는데, 손 들고 물어보기는 부담스러워…"*
+
+> *"10분 늦게 들어왔는데, 지금 무슨 얘기를 하는지 모르겠어…"*
+
+> *"복습할 때 1시간짜리 강의를 처음부터 다시 듣기는 너무 길어…"*
+
+**Lecture Hunter는 강의 이해, 질문, 요약, 복습을 한 화면에서 도와주는 학습 보조 도구입니다.**
+
+<br/>
+
+## ✨ 핵심 기능
+
+| 기능 | 설명 |
+| --- | --- |
+| 🎙 실시간 자막 | 강의 음성을 텍스트로 변환하여 화면에 표시합니다. |
+| 🌐 실시간 번역 | 외국어 강의를 한국어로 번역하여 함께 보여줍니다. |
+| 🖼 슬라이드 분석 | 슬라이드의 도표, 수식, 그림을 함께 분석하여 강의 맥락을 파악합니다. |
+| 💬 강의 중 질문 | 사용자가 질문하면 지금까지의 강의 내용을 바탕으로 AI가 답변합니다. |
+| 📝 핵심 요약 | 5~10분 단위로 강의 내용을 요약해 흐름을 빠르게 따라갈 수 있도록 돕습니다. |
+| 📚 자동 용어집 | 수업 중 등장한 어려운 개념과 키워드를 자동으로 정리합니다. |
+
+<br/>
+
+## 🔄 사용 흐름
+
+```mermaid
+flowchart LR
+    A[강의 음성 입력] --> B[음성 인식]
+    C[슬라이드 화면 입력] --> D[이미지 분석]
+    B --> E[실시간 자막/번역]
+    D --> F[강의 맥락 이해]
+    E --> G[요약/질문 답변/용어집]
+    F --> G
+    G --> H[Flutter 앱에서 확인]
+```
+
+> GitHub에서 Mermaid가 보이지 않는 환경이라면 아래 흐름으로 이해하면 됩니다.
+>
+> **강의 입력 → 음성·슬라이드 분석 → 자막·번역 생성 → 요약·질문 답변·용어집 제공 → 앱에서 확인**
+
+<br/>
+
+## 🖼 화면 구성
 
 <p align="center">
   <table>
     <tr>
-      <th align="center">자막 오버레이</th>
-      <th align="center">질문 패널</th>
+      <th align="center">자막 화면</th>
       <th align="center">용어집</th>
+      <th align="center">질문 패널</th>
     </tr>
     <tr>
-      <td align="center"><i>(이미지 준비 중)</i></td>
-      <td align="center"><i>(이미지 준비 중)</i></td>
-      <td align="center"><i>(이미지 준비 중)</i></td>
+      <td align="center">
+        <img src="./assets/screens/caption_screen.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/glossary_tab.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/question_panel.png" width="300"/>
+      </td>
+    </tr>
+    <tr>
+      <th align="center">자막 설정</th>
+      <th align="center">자막 히스토리</th>
+      <th align="center">-</th>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="./assets/screens/caption_settings.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/caption_history.png" width="300"/>
+      </td>
+      <td align="center">-</td>
     </tr>
   </table>
 </p>
@@ -115,115 +155,318 @@
 
 ## 💡 사용 예시
 
-**상황:** 영어로 진행되는 머신러닝 강의 중
+**상황: 영어로 진행되는 머신러닝 강의**
 
-```
-🎤 교수님: "Now let's discuss the vanishing gradient problem..."
+```text
+🎤 교수님
+"Now let's discuss the vanishing gradient problem..."
 
-📺 자막 화면:
-   원문: Now let's discuss the vanishing gradient problem...
-   번역: 이제 기울기 소실 문제에 대해 다뤄보겠습니다.
+📺 자막 화면
+원문: Now let's discuss the vanishing gradient problem...
+번역: 이제 기울기 소실 문제에 대해 다뤄보겠습니다.
 
-💬 학생 질문: "기울기 소실이 왜 문제인가요?"
+💬 학생 질문
+"기울기 소실이 왜 문제인가요?"
 
-🤖 AI 답변: "지금 보고 계신 슬라이드 7번 그래프처럼,
-            신경망이 깊어질수록 학습이 잘 안 되는 현상입니다.
-            (강의 15분 시점에서 다룬 내용 참고)"
+🤖 AI 답변
+"지금 보고 계신 슬라이드 7번 그래프처럼,
+신경망이 깊어질수록 학습 신호가 앞쪽 계층까지 잘 전달되지 않아
+학습이 어려워지는 현상입니다.
+강의 15분 시점에서 설명한 역전파 과정과 관련이 있습니다."
 ```
 
 <br/>
 
 ## 🛠 기술 스택
 
-> [!NOTE]
-> 일반 사용자분들은 이 섹션 건너뛰셔도 좋아요!
+### 📱 Frontend
 
-<details>
-<summary><b>📦 클릭해서 펼치기</b></summary>
+| 기술 | 역할 |
+| --- | --- |
+| Flutter 3.x | Web 기반 실시간 자막 오버레이 UI 개발 |
+| Dart | Flutter 앱 개발 언어 |
+| Riverpod | 자막, 테마, 질문 패널 상태 관리 |
+| HTTP API | 질문, 용어집, 요약 API 연결 준비 |
+| SSE / WebSocket | 실시간 자막 수신 및 오디오 스트리밍 연결 준비 |
 
 <br/>
 
-**📱 앱 (Frontend)**
+### ⚙️ Backend
 
-<img src="https://img.shields.io/badge/Flutter-02569B?style=flat-square&logo=flutter&logoColor=white"/> <img src="https://img.shields.io/badge/Dart-0175C2?style=flat-square&logo=dart&logoColor=white"/> <img src="https://img.shields.io/badge/Riverpod-0099E5?style=flat-square"/>
+| 기술 | 역할 |
+| --- | --- |
+| Python 3.12 | 백엔드 개발 언어 |
+| FastAPI | API 서버 구축 |
+| Faster-Whisper | 음성 인식 및 자막 생성 |
+| Llama 3.2 Vision | 슬라이드 이미지 분석 |
+| Gemma 2 | 다국어 번역 |
+| Silero VAD | 음성 구간 감지 |
 
-- Flutter — 모바일·데스크탑 앱
-- Riverpod — 상태 관리
-- WebSocket / SSE — 실시간 통신
+<br/>
 
-**⚙️ 서버 (Backend)**
+### 🗄 Database / Infra
 
-<img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"/> <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white"/> <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white"/>
+| 기술 | 역할 |
+| --- | --- |
+| Supabase | 인증, 데이터 저장, API 연동 |
+| PostgreSQL | 강의 데이터 저장 |
+| pgvector | 강의 내용 벡터 검색 |
+| Ollama | 로컬 LLM 실행 |
 
-- Python 3.12 + FastAPI — API 서버
-- Faster-Whisper — 음성 → 텍스트 변환
-- Llama 3.2 Vision — 슬라이드 이미지 분석
-- Gemma 2 — 다국어 번역
-- Silero VAD — 음성 구간 감지
+<br/>
 
-**🗄 데이터베이스**
+## 📁 프로젝트 구조
 
-<img src="https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white"/> <img src="https://img.shields.io/badge/PostgreSQL-336791?style=flat-square&logo=postgresql&logoColor=white"/>
-
-- Supabase (PostgreSQL + pgvector) — 강의 데이터 저장·검색
-
-</details>
+```text
+Lecture-Hunter
+│
+├── 📂 App/                     # FastAPI backend
+│   ├── main.py
+│   ├── api/
+│   ├── core/
+│   ├── services/
+│   ├── setup_db.sql
+│   └── ...
+│
+├── 📂 Frontend/                # Flutter application
+│   ├── android/
+│   ├── ios/
+│   ├── lib/
+│   │   ├── core/
+│   │   ├── features/
+│   │   │   ├── assistant/
+│   │   │   ├── caption/
+│   │   │   └── overlay/
+│   │   ├── services/
+│   │   ├── shared/
+│   │   └── main.dart
+│   ├── web/
+│   ├── macos/
+│   ├── windows/
+│   ├── linux/
+│   ├── pubspec.yaml
+│   └── analysis_options.yaml
+│
+├── 📂 assets/
+│   └── LectureHunter_Logo3.jpeg
+│
+├── 📄 README.md
+├── 📄 README.en.md
+├── 📄 README.zh.md
+├── 📄 CONTRIBUTING.md
+├── 📄 CODE_OF_CONDUCT.md
+├── 📄 SECURITY.md
+├── 📄 LICENSE
+├── 📄 Dockerfile
+└── 📄 requirements.txt
+```
 
 <br/>
 
 ## 🚀 시작하기
 
-### 필요한 환경
+### 1. 필요한 환경
 
-- macOS (Apple Silicon M1/M2/M3) 또는 NVIDIA GPU 탑재 PC
-- Python 3.12
-- Flutter 3.x
-- 메모리 16GB 이상 권장
+| 항목 | 권장 버전 / 조건 |
+| --- | --- |
+| OS | macOS Apple Silicon 또는 NVIDIA GPU 탑재 PC 권장 |
+| Python | 3.12 |
+| Flutter | 3.x |
+| Memory | 16GB 이상 권장 |
+| 기타 | Ollama, Supabase 프로젝트 |
 
-### 설치
+<br/>
+
+### 2. 프로젝트 클론
 
 ```bash
-# 1. 프로젝트 받기
 git clone https://github.com/2022764025/Lecture-Hunter.git
 cd Lecture-Hunter
+```
 
-# 2. Python 환경 설정
+<br/>
+
+### 3. 백엔드 환경 설정
+
+```bash
 python3 -m venv pikmin
 source pikmin/bin/activate
 pip install -r requirements.txt
-
-# 3. 환경변수 설정
-cp .env.example .env
-# .env 파일에 Supabase 정보 입력
 ```
 
-### 실행
+<br/>
+
+### 4. 환경 변수 설정
 
 ```bash
-# 로컬 AI 서버 시작
-ollama serve
+cp .env.example .env
+```
 
-# 백엔드 서버 시작
+`.env` 파일을 열고 Supabase 및 로컬 AI 서버 정보를 입력합니다.
+
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+LLM_MODEL=gemma2:2b
+VLM_MODEL=llama3.2-vision:11b
+WHISPER_MODEL_SIZE=medium
+WHISPER_DEVICE=auto
+VAD_THRESHOLD=0.3
+```
+
+<br/>
+
+### 5. Flutter 앱 설정
+
+```bash
+cd Frontend
+flutter pub get
+flutter doctor
+cd ..
+```
+
+<br/>
+
+### 6. 실행 방법
+
+터미널을 3개로 나누어 실행하는 것을 권장합니다.
+
+#### Terminal 1. 로컬 AI 서버 실행
+
+```bash
+ollama serve
+```
+
+#### Terminal 2. 백엔드 서버 실행
+
+```bash
+source pikmin/bin/activate
+uvicorn App.main:app --reload
+```
+
+#### Terminal 3. Flutter 앱 실행
+
+```bash
+cd Frontend
+flutter run -d chrome
+```
+
+<br/>
+
+### 7. 실행 확인
+
+정상적으로 실행되면 다음 항목을 확인합니다.
+
+- 백엔드 서버가 `http://127.0.0.1:8000`에서 실행되는지 확인
+- Flutter 앱이 Chrome에서 실행되는지 확인
+- LiveLectureAI 화면이 정상 표시되는지 확인
+- 자막 오버레이, 질문 패널, 용어집 UI가 표시되는지 확인
+- 현재 프론트엔드는 Mock 기반 UI 동작 확인 완료 상태
+- 실제 백엔드 연결은 API 경로 정합성 수정 후 진행 예정
+
+<br/>
+
+## 🧪 개발 명령어
+
+### Flutter
+
+```bash
+cd Frontend
+
+# 패키지 설치
+flutter pub get
+
+# 코드 포맷팅
+dart format .
+
+# 정적 분석
+flutter analyze
+
+# 앱 실행
+flutter run -d chrome
+```
+
+<br/>
+
+### Backend
+
+```bash
+# 가상환경 활성화
+source pikmin/bin/activate
+
+# 서버 실행
 uvicorn App.main:app --reload
 
-# Flutter 앱 실행 (별도 터미널)
-cd flutter_app && flutter run
+# 패키지 재설치
+pip install -r requirements.txt
 ```
+
+<br/>
+
+## 🔌 현재 프론트엔드 연결 상태
+
+현재 프론트엔드는 Mock 기반 UI 동작 확인까지 완료되었으며, 백엔드 실제 엔드포인트와의 API 경로 정합성 수정 단계에 있습니다.
+
+### 확인 완료 항목
+
+- `api_service.dart` 백엔드 HTTP 호출 구조 확인
+- `sse_service.dart` 실시간 자막 스트림 수신 구조 확인
+- `caption_controller.dart` Provider 연결 구조 확인
+- `overlay_page.dart` Mock / 실서버 전환 구조 확인
+- 백엔드 실제 엔드포인트 목록 확인
+
+### 현재 프론트 연결 구조
+
+- `ApiService` 기반 HTTP API 호출 구조 존재
+- `SseService` 기반 실시간 자막 스트림 수신 구조 존재
+- `sseServiceProvider` 등록 완료
+- `connectionStatusProvider` 연결 완료
+- `subtitleStreamProvider` 연결 완료
+- `currentSubtitleProvider` 기반 최신 자막 표시 구조 존재
+- Mock 모드 / 실서버 연결 전환 구조 존재
+
+### 확인된 경로 불일치
+
+| 구분 | 현재 프론트 경로 | 현재 백엔드 경로 |
+| --- | --- | --- |
+| 질문 API | `POST /api/v1/qa/ask` | `GET /lecture/ask` |
+| 용어집 API | `GET /api/v1/glossary/search` | 백엔드 엔드포인트 미확인 |
+| 실시간 자막 수신 | `GET /api/v1/subtitle/stream` | `WS /ws/audio/{lecture_id}` |
+
+### 다음 수정 예정
+
+- `api_service.dart` 질문 API 경로 수정
+- `/lecture/ask` 요청 방식 및 파라미터 구조 확인
+- 용어집 API 백엔드 엔드포인트 추가 여부 확인
+- `sse_service.dart` 유지 여부 결정
+- 백엔드 WebSocket 구조와 프론트 실시간 자막 수신 구조 매칭
 
 <br/>
 
 ## 📊 진행 상황
 
-### ✅ 완성된 것
+### ✅ 완료된 기능
 
-- [x] 음성 → 자막 변환 (Whisper)
-- [x] 슬라이드 이미지 분석 (Llama Vision)
-- [x] 강의 내용 기반 AI 답변 (RAG)
-- [x] 실시간 통신 구조 (WebSocket)
-- [x] 다국어 번역 엔진 (Gemma 2)
+- [x] 음성 → 자막 변환 백엔드 구조
+- [x] 슬라이드 이미지 분석 백엔드 구조
+- [x] 강의 내용 기반 AI 답변 백엔드 구조
+- [x] FastAPI WebSocket 오디오 수신 구조
+- [x] 다국어 번역 엔진 연동 구조
+- [x] Flutter 실시간 자막 UI 구조
+- [x] Flutter Mock 자막 스트림 구조
+- [x] Flutter API/SSE 서비스 계층 구조
+- [x] Flutter feature 기반 폴더 구조 정리
+- [x] Flutter 주요 UI 버튼 동작 확인
+- [x] Flutter analyze No issues found 확인
 
-### 🚧 작업 중
+<br/>
 
+### 🚧 작업 중인 기능
+
+- [ ] STT/API/SSE 실제 연결 경로 정합성 수정
+- [ ] 질문 API `/lecture/ask` 프론트 연결
+- [ ] 용어집 API 엔드포인트 추가 또는 프론트 경로 수정
+- [ ] 실시간 자막 수신 방식 결정: SSE 유지 또는 WebSocket 구조 전환
 - [ ] Flutter 앱 UI 마무리
 - [ ] 자동 강의 요약 기능
 - [ ] 다중 사용자 동시 접속 안정성 테스트
@@ -231,6 +474,12 @@ cd flutter_app && flutter run
 
 <br/>
 
-<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:667EEA,100:764BA2&height=120&section=footer&text=&fontSize=24&fontColor=ffffff&fontAlignY=70" />
-</p>
+### 🗓 추가 예정 기능
+
+- [ ] 강의별 히스토리 저장
+- [ ] 자막 검색
+- [ ] 북마크 기능
+- [ ] 사용자 설정 화면
+- [ ] 강의 복습용 요약 리포트
+- [ ] 외부 사이트 적용을 위한 iframe 구조 검토
+- [ ] Chrome Extension 기반 오버레이 적용 구조 검토
