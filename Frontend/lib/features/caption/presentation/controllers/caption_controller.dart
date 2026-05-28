@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'subtitle_model.dart';
 import '../../../assistant/presentation/controllers/question_model.dart';
 import '../../../../services/sse_service.dart';
+import '../../../../services/audio_stream_service.dart';
 import '../../../../services/api_service.dart';
 import '../../../../services/settings_service.dart';
 
@@ -13,6 +14,13 @@ import '../../../../services/settings_service.dart';
 
 final sseServiceProvider = Provider<SseService>((ref) {
   final service = SseService();
+  ref.onDispose(service.dispose);
+  return service;
+});
+
+
+final audioStreamServiceProvider = Provider<AudioStreamService>((ref) {
+  final service = AudioStreamService();
   ref.onDispose(service.dispose);
   return service;
 });
@@ -156,8 +164,8 @@ class QuestionResponseNotifier extends StateNotifier<QuestionResponseState> {
       mode: mode == QuestionMode.professor ? 'professor' : 'glossary',
     );
 
-    // Mock 모드 사용 (실제 서버 연결 시 askQuestion으로 교체)
-    final response = await _apiService.mockAskQuestion(request);
+    // 실제 백엔드 질문 API 사용
+    final response = await _apiService.askQuestion(request);
 
     state = QuestionResponseState(
       status: response.status,

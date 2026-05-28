@@ -16,19 +16,24 @@ class ApiService {
   // ─── 교수에게 질문 (RAG Q&A) ─────────────────────────────────
   Future<QuestionResponse> askQuestion(QuestionRequest request) async {
     try {
+      final uri = Uri.parse('$_baseUrl/lecture/ask').replace(
+        queryParameters: {
+          'lecture_id': 'demo-lecture',
+          'question': request.question,
+          'target_lang': 'Korean',
+        },
+      );
+
       final response = await _client
-          .post(
-            Uri.parse('$_baseUrl/api/v1/qa/ask'),
-            headers: {
-              'Content-Type': 'application/json; charset=utf-8',
-              'Accept': 'application/json',
-            },
-            body: jsonEncode(request.toJson()),
+          .get(
+            uri,
+            headers: {'Accept': 'application/json'},
           )
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
-        final json = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final json =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
         return QuestionResponse.fromJson(json);
       } else {
         return QuestionResponse.error('서버 오류: ${response.statusCode}');
