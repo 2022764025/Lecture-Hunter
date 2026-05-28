@@ -2,14 +2,15 @@ import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/config/app_config.dart';
+
 import '../features/caption/presentation/controllers/subtitle_model.dart';
 import '../features/assistant/presentation/controllers/question_model.dart' show ConnectionStatus;
 
 
 class SseService {
-  static const String _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-  static const String _supabaseAnonKey =
-      String.fromEnvironment('SUPABASE_ANON_KEY');
+  static const String _supabaseUrl = AppConfig.supabaseUrl;
+  static const String _supabaseAnonKey = AppConfig.supabaseAnonKey;
 
   SupabaseClient? _client;
   dynamic _channel;
@@ -29,7 +30,7 @@ class SseService {
     _subtitleController ??= StreamController<SubtitleSegment>.broadcast();
     _statusController ??= StreamController<ConnectionStatus>.broadcast();
 
-    _lectureId = lectureId ?? 'demo-lecture';
+    _lectureId = lectureId ?? AppConfig.defaultLectureId;
 
     if (_supabaseUrl.isEmpty || _supabaseAnonKey.isEmpty) {
       _statusController?.add(ConnectionStatus.error);

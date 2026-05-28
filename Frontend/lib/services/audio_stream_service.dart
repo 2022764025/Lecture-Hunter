@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../core/config/app_config.dart';
+
 enum AudioConnectionStatus {
   disconnected,
   connecting,
@@ -11,14 +13,14 @@ enum AudioConnectionStatus {
 }
 
 class AudioStreamService {
-  static const String _wsBaseUrl = 'ws://localhost:8000';
+  static const String _wsBaseUrl = AppConfig.wsBaseUrl;
 
   WebSocketChannel? _channel;
   StreamController<AudioConnectionStatus>? _statusController;
 
   bool _isConnected = false;
   String? _lectureId;
-  String _targetLang = 'Korean';
+  String _targetLang = AppConfig.defaultTargetLang;
 
   Stream<AudioConnectionStatus> get statusStream =>
       _statusController?.stream ?? const Stream.empty();
@@ -27,7 +29,7 @@ class AudioStreamService {
 
   Future<void> connect({
     required String lectureId,
-    String targetLang = 'Korean',
+    String targetLang = AppConfig.defaultTargetLang,
   }) async {
     disconnect();
 
@@ -66,6 +68,20 @@ class AudioStreamService {
     }
   }
 
+  /// 마이크 입력 연결 지점
+  ///
+  /// 추후 마이크 캡처 기능에서 생성한 audio chunk를 이 함수로 전달하면
+  /// 백엔드 WebSocket(`/ws/audio/{lecture_id}`)으로 전송된다.
+  ///
+  /// Frontend 담당:
+  /// - 마이크 권한 요청
+  /// - 오디오 chunk 생성
+  /// - sendAudioBytes(audioChunk) 호출
+  ///
+  /// Backend 담당:
+  /// - WebSocket bytes 수신
+  /// - VAD/STT/번역 처리
+  /// - Supabase Realtime 자막 broadcast
   void sendAudioBytes(List<int> audioBytes) {
     if (!_isConnected || _channel == null || audioBytes.isEmpty) return;
 

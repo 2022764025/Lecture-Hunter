@@ -3,10 +3,11 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../core/config/app_config.dart';
 import '../features/assistant/presentation/controllers/question_model.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://localhost:8000';
+  static const String _baseUrl = AppConfig.apiBaseUrl;
   static const Duration _timeout = Duration(seconds: 30);
 
   final http.Client _client;
@@ -18,9 +19,9 @@ class ApiService {
     try {
       final uri = Uri.parse('$_baseUrl/lecture/ask').replace(
         queryParameters: {
-          'lecture_id': 'demo-lecture',
+          'lecture_id': AppConfig.defaultLectureId,
           'question': request.question,
-          'target_lang': 'Korean',
+          'target_lang': AppConfig.defaultTargetLang,
         },
       );
 

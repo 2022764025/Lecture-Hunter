@@ -217,6 +217,13 @@ class GlossarySearchNotifier extends StateNotifier<GlossarySearchState> {
 
     // 300ms 디바운스
     _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+      // 백엔드 용어집 조회 API 대기 상태
+      //
+      // 현재 백엔드에는 lecture_glossary 저장 로직은 있으나,
+      // 프론트에서 호출할 용어집 조회 엔드포인트는 아직 없다.
+      //
+      // 백엔드 조회 API가 준비되면 아래 mock 호출을
+      // _apiService.searchGlossary(term) 또는 실제 lecture_id 기반 API로 교체한다.
       final results = await _apiService.mockSearchGlossary(term);
       state = GlossarySearchState(
         status: ResponseStatus.success,
