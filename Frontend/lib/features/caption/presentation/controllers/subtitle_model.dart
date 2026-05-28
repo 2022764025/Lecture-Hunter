@@ -24,8 +24,8 @@ class SubtitleSegment {
   factory SubtitleSegment.fromJson(Map<String, dynamic> json) {
     return SubtitleSegment(
       id: json['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      originalText: json['original_text'] ?? '',
-      translatedText: json['translated_text'],
+      originalText: json['original_text'] ?? json['original'] ?? '',
+      translatedText: json['translated_text'] ?? json['translated'],
       language: json['language'] ?? 'ko',
       timestamp: json['timestamp'] != null
           ? DateTime.tryParse(json['timestamp']) ?? DateTime.now()
