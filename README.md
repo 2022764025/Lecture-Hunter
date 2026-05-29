@@ -114,14 +114,14 @@ flowchart LR
 
 <br/>
 
-## 🖼 화면 구성
+## 🖼 데모 호스트 기반 위젯 화면 구성
 
 <p align="center">
   <table>
     <tr>
-      <th align="center">자막 화면</th>
-      <th align="center">용어집</th>
-      <th align="center">질문 패널</th>
+      <th align="center">자막 오버레이</th>
+      <th align="center">용어집 위젯</th>
+      <th align="center">강의 AI 질문 패널</th>
     </tr>
     <tr>
       <td align="center">
