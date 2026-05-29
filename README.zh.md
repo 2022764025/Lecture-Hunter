@@ -1,359 +1,489 @@
-![LiveLectureLogo](./assets/LiveLectureLogo2.png)
-
-# LiveLectureAI
-> **實證 AI 開發項目 I** > **任務獵人 (Task Hunter)** | 基於 Flutter 的實時字幕與提問組件，助力強化課堂互動
-
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.135.1-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/) [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev/) [![PyTorch](https://img.shields.io/badge/PyTorch-2.10.0-EE4C2C?style=flat&logo=pytorch&logoColor=white)](https://pytorch.org/) [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.16.1-FF6F00?style=flat&logo=tensorflow&logoColor=white)](https://www.tensorflow.org/) [![MediaPipe](https://img.shields.io/badge/MediaPipe-0.10.13-00C041?style=flat&logo=google&logoColor=white)](https://developers.google.com/mediapipe) [![Whisper](https://img.shields.io/badge/Whisper-1.2.1-412991?style=flat&logo=openai&logoColor=white)](https://github.com/openai/whisper) [![Supabase](https://img.shields.io/badge/Supabase-2.28.0-3ECF8E?style=flat&logo=supabase&logoColor=white)](https://supabase.com/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-2.28.0-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![WebSockets](https://img.shields.io/badge/WebSockets-15.0.1-010101?style=flat&logo=socket.io&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) [![License](https://img.shields.io/badge/License-MIT-green)](https://opensource.org/licenses/MIT) [![DORA](https://img.shields.io/badge/DORA-Elite-brightgreen)](https://dora.dev/) [![Deploy](https://img.shields.io/badge/Deploy_Freq-30%2Fweek-blue)](https://github.com/features/actions)
-
 <p align="center">
-    <a href="README.md">
-        <img src="https://img.shields.io/badge/Language-한국어-red?style=for-the-badge&logo=googletranslate&logoColor=white" alt="한국어 버전"/>
-    </a>
-    <a href="README.en.md">
-        <img src="https://img.shields.io/badge/Language-English-blue?style=for-the-badge&logo=googletranslate&logoColor=white" alt="English Version"/>
-    </a>
-    <a href="README.zh.md">
-        <img src="https://img.shields.io/badge/Language-中文版-orange?style=for-the-badge&logo=googletranslate&logoColor=white" alt="中文版"/>
-    </a>
+  <img src="./assets/LectureHunter_Logo3.jpeg" alt="Lecture Hunter Logo" width="100%" />
 </p>
 
----
-
-## 项目概述 (Project Overview)
-
-### "基于多模态 AI 的实时字幕与上下文感知询问系统"
-
-本项目是一个 AI 驱动的教育辅助平台，结合了低延迟 STT 引擎 (Faster-Whisper) 和多模态 VLM (Llama 3.2 Vision)，可实时分析讲师的语音及课件视觉数据。该系统不仅能提供字幕，还能理解实时授课语境，并以此为基础提供个性化的 RAG 问答及自动摘要功能。
-
----
-
-## 核心功能 (4 Pillars) ##
-
-**[功能 1] 实时智能锚定 (STT + VLM)**
-
-- **自适应捕捉 (Adaptive Capture)**: 通过 VAD (语音活动检测) 识别有效语音片段，并根据幻灯片变化时点触发 VLM 分析，从而优化服务器推理资源。
-
-- **多模态同步 (Multimodal Sync)**: 基于时间戳将实时字幕数据与 VLM 分析的课件摘要进行精准匹配，为学习者提供统一的语境。
-
-**[功能 2] 多语言桥接字幕服务**
-
-- **语言链流水线 (Lang-Chain Pipeline)** : 为实现推理性能最大化，VLM 分析固定为英语，而最终输出则通过双层架构实时翻译为用户设定的语言（韩语、日语、中文等）。
-
-- **语境感知翻译 (Context-Aware Translation)** : 利用 VLM 获取的视觉信息作为辅助指标，防止专业术语误译，提升翻译质量。
-
-**[功能 3] 基于 RAG 的智能课堂问答**
-
-- **向量检索 (Vector Search)** : 将授课中的语音文本和幻灯片内容实时嵌入并存储至 Supabase 向量数据库 中。
-
-- **精准定位检索 (Pinpoint Retrieval)** : 根据用户的提问，调取关联度最高的授课时点及视觉参考资料，生成高可信度的回答。
-
-**[功能 4] 分段自动简报 (Adaptive Briefing)**
-
-- **递归摘要 (Recursive Summarization)** : 通过 LLM 以 5-10 分钟为单位分析授课流程，生成核心摘要。
-
-- **学习效率优化器 (Efficiency Optimizer)** : 帮助插班生或复习中的用户无需观看完整视频即可快速掌握课程脉络。
-
----
-
-## 技术深潜 : 高级工程 (Technical Deep Dive: Advanced Engineering) ##
-
-### 1. Whisper VAD & STT 优化 ###
-
-用于防止静音区间出现幻觉 (Hallucination) 的 **VAD (语音活动检测)** 逻辑。
-
-**A. 基于信号能量的 VAD (Signal Energy-based VAD)**
-
-仅当输入信号 $x(n)$ 的帧能量显著大于背景噪声能量 ($E_{noise}$) 时，才驱动 STT 引擎。
-
-$$E_{frame} = \sum_{n=1}^L |x(n)|^2 > \gamma \cdot E_{noise}$$
-
-- $\gamma$: 考虑信噪比 (SNR) 的动态阈值。
-
-### 2. RAG 优化：向量归一化 (Vector Normalization) ###
-
-为了在大规模课程数据集中确保搜索速度和准确度，进行经过 L2 归一化后的内积运算。
-
-$$\|\mathbf{v}\|_2 = \sqrt{\sum_{i=1}^n |v_i|^2}, \quad \mathbf{\hat{v}} = \frac{\mathbf{v}}{\|\mathbf{v}\|_2}$$
-
-- 由于归一化向量之间的内积等同于余弦相似度，通过降低运算复杂度来最大化实时搜索性能。
-
-### 3. VLM 图像预处理与缩放 (VLM Image Preprocessing & Scaling) ###
-
-在本地环境 的推理性能限制下，为最大化 OCR（文字识别）准确率而进行的预处理流程。
-
-**A. 自适应比例缩放 (Aspect-Ratio Aware Scaling)**
-
-为了让 VLM (Llama 3.2 Vision) 精准识别细小的专业术语和公式，输入图像采用双线性插值 (Bilinear Interpolation) 缩放至 $1024 \times 1024$ 分辨率，以最小化特征失真。
-
-$$I_{scaled} = \text{Bilinear}(I_{raw}, 1024, 1024)$$
-
-- **工程洞察**: 实验证明，相较于 768px，采用 1024px 标准使“幻觉 (Hallucination)”现象减少了约 30%。
-
-**B. RGB 转换与通道优化 (RGB Conversion & Channel Optimization)**
-
-为符合 VLM 输入规范并防止因透明通道导致的推理错误，系统将包含 Alpha 通道的 PNG 等图像强制转换为 RGB 3 通道格式。
-
-$$C_{\text{out}} = \{R, G, B\} \leftarrow \text{Flatten}(I_{\text{raw}}, \text{Alpha-Blend})$$
-
-### 4. 多模态语境锚定 (Multimodal Contextual Anchoring) ###
-
-旨在将异步生成的语音数据 (STT) 与视觉数据 (VLM) 整合为统一语境的逻辑算法。
-
-**A. 最近邻时间戳映射 (Nearest-Neighbor Timestamp Mapping)**
-
-以客户端截屏时间 ($T_{cap}$) 为基准，在误差范围 ($\epsilon$) 内检索数据库中最接近的过去时刻字幕数据 ($T_{stt}$) 进行锚定。
-
-$$\text{Target-ID} = \arg\min_{id} |T_{cap} - T_{stt, id}|, \quad \text{subject to } T_{stt} \le T_{cap}$$
-
-- 该逻辑确保课件摘要能精准匹配到讲师解释该内容的具体时刻。
-
-**B. 跨语言推理桥接 (Cross-Lingual Inference Bridge)**
-
-在本地资源有限的情况下，为提升分析精度，VLM 先以英语 ($L_{en}$) 进行分析 ($P_{vlm}$)，最终结果 ($R$) 再通过翻译引擎 ($T$) 转换为用户设定的目标语言 ($L_{target}$)。
-
-$$R = T(\text{VLM}(I, L_{en}), L_{target})$$
-
-- **性能权衡**: 相比直接生成目标语言，该架构将专业术语的识别率提升了 20% 以上，并为未来更换模型提供了极高的灵活性。
-
----
-
-##  系統架構 (System Architecture)
-
-本项目的系统架构被设计为三阶段数据流水线：“**客户端实时预处理 (捕捉与优化) → 多模态智能推理 (STT + VLM) → 数据整合与定制化服务 (RAG 与多语言)**”。
-
-![System Architecture](./assets/system_architecture.png)
-
----
-
-## 数据架构与模式 (Data Schema & Architecture)
-
-| 表名 | 核心列 | 功能描述 |
-| :--- | :--- | :--- |
-| **lectures** | `id`, `title`, `keywords`, `major` | 管理课程元数据及用于搜索过滤的关键词。 |
-| **lecture_contents** | `original_text`, `translated_text`, `has_visual`, `visual_summary`, `content_embedding` | 整合实时字幕与 VLM 视觉分析数据，为 RAG 提供向量存储。 |
-| **lecture_glossary** | `term`, `definition` | 存储实时提取的专业术语及其定义。 |
-| **lecture_summaries** | `summary_text`, `key_points` | **自适应简报 (Adaptive Briefing)**: 存储每 5-10 分钟生成的递归式课程摘要。 |
-| **lecture_logs** | `engagement_score`, `event_type` | 基于交互数据（如提问）生成的学习参与度量化指标。 |
-
----
-
-## 技術棧與環境 (Tech Stack) ##
-
-### 開發環境
-
-- 操作系統: macOS (Apple Silicon M1/M2/M3)
-
-- 語言: Python `3.12+` (**不支持 Python 3.13+**)
-
-- 框架: FastAPI (異步後端)
-
-- 虛擬環境: venv ('pikmin')
-
-### AI 與機器學習 (核心)
-
-- 語音轉文字 (STT): **faster-whisper** `(1.2.1)`
-
-- 语音活动检测 (VAD): **silero-vad** `(6.2.1)`
-
-- 多模态与大语言模型 (VLM & LLM):
-
-    - **ollama** `(0.6.1)` 
-    
-    - **langchain-ollama** `(1.1.0)` / **langchain-core** `(1.2.28)`
-
-- 底层框架:
-
-    - **torch** `(2.10.0)` / **torchaudio** `(2.11.0)`
-      
-### 後端與通信
-
-- API 服務器:
-
-    - **fastapi** `(0.135.1)` 
-    
-    - **uvicorn** `(0.41.0)`
-
-- 數據庫 / 認證: **supabase** `(2.28.0)` (集成 Postgrest, Auth, Functions)
-
-- 實時通信: 
-
-    - **websockets** `(15.0.1)`
-
-    - **sse-starlette**
-
-- 異步客戶端:
-
-    - **httpx** `(0.28.1)`
-    
-    - **anyio** `(4.12.1)`
-
-### 数据处理与工具
-
-- 图像预处理
-
-    - **pillow** `(12.1.1)`
-
-    - **numpy** `(1.26.4)`
-
-- 音频处理:
-
-    - **sounddevice** `(0.5.5)`
-    
-    - **av** `(16.1.0)`
-
-- 數據驗證: **pydantic v2** `(2.12.5)`
-
-- 環境配置: **python-dotenv** `(1.2.2)`
-
----
-
-## 項目里程碑與檢查清單 (Updated 2026.05.07) ##
-
-**1. 多模態 AI 引擎 (核心)**
-
-- [x] 基于 VLM 的视觉引擎：应用 Llama 3.2 Vision 并优化分辨率（1024px 双线性缩放），极大提升课件文字识别率。
-
-- [x] 多模态语境锚定：实现 STT 时间戳与 VLM 捕捉点之间的最近邻 (Nearest-Neighbor) 映射算法。
-
-- [x] 智能语音识别 (STT)：基于 `Faster-Whisper` 实现高速推理及多语言自动检测逻辑。
-
-- [x] 动态多语言翻译引擎：通过 Gemma-2 构建跨语言桥接架构，提升专业术语翻译准确度。
-
-- [x] VAD 语音检测集成：应用 `Silero VAD` 过滤静音片段，从源头防止 STT 幻觉现象。
-
-**2. 後端與智能架構 (Architecture)**
-
-- [x] 异步后端架构：利用 FastAPI、WebSockets 和 `anyio` 构建实时的双向流传输结构。
-
-- [x] 基于向量的 RAG 引擎：利用 Supabase `pgvector` 构建混合嵌入与 HNSW 索引。
-
-- [x] 基于记忆的智能问答：完成 RAG 助教逻辑，使其能根据历史课程上下文进行针对性回答。
-
-- [x] 数据库模式优化：通过增加 `has_visual` 和 `visual_summary` 等字段，确保多模态数据的统一存储。
-
-**3. 高性能擴展 (測試與部署)**
-
-- [ ] 自适应简报 (Adaptive Briefing)：完成基于 5-10 分钟累计数据的递归式摘要及关键词提取流水线。
-
-- [ ] 本地大模型推理优化：基于 Ollama 优化推理延迟，并进行 M1/M2 NPU 硬件加速测试。
-
-- [ ] 并发性能基准测试：测试多用户接入及 WebSocket 流传输时的后端吞吐量与延迟。
-
-- [ ] 基于交互的参与度分析：开发基于提问频率和测验正确率的定量学习参与度指标。
-
-**4. 前端集成 (Flutter)** -> (计划于 2026 年 5 月 7 日后进行最终开发)
-
-- [ ] WebSocket 实时通信联调：测试 Flutter 客户端实时接收并展示后端分析数据（字幕、摘要、翻译）。
-
-- [ ] 实时多语言字幕 UI：实现目标语言选择组件及具有延迟补偿功能的字幕查看器。
-
-- [ ] RAG AI 助教组件：开发与课程幻灯片语境同步的实时问答聊天界面。
-
-- [ ] 课程简报仪表盘：开发可查看累计摘要及专业术语表的学习数据看板。
-
----
-
-## 入門指南 ##
-
-**安裝 (Installation)**
-```Bash
-# 1. 克隆仓库
+<p align="center">
+  <a href="#-快速开始">
+    <img src="https://img.shields.io/badge/QUICK%20START-4FC08D?style=for-the-badge&logoColor=white" alt="Quick Start" />
+  </a>
+  <a href="#-使用示例">
+    <img src="https://img.shields.io/badge/DEMO-5C86FA?style=for-the-badge&logoColor=white" alt="Demo" />
+  </a>
+  <br/>
+  <img alt="Status" src="https://img.shields.io/badge/status-开发中-orange?style=flat-square" />
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" />
+  <img alt="Flutter" src="https://img.shields.io/badge/Flutter-3.x-02569B?style=flat-square&logo=flutter&logoColor=white" />
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white" />
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" />
+</p>
+
+<p align="center">
+  <b>用于课堂互动的 Flutter 实时字幕与提问组件开发</b>
+</p>
+
+<p align="center">
+  <a href="../README.md">🇰🇷 한국어</a>
+  ·
+  <a href="README_en.md">🇺🇸 English</a>
+  ·
+  <b>🇨🇳 中文</b>
+  ·
+  <a href="README_jp.md">🇯🇵 日本語</a>
+</p>
+
+> [!NOTE]
+> 🎓 **东亚大学 AI 学科**
+> SW 中心大学事业现场镜像型联动项目
+
+> [!TIP]
+> 如果你是第一次了解本项目，建议按照以下顺序阅读：
+> [我们解决的问题](#-我们解决的问题) → [核心功能](#-核心功能) → [使用示例](#-使用示例)
+
+<br/>
+
+### 📌 项目介绍
+
+**Lecture Hunter** 是一款基于 AI 的学习辅助工具，帮助学生更轻松地理解实时课堂内容，并在课后高效复习。
+
+它会综合分析课堂中的语音、幻灯片画面和学生问题，并提供以下功能：
+
+* 将教师语音实时转换为字幕
+* 将外语授课内容翻译为韩语
+* 分析幻灯片中的图表、公式和图片
+* 当学生错过课堂内容时，提供重点摘要
+* 根据课堂上下文回答学生问题
+* 自动整理课堂中出现的难懂术语和关键词
+
+<br/>
+
+### 📚 目录
+
+* [我们解决的问题](#-我们解决的问题)
+* [核心功能](#-核心功能)
+* [使用流程](#-使用流程)
+* [界面构成](#-界面构成)
+* [使用示例](#-使用示例)
+* [技术栈](#-技术栈)
+* [项目结构](#-项目结构)
+* [快速开始](#-快速开始)
+* [开发命令](#-开发命令)
+* [当前前端连接状态](#-当前前端连接状态)
+* [开发进度](#-开发进度)
+
+<br/>
+
+### 🤔 我们解决的问题
+
+> *“这节课是英语授课，只要漏听一个单词，后面的内容就完全跟不上了……”*
+
+> *“课堂上出现了不懂的术语，但又不好意思举手提问……”*
+
+> *“迟到了 10 分钟进入课堂，现在完全不知道老师讲到哪里了……”*
+
+> *“复习时重新看一小时的课程视频太耗时间了……”*
+
+**Lecture Hunter 在一个界面中帮助学生完成课堂理解、提问、摘要和复习。**
+
+<br/>
+
+### ✨ 核心功能
+
+| 功能       | 说明                             |
+| -------- | ------------------------------ |
+| 🎙 实时字幕  | 将课堂语音转换为文本，并显示在屏幕上。            |
+| 🌐 实时翻译  | 将外语授课内容实时翻译为韩语并同步显示。           |
+| 🖼 幻灯片分析 | 分析幻灯片中的图表、公式和图片，理解课堂上下文。       |
+| 💬 课堂提问  | 当学生提问时，AI 会基于目前为止的课堂内容进行回答。    |
+| 📝 重点摘要  | 每隔 5–10 分钟总结课堂重点，帮助学生快速跟上课堂节奏。 |
+| 📚 自动术语表 | 自动整理课堂中出现的难懂概念和关键词。            |
+
+<br/>
+
+### 🔄 使用流程
+
+```mermaid
+flowchart LR
+    A[课堂语音输入] --> B[语音识别]
+    C[幻灯片画面输入] --> D[图像分析]
+    B --> E[实时字幕 / 翻译]
+    D --> F[课堂上下文理解]
+    E --> G[摘要 / 问答 / 术语表]
+    F --> G
+    G --> H[在 Flutter 应用中查看]
+```
+
+> 如果 GitHub 环境中无法显示 Mermaid 图表，可以按照以下流程理解：
+>
+> **课堂输入 → 语音与幻灯片分析 → 字幕与翻译生成 → 摘要、问答和术语表提供 → 在应用中查看**
+
+<br/>
+
+### 🖼 Demo Host 基础组件界面构成
+
+<p align="center">
+  <table>
+    <tr>
+      <th align="center">字幕浮层</th>
+      <th align="center">术语表组件</th>
+      <th align="center">课堂 AI 提问面板</th>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="./assets/screens/caption_screen.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/glossary_tab.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/question_panel.png" width="300"/>
+      </td>
+    </tr>
+    <tr>
+      <th align="center">字幕设置</th>
+      <th align="center">字幕历史</th>
+      <th align="center">-</th>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="./assets/screens/caption_settings.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/caption_history.png" width="300"/>
+      </td>
+      <td align="center">-</td>
+    </tr>
+  </table>
+</p>
+
+<br/>
+
+### 💡 使用示例
+
+**场景：一节用英语进行的机器学习课程**
+
+```text
+🎤 教授
+"Now let's discuss the vanishing gradient problem..."
+
+📺 字幕画面
+原文: Now let's discuss the vanishing gradient problem...
+翻译: 现在我们来讨论梯度消失问题。
+
+💬 学生提问
+“为什么梯度消失是一个问题？”
+
+🤖 AI 回答
+“就像当前第 7 页幻灯片中的图表所示，
+神经网络越深，学习信号越难传递到前面的层，
+因此模型训练会变得困难。
+这与课程第 15 分钟左右讲到的反向传播过程有关。”
+```
+
+<br/>
+
+### 🛠 技术栈
+
+### 📱 Frontend
+
+| 技术              | 作用                  |
+| --------------- | ------------------- |
+| Flutter 3.x     | 开发基于 Web 的实时字幕浮层 UI |
+| Dart            | Flutter 应用开发语言      |
+| Riverpod        | 管理字幕、主题和提问面板状态      |
+| HTTP API        | 准备连接提问、术语表和摘要 API   |
+| SSE / WebSocket | 准备实时字幕接收与音频流传输      |
+
+<br/>
+
+### ⚙️ Backend
+
+| 技术               | 作用        |
+| ---------------- | --------- |
+| Python 3.12      | 后端开发语言    |
+| FastAPI          | API 服务器构建 |
+| Faster-Whisper   | 语音识别与字幕生成 |
+| Llama 3.2 Vision | 幻灯片图像分析   |
+| Gemma 2          | 多语言翻译     |
+| Silero VAD       | 语音活动检测    |
+
+<br/>
+
+### 🗄 Database / Infra
+
+| 技术         | 作用                |
+| ---------- | ----------------- |
+| Supabase   | 身份认证、数据存储和 API 集成 |
+| PostgreSQL | 课堂数据存储            |
+| pgvector   | 课堂内容向量检索          |
+| Ollama     | 本地 LLM 运行环境       |
+
+<br/>
+
+### 📁 项目结构
+
+```text
+Lecture-Hunter
+│
+├── 📂 App/                     # FastAPI backend
+│   ├── main.py
+│   ├── api/
+│   ├── core/
+│   ├── services/
+│   ├── setup_db.sql
+│   └── ...
+│
+├── 📂 Frontend/                # Flutter application
+│   ├── android/
+│   ├── ios/
+│   ├── lib/
+│   │   ├── core/
+│   │   ├── features/
+│   │   │   ├── assistant/
+│   │   │   ├── caption/
+│   │   │   └── overlay/
+│   │   ├── services/
+│   │   ├── shared/
+│   │   └── main.dart
+│   ├── web/
+│   ├── macos/
+│   ├── windows/
+│   ├── linux/
+│   ├── pubspec.yaml
+│   └── analysis_options.yaml
+│
+├── 📂 assets/
+│   └── LectureHunter_Logo3.jpeg
+│
+├── 📄 README.md
+├── 📄 README.en.md
+├── 📄 README.zh.md
+├── 📄 CONTRIBUTING.md
+├── 📄 CODE_OF_CONDUCT.md
+├── 📄 SECURITY.md
+├── 📄 LICENSE
+├── 📄 Dockerfile
+└── 📄 requirements.txt
+```
+
+<br/>
+
+### 🚀 快速开始
+
+### 1. 环境要求
+
+| 项目      | 推荐版本 / 条件                                  |
+| ------- | ------------------------------------------ |
+| OS      | 推荐 macOS Apple Silicon 或搭载 NVIDIA GPU 的 PC |
+| Python  | 3.12                                       |
+| Flutter | 3.x                                        |
+| Memory  | 推荐 16GB 以上                                 |
+| 其他      | Ollama、Supabase 项目                         |
+
+<br/>
+
+### 2. 克隆项目
+
+```bash
 git clone https://github.com/2022764025/Lecture-Hunter.git
 cd Lecture-Hunter
+```
 
-# 2. 创建虚拟环境 (建议使用 Python 3.12)
+<br/>
+
+### 3. 后端环境设置
+
+```bash
 python3 -m venv pikmin
 source pikmin/bin/activate
-
-# 3. 安装依赖库
-pip install --upgrade pip
 pip install -r requirements.txt
-
-# 4. 环境变量配置
-cp .env.example .env  # 创建环境变量配置文件（必填）
-# 然后，在 .env 文件中输入您的 Supabase URL 和 KEY。
 ```
 
-**運行 (Usage)**
-```Bash
-# 1. 启动 Ollama 服务 (提供本地 LLM/VLM 推理)
+<br/>
+
+### 4. 环境变量设置
+
+```bash
+cp .env.example .env
+```
+
+打开 `.env` 文件，并填写 Supabase 与本地 AI 服务器相关信息。
+
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+LLM_MODEL=gemma2:2b
+VLM_MODEL=llama3.2-vision:11b
+WHISPER_MODEL_SIZE=medium
+WHISPER_DEVICE=auto
+VAD_THRESHOLD=0.3
+```
+
+<br/>
+
+### 5. Flutter 应用设置
+
+```bash
+cd Frontend
+flutter pub get
+flutter doctor
+cd ..
+```
+
+<br/>
+
+### 6. 运行方法
+
+建议将终端分为 3 个窗口分别运行。
+
+### Terminal 1. 运行本地 AI 服务器
+
+```bash
 ollama serve
-
-# 2. 启动 FastAPI 后端服务器
-uvicorn App.main:app --reload
-
-# 3. 集成测试 (VLM 与 STT)
-python3 services/test_multimodal.py
 ```
 
----
+### Terminal 2. 运行后端服务器
 
-## 部署与运行选项 ##
-
-本系统根据硬件资源和推理精度的需求，支持以下三种运行模式：
-
-**选项 A: 本地推理 (轻量级)**
-
-建议在个人笔记本电脑（MacBook M1/M2/M3 等）上测试时使用。
-
-1. **Ollama 模型**: `llama3.2-vision` (视觉分析) 与 `gemma2:2b` (翻译)
-
-2. **Faster-Whisper**: `medium` 或 `small` 模型（支持 CPU/MPS 加速）
-
-3. 环境变量设置：
-
-```Bash
-export RUNTIME_MODE=local
+```bash
+source pikmin/bin/activate
 uvicorn App.main:app --reload
 ```
 
-**选项 B: GPU 服务器 (高性能)**
+### Terminal 3. 运行 Flutter 应用
 
-建议在配备 NVIDIA RTX 5060 或更高规格的服务器上使用。
-
-1. 基于 **vLLM** 的大语言模型 (`Gemma2:9b` 或 `27b`)
-
-2. **Faster-Whisper** `Large-v3` 模型（支持 CUDA 加速）
-
-3. 执行命令：
-
-```Bash
-# 启动 vLLM 服务器（在 GPU 服务器端）
-python -m vllm.entrypoints.openai.api_server --model google/gemma-2-9b-it
-
-# 启动后端服务器
-export RUNTIME_MODE=gpu
-uvicorn App.main:app --host 0.0.0.0
+```bash
+cd Frontend
+flutter run -d chrome
 ```
 
-**选项 C: Docker 容器 (本地部署)**
+<br/>
 
-当需要一致的开发环境时使用。
+### 7. 运行确认
 
-```Bash
-docker build -t livelecture-ai .
-docker run --gpus all -p 8000:8000 livelecture-ai
+项目正常运行后，请确认以下内容：
+
+* 后端服务器是否运行在 `http://127.0.0.1:8000`
+* Flutter 应用是否在 Chrome 中正常启动
+* LiveLectureAI 画面是否正常显示
+* 字幕浮层、提问面板、术语表 UI 是否显示
+* 当前前端已完成基于 Mock 的 UI 行为验证
+* 实际后端连接将在 API 路径一致性修改后进行
+
+<br/>
+
+### 🧪 开发命令
+
+### Flutter
+
+```bash
+cd Frontend
+
+# 安装依赖
+flutter pub get
+
+# 代码格式化
+dart format .
+
+# 静态分析
+flutter analyze
+
+# 运行应用
+flutter run -d chrome
 ```
 
----
+<br/>
 
-## 硬件要求 ##
+### Backend
 
-本系统根据运行环境支持优化的模型尺寸。
+```bash
+# 激活虚拟环境
+source pikmin/bin/activate
 
-| 组件 | 最低配置 (笔记本/本地) | 推荐配置 (服务器/GPU) |
-| :--- | :--- | :--- |
-| **显卡 (GPU)** | Apple Silicon (M1/M2/M3) | **NVIDIA RTX 40/50 系列 (12GB+ 显存)** |
-| **加速技术** | MPS (Metal) / CPU | **CUDA (vLLM / TensorRT)** |
-| **内存 (RAM)** | 16GB | 32GB+ |
-| **STT 模型** | Faster-Whisper **Medium** | Faster-Whisper **Large-v3** |
-| **视觉模型 (VLM)** | Llama-3.2-Vision-11B (量化版) | **Llama-3.2-Vision-11B** 或 **LLaVA-13B** (8-bit/FP16) |
-| **语言模型 (LLM)** | Gemma2-**2b** | Gemma2-**9b** or **27b** |
-| **处理能力** | 个人专注度分析与字幕 | **全班级 (30人+) 实时分析** |
+# 运行服务器
+uvicorn App.main:app --reload
 
+# 重新安装依赖
+pip install -r requirements.txt
+```
 
----
+<br/>
 
-## 許可證 (License) ##
+### 🔌 当前前端连接状态
 
-**MIT License**
+当前前端已完成基于 Mock 的 UI 行为验证，正在进行与实际后端端点的 API 路径一致性调整。
+
+### 已确认项目
+
+* 已确认 `api_service.dart` 的后端 HTTP 调用结构
+* 已确认 `sse_service.dart` 的实时字幕流接收结构
+* 已确认 `caption_controller.dart` 的 Provider 连接结构
+* 已确认 `overlay_page.dart` 的 Mock / 实际服务器切换结构
+* 已确认实际后端端点列表
+
+### 当前前端连接结构
+
+* 基于 `ApiService` 的 HTTP API 调用结构
+* 基于 `SseService` 的实时字幕流接收结构
+* 已注册 `sseServiceProvider`
+* 已连接 `connectionStatusProvider`
+* 已连接 `subtitleStreamProvider`
+* 基于 `currentSubtitleProvider` 的最新字幕显示结构
+* 支持 Mock 模式 / 实际服务器连接切换结构
+
+### 已确认的路径不一致
+
+| 分类      | 当前前端路径                        | 当前后端路径                      |
+| ------- | ----------------------------- | --------------------------- |
+| 提问 API  | `POST /api/v1/qa/ask`         | `GET /lecture/ask`          |
+| 术语表 API | `GET /api/v1/glossary/search` | 后端端点未确认                     |
+| 实时字幕接收  | `GET /api/v1/subtitle/stream` | `WS /ws/audio/{lecture_id}` |
+
+### 后续修改计划
+
+* 修改 `api_service.dart` 中的提问 API 路径
+* 确认 `/lecture/ask` 的请求方式与参数结构
+* 确认是否需要新增术语表 API 后端端点
+* 决定是否保留 `sse_service.dart`
+* 将后端 WebSocket 结构与前端实时字幕接收结构进行匹配
+
+<br/>
+
+### 📊 开发进度
+
+### ✅ 已完成功能
+
+* [x] 语音转字幕后端结构
+* [x] 幻灯片图像分析后端结构
+* [x] 基于课堂内容的 AI 回答后端结构
+* [x] FastAPI WebSocket 音频接收结构
+* [x] 多语言翻译引擎集成结构
+* [x] Flutter 实时字幕 UI 结构
+* [x] Flutter Mock 字幕流结构
+* [x] Flutter API/SSE 服务层结构
+* [x] Flutter feature-based 文件夹结构整理
+* [x] Flutter 主要 UI 按钮行为确认
+* [x] Flutter analyze No issues found 确认
+
+<br/>
+
+### 🚧 开发中的功能
+
+* [ ] STT/API/SSE 实际连接路径一致性修改
+* [ ] 提问 API `/lecture/ask` 前端连接
+* [ ] 新增术语表 API 端点或修改前端路径
+* [ ] 决定实时字幕接收方式：保留 SSE 或切换为 WebSocket
+* [ ] Flutter 应用 UI 收尾
+* [ ] 自动课堂摘要功能
+* [ ] 多用户同时访问稳定性测试
+* [ ] 学习参与度分析仪表板
+
+<br/>
+
+### 🗓 后续计划功能
+
+* [ ] 按课程保存历史记录
+* [ ] 字幕搜索
+* [ ] 书签功能
+* [ ] 用户设置页面
+* [ ] 课堂复习用摘要报告
+* [ ] 用于外部网站应用的 iframe 结构 بررسی
+* [ ] 基于 Chrome Extension 的浮层应用结构 검토
