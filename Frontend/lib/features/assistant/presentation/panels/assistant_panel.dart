@@ -1,6 +1,6 @@
 // lib/widgets/question_panel_widget.dart
 // [Step 2] 질문 입력 패널 - 슬라이드 인/아웃 애니메이션 포함
-// 모드 스위치: "교수에게 질문" / "용어집 조회"
+// 모드 스위치: "강의 AI 질문" / "용어집 조회"
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -185,7 +185,7 @@ class _ModeToggle extends StatelessWidget {
       child: Row(
         children: [
           _Tab(
-            label: '교수에게 질문',
+            label: '강의 AI 질문',
             icon: Icons.school_outlined,
             selected: mode == QuestionMode.professor,
             onTap: () => onChanged(QuestionMode.professor),

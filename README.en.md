@@ -1,358 +1,488 @@
-![LiveLectureLogo](./assets/LiveLectureLogo2.png)
-
-# LiveLectureAI
-> **Empirical AI Development Project I** > **Task Hunter** | Flutter-based Real-time Subtitle & Question Widget for Enhanced Lecture Interaction
-
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/) [![FastAPI](https://img.shields.io/badge/FastAPI-0.135.1-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/) [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev/) [![PyTorch](https://img.shields.io/badge/PyTorch-2.10.0-EE4C2C?style=flat&logo=pytorch&logoColor=white)](https://pytorch.org/) [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.16.1-FF6F00?style=flat&logo=tensorflow&logoColor=white)](https://www.tensorflow.org/) [![MediaPipe](https://img.shields.io/badge/MediaPipe-0.10.13-00C041?style=flat&logo=google&logoColor=white)](https://developers.google.com/mediapipe) [![Whisper](https://img.shields.io/badge/Whisper-1.2.1-412991?style=flat&logo=openai&logoColor=white)](https://github.com/openai/whisper) [![Supabase](https://img.shields.io/badge/Supabase-2.28.0-3ECF8E?style=flat&logo=supabase&logoColor=white)](https://supabase.com/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-2.28.0-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![WebSockets](https://img.shields.io/badge/WebSockets-15.0.1-010101?style=flat&logo=socket.io&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) [![License](https://img.shields.io/badge/License-MIT-green)](https://opensource.org/licenses/MIT) [![DORA](https://img.shields.io/badge/DORA-Elite-brightgreen)](https://dora.dev/) [![Deploy](https://img.shields.io/badge/Deploy_Freq-30%2Fweek-blue)](https://github.com/features/actions)
-
 <p align="center">
-    <a href="README.ko.md">
-        <img src="https://img.shields.io/badge/Language-한국어-red?style=for-the-badge&logo=googletranslate&logoColor=white" alt="한국어 버전"/>
-    </a>
-    <a href="README.md">
-        <img src="https://img.shields.io/badge/Language-English-blue?style=for-the-badge&logo=googletranslate&logoColor=white" alt="English Version"/>
-    </a>
-    <a href="README.zh.md">
-        <img src="https://img.shields.io/badge/Language-中文版-orange?style=for-the-badge&logo=googletranslate&logoColor=white" alt="中文版"/>
-    </a>
+  <img src="./assets/LectureHunter_Logo3.jpeg" alt="Lecture Hunter Logo" width="100%" />
 </p>
 
----
-
-## Project Overview
-
-### "A Multimodal AI-Integrated Real-time Captioning & Context-Aware Inquiry System"
-
-This project is an AI-driven educational support platform that integrates a low-latency STT engine (Faster-Whisper) with a multimodal VLM (Llama 3.2 Vision) to analyze lecture audio and slide visuals in real time. Beyond simple captioning, the system understands the live lecture context to provide personalized RAG-based Q&A and automated summarization.
-
----
-
-## Key Features (4 Pillars) ##
-
-**[Feature 1] Real-time Intelligent Anchoring (STT + VLM)**
-
-- **Adaptive Capture**: Utilizes VAD (Voice Activity Detection) to identify valid speech segments and triggers VLM analysis only when slide changes are detected, optimizing server inference resources.
-
-- **Multimodal Sync**: Precisely maps real-time transcript data with VLM-analyzed slide summaries based on timestamps to provide students with a unified context.
-
-**[Feature 2] Multilingual Bridge Captioning**
-
-- **Lang-Chain Pipeline** : To maximize inference performance, VLM analysis is fixed to English, while the final output is translated in real time to the user’s preferred language (Korean, Japanese, etc.) via a dual-layer architecture.
-
-- **Context-Aware Translation** : Leverages visual context captured by the VLM as auxiliary data to prevent mistranslation of technical terms and enhance overall linguistic accuracy.
-
-**[Feature 3] RAG-based Smart Lecture Q&A**
-
-- **Vector Search** : Embeds and stores spoken content and slide text into a Supabase Vector Store in real time.
-
-- **Pinpoint Retrieval** : Generates high-fidelity answers by retrieving the exact lecture timestamps and visual references relevant to the user’s inquiry.
-
-**[Feature 4] Adaptive Briefing**
-
-- **Recursive Summarization** : Analyzes the flow of the lecture in 5 to 10-minute intervals using an LLM to generate high-level executive summaries.
-
-- **Efficiency Optimizer** : Enables late-joiners or students in review to quickly grasp the core lecture flow without watching the entire recording.
-
----
-
-## Technical Deep Dive: Advanced Engineering ##
-
-### 1. Whisper VAD & STT Optimization ###
-
-Implementation of **VAD (Voice Activity Detection)** logic to prevent hallucinations during silent intervals.
-
-**A. Signal Energy-based VAD**
-
-The STT engine is triggered only when the frame energy of the input signal $x(n)$ is significantly higher than the background noise energy ($E_{noise}$).
-
-$$E_{frame} = \sum_{n=1}^L |x(n)|^2 > \gamma \cdot E_{noise}$$
-
-- $\gamma$: Dynamic threshold considering the Signal-to-Noise Ratio (SNR).
-
-### 2. RAG Optimization: Vector Normalization ###
-
-Inner product calculations are performed after L2 Normalization to ensure search speed and accuracy within large-scale lecture datasets.
-
-$$\|\mathbf{v}\|_2 = \sqrt{\sum_{i=1}^n |v_i|^2}, \quad \mathbf{\hat{v}} = \frac{\mathbf{v}}{\|\mathbf{v}\|_2}$$
-
-- Since the inner product of normalized vectors is identical to Cosine Similarity, this maximizes real-time retrieval performance by reducing computational complexity.
-
-### 3. VLM Image Preprocessing & Scaling ###
-
-Preprocessing steps to maximize OCR (Optical Character Recognition) accuracy while maintaining inference performance within a local environment
-
-**A. Aspect-Ratio Aware Scaling**
-
-To ensure the VLM (Llama 3.2 Vision) accurately captures small technical terms and formulas, input images are resized to a $1024 \times 1024$ resolution using Bilinear Interpolation to minimize feature distortion.
-
-$$I_{scaled} = \text{Bilinear}(I_{raw}, 1024, 1024)$$
-
-- **Engineering Insight**: Standardizing to 1024px resulted in a approximately 30% reduction in "Hallucination" effects compared to 768px.
-
-**B. RGB Conversion & Channel Optimization**
-
-To comply with VLM input specifications and prevent inference errors caused by transparency, PNG files containing alpha channels are forcibly converted to a 3-channel RGB format.
-
-$$C_{\text{out}} = \{R, G, B\} \leftarrow \text{Flatten}(I_{\text{raw}}, \text{Alpha-Blend})$$
-
-### 4. Multimodal Contextual Anchoring ###
-
-Logic designed to integrate asynchronously generated audio (STT) and visual (VLM) data into a single unified context.
-
-**A. Nearest-Neighbor Timestamp Mapping**
-
-Based on the client's screenshot capture time ($T_{cap}$), the system retrieves and anchors the most relevant subtitle data ($T_{stt}$) within an error margin ($\epsilon$) from the database.
-
-$$\text{Target-ID} = \arg\min_{id} |T_{cap} - T_{stt, id}|, \quad \text{subject to } T_{stt} \le T_{cap}$$
-
-- This ensures that the slide summary is precisely matched to the exact moment the instructor explains the corresponding content.
-
-**B. Cross-Lingual Inference Bridge**
-
-To overcome local resource constraints and enhance analysis precision, the VLM performs analysis ($P_{vlm}$) in English ($L_{en}$), with the final result ($R$) translated into the user's target language ($L_{target}$) via a dedicated translation engine ($T$).
-
-$$R = T(\text{VLM}(I, L_{en}), L_{target})$$
-
-- **Performance Trade-off**: This architecture improved technical term recognition by over 20% compared to direct-to-target language models and provides high architectural flexibility for future model replacements.
-
----
-
-## System Architecture
-
-The system architecture of this project is designed as a three-stage data pipeline: "**Real-time Client Preprocessing (Capture & Optimization) → Multimodal Intelligent Inference (STT + VLM) → Data Integration & Personalized Service (RAG & Multilingual).**"
-
-![System Architecture](./assets/system_architecture.png)
-
----
-
-## Data Schema & Architecture
-
-| Table Name | Key Columns | Description |
-| :--- | :--- | :--- |
-| **lectures** | `id`, `title`, `keywords`, `major` | Manages lecture metadata and keywords for optimized search filtering. |
-| **lecture_contents** | `original_text`, `translated_text`, `has_visual`, `visual_summary`, `content_embedding` | Integrates real-time captions and VLM visual analysis; provides vector storage for RAG. |
-| **lecture_glossary** | `term`, `definition` | Stores major-specific terminology and definitions extracted in real time. |
-| **lecture_summaries** | `summary_text`, `key_points` | **Adaptive Briefing**: Stores recursive lecture summaries generated every 5-10 minutes. |
-| **lecture_logs** | `engagement_score`, `event_type` | Quantitative learning engagement metrics based on user interactions (e.g., questions) |
-
----
-
-## Tech Stack & Environment ##
-
-### Development Environment
-
-- OS: macOS (Apple Silicon M1/M2/M3)
-
-- Language: Python `3.12+` (**Python 3.13+ is not supported**)
-
-- Framework: FastAPI (Asynchronous Backend)
-
-- Virtual Env: venv ('pikmin')
-
-### AI & Machine Learning (Core)
-
-- STT (Speech-to-Text): **faster-whisper** `(1.2.1)`
-
-- VAD (Voice Activity Detection): **silero-vad** `(6.2.1)`
-
-- Multimodal VLM & LLM:
-
-    - **ollama** `(0.6.1)` 
-    
-    - **langchain-ollama** `(1.1.0)` / **langchain-core** `(1.2.28)`
-
-- Base Framework:
-
-    - **torch** `(2.10.0)` / **torchaudio** `(2.11.0)`
-      
-### Backend & Communication
-
-- API Server:
-
-    - **fastapi** `(0.135.1)` (Asynchronous API Server)
-    
-    - **uvicorn** `(0.41.0)` (ASGI Server)
-
-- Database / Auth: **supabase** `(2.28.0)` (Postgrest, Auth, Functions integration)
-
-- Real-time Communication: 
-
-    - **websockets** `(15.0.1)` (Real-time data transmission)
-
-    - **sse-starlette**
-
-- Asynchronous Client:
-
-    - **httpx** `(0.28.1)`
-    
-    - **anyio** `(4.12.1)`
-
-### Data Processing & Utilities
-
-- Image Preprocessing
-
-    - **pillow** `(12.1.1)`
-
-    - **numpy** `(1.26.4)`
-
-- Audio Processing:
-
-    - **sounddevice** `(0.5.5)`
-    
-    - **av** `(16.1.0)`
-
-- Data Validation: **pydantic v2** `(2.12.5)`
-
-- Environment Config: **python-dotenv** `(1.2.2)`
-
----
-
-## Project Milestone & Checklist (Updated 2026.05.07) ##
-
-**1. Multi-modal AI Engine (Core)**
-
-- [x] VLM-based Visual Engine: Integrated Llama 3.2 Vision and optimized resolution (1024px Bilinear Scaling) to maximize slide text recognition.
-
-- [x] Multimodal Contextual Anchoring: Implemented a Nearest-Neighbor mapping algorithm between STT timestamps and VLM capture points.
-
-- [x] Intelligent Speech Recognition (STT): Implemented high-speed inference and auto-language detection logic based on `Faster-Whisper`.
-
-- [x] Dynamic Translation Engine: Integrated a Cross-Lingual Bridge architecture using Gemma-2 to improve technical term accuracy.
-
-- [x] VAD Integration: Integrated `Silero VAD` to filter silence and fundamentally prevent STT hallucinations.
-
-**2. Backend & Intelligence (Architecture)**
-
-- [x] Asynchronous Architecture: Structured real-time bidirectional streaming using FastAPI, WebSockets, and `anyio`.
-
-- [x] Vector-based RAG Engine: Established hybrid embedding and HNSW indexing using Supabase `pgvector`.
-
-- [x] Memory-based Intelligent Q&A: Completed RAG tutor logic capable of context-aware responses based on previous lecture history.
-
-- [x] Database Schema Optimization: Secured a unified context structure by adding `has_visual` and `visual_summary` columns.
-
-**3. High-Performance Scaling (Testing & Deployment)**
-
-- [ ] Adaptive Briefing (Real-time Summary): Finalizing the recursive summary and keyword extraction pipeline based on 5–10 minute cumulative data.
-
-- [ ] Local LLM Serving Optimization: Testing NPU acceleration (M1/M2/RTX 5060) and minimizing inference latency via Ollama.
-
-- [ ] Concurrency Benchmarking: Measuring backend throughput and latency during multi-user access and WebSocket streaming.
-
-- [ ] Interaction-based Engagement Analysis: Developing quantitative metrics for learning engagement based on question frequency and quiz results.
-
-**4. Frontend Integration (Flutter)** -> (Final Dev scheduled after May 07, 2026)
-
-- [ ] WebSocket Integration: Testing real-time reception and visualization of backend analysis data (captions, summaries, translations).
-
-- [ ] Real-time Multilingual Subtitles: Implementing target language selection widgets and delay-compensated subtitle viewers.
-
-- [ ] RAG AI Tutor Widget: Developing a real-time Q&A interface synchronized with the lecture slide context.
-
-- [ ] Lecture Briefing Dashboard: Creating a dashboard for cumulative summaries and technical glossaries.
-
----
-
-## Getting Started ##
-
-**Installation**
-```Bash
-# 1. Repository Clone
+<p align="center">
+  <a href="#-getting-started">
+    <img src="https://img.shields.io/badge/QUICK%20START-4FC08D?style=for-the-badge&logoColor=white" alt="Quick Start" />
+  </a>
+  <a href="#-demo-example">
+    <img src="https://img.shields.io/badge-DEMO-5C86FA?style=for-the-badge&logoColor=white" alt="Demo" />
+  </a>
+  <br/>
+  <img alt="Status" src="https://img.shields.io/badge/status-in%20development-orange?style=flat-square" />
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" />
+  <img alt="Flutter" src="https://img.shields.io/badge/Flutter-3.x-02569B?style=flat-square&logo=flutter&logoColor=white" />
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white" />
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" />
+</p>
+
+<p align="center">
+  <b>Development of a Flutter-based real-time caption and question widget for lecture interaction</b>
+</p>
+
+<p align="center">
+  <a href="../README.md">🇰🇷 한국어</a>
+  ·
+  <b>🇺🇸 English</b>
+  ·
+  <a href="README_jp.md">🇯🇵 日本語</a>
+</p>
+
+> [!NOTE]
+> 🎓 **Department of AI, Dong-A University**
+> SW-Centered University Project, Field-Mirror-Type Linked Project
+
+> [!TIP]
+> If you are new to this project, we recommend reading in this order:
+> [Problems We Solve](#-problems-we-solve) → [Key Features](#-key-features) → [Demo Example](#-demo-example)
+
+<br/>
+
+### 📌 Project Overview
+
+**Lecture Hunter** is an AI-powered learning assistant that helps students better understand and review real-time lectures.
+
+It analyzes lecture audio, slide screens, and student questions together to provide the following features:
+
+* Convert the professor’s voice into real-time captions
+* Translate foreign-language lectures into Korean
+* Analyze charts, formulas, and figures inside lecture slides
+* Summarize key content when students miss the lecture flow
+* Answer questions based on the lecture context
+* Automatically generate a glossary of difficult terms
+
+<br/>
+
+### 📚 Table of Contents
+
+* [Problems We Solve](#-problems-we-solve)
+* [Key Features](#-key-features)
+* [User Flow](#-user-flow)
+* [Screen Layout](#-screen-layout)
+* [Demo Example](#-demo-example)
+* [Tech Stack](#-tech-stack)
+* [Project Structure](#-project-structure)
+* [Getting Started](#-getting-started)
+* [Development Commands](#-development-commands)
+* [Current Frontend Integration Status](#-current-frontend-integration-status)
+* [Progress](#-progress)
+
+<br/>
+
+### 🤔 Problems We Solve
+
+> *"This lecture is in English, and once I miss one word, I lose track of everything after that..."*
+
+> *"There was a term I didn’t understand during class, but I felt uncomfortable raising my hand to ask..."*
+
+> *"I joined the class 10 minutes late, and I have no idea what the lecture is about right now..."*
+
+> *"Rewatching an entire one-hour lecture just to review is too time-consuming..."*
+
+**Lecture Hunter helps students understand, ask questions, summarize, and review lectures in one integrated screen.**
+
+<br/>
+
+### ✨ Key Features
+
+| Feature                  | Description                                                                       |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| 🎙 Real-time Captions    | Converts lecture audio into text and displays it on the screen.                   |
+| 🌐 Real-time Translation | Translates foreign-language lectures into Korean in real time.                    |
+| 🖼 Slide Analysis        | Analyzes charts, formulas, and figures in slides to understand lecture context.   |
+| 💬 In-lecture Q&A        | Answers student questions based on the lecture content so far.                    |
+| 📝 Key Summaries         | Summarizes lecture content every 5–10 minutes so students can quickly catch up.   |
+| 📚 Automatic Glossary    | Automatically organizes difficult concepts and keywords that appear during class. |
+
+<br/>
+
+### 🔄 User Flow
+
+```mermaid
+flowchart LR
+    A[Lecture Audio Input] --> B[Speech Recognition]
+    C[Slide Screen Input] --> D[Image Analysis]
+    B --> E[Real-time Captions / Translation]
+    D --> F[Lecture Context Understanding]
+    E --> G[Summary / Q&A / Glossary]
+    F --> G
+    G --> H[View in Flutter App]
+```
+
+> If Mermaid diagrams are not displayed in your GitHub environment, you can understand the flow as follows:
+>
+> **Lecture Input → Audio & Slide Analysis → Caption & Translation Generation → Summary, Q&A, and Glossary → View in App**
+
+<br/>
+
+### 🖼 Demo Host-based Widget Screen Layout
+
+<p align="center">
+  <table>
+    <tr>
+      <th align="center">Caption Overlay</th>
+      <th align="center">Glossary Widget</th>
+      <th align="center">Lecture AI Question Panel</th>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="./assets/screens/caption_screen.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/glossary_tab.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/question_panel.png" width="300"/>
+      </td>
+    </tr>
+    <tr>
+      <th align="center">Caption Settings</th>
+      <th align="center">Caption History</th>
+      <th align="center">-</th>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="./assets/screens/caption_settings.png" width="300"/>
+      </td>
+      <td align="center">
+        <img src="./assets/screens/caption_history.png" width="300"/>
+      </td>
+      <td align="center">-</td>
+    </tr>
+  </table>
+</p>
+
+<br/>
+
+### 💡 Demo Example
+
+**Scenario: A machine learning lecture conducted in English**
+
+```text
+🎤 Professor
+"Now let's discuss the vanishing gradient problem..."
+
+📺 Caption Screen
+Original: Now let's discuss the vanishing gradient problem...
+Translation: Now let's discuss the vanishing gradient problem...
+
+💬 Student Question
+"Why is the vanishing gradient problem an issue?"
+
+🤖 AI Answer
+"As shown in the graph on slide 7,
+the learning signal becomes harder to pass back to earlier layers
+as a neural network becomes deeper.
+This makes training difficult.
+It is related to the backpropagation process explained around minute 15 of the lecture."
+```
+
+<br/>
+
+### 🛠 Tech Stack
+
+### 📱 Frontend
+
+| Technology      | Role                                                            |
+| --------------- | --------------------------------------------------------------- |
+| Flutter 3.x     | Development of a web-based real-time caption overlay UI         |
+| Dart            | Programming language for Flutter app development                |
+| Riverpod        | State management for captions, themes, and question panels      |
+| HTTP API        | Preparation for connecting question, glossary, and summary APIs |
+| SSE / WebSocket | Preparation for real-time caption streaming and audio streaming |
+
+<br/>
+
+### ⚙️ Backend
+
+| Technology       | Role                                      |
+| ---------------- | ----------------------------------------- |
+| Python 3.12      | Backend development language              |
+| FastAPI          | API server implementation                 |
+| Faster-Whisper   | Speech recognition and caption generation |
+| Llama 3.2 Vision | Slide image analysis                      |
+| Gemma 2          | Multilingual translation                  |
+| Silero VAD       | Voice activity detection                  |
+
+<br/>
+
+### 🗄 Database / Infra
+
+| Technology | Role                                              |
+| ---------- | ------------------------------------------------- |
+| Supabase   | Authentication, data storage, and API integration |
+| PostgreSQL | Lecture data storage                              |
+| pgvector   | Vector search for lecture content                 |
+| Ollama     | Local LLM runtime                                 |
+
+<br/>
+
+### 📁 Project Structure
+
+```text
+Lecture-Hunter
+│
+├── 📂 App/                     # FastAPI backend
+│   ├── main.py
+│   ├── api/
+│   ├── core/
+│   ├── services/
+│   ├── setup_db.sql
+│   └── ...
+│
+├── 📂 Frontend/                # Flutter application
+│   ├── android/
+│   ├── ios/
+│   ├── lib/
+│   │   ├── core/
+│   │   ├── features/
+│   │   │   ├── assistant/
+│   │   │   ├── caption/
+│   │   │   └── overlay/
+│   │   ├── services/
+│   │   ├── shared/
+│   │   └── main.dart
+│   ├── web/
+│   ├── macos/
+│   ├── windows/
+│   ├── linux/
+│   ├── pubspec.yaml
+│   └── analysis_options.yaml
+│
+├── 📂 assets/
+│   └── LectureHunter_Logo3.jpeg
+│
+├── 📄 README.md
+├── 📄 README.en.md
+├── 📄 README.zh.md
+├── 📄 CONTRIBUTING.md
+├── 📄 CODE_OF_CONDUCT.md
+├── 📄 SECURITY.md
+├── 📄 LICENSE
+├── 📄 Dockerfile
+└── 📄 requirements.txt
+```
+
+<br/>
+
+### 🚀 Getting Started
+
+### 1. Requirements
+
+| Item    | Recommended Version / Condition                         |
+| ------- | ------------------------------------------------------- |
+| OS      | macOS Apple Silicon or a PC with NVIDIA GPU recommended |
+| Python  | 3.12                                                    |
+| Flutter | 3.x                                                     |
+| Memory  | 16GB or higher recommended                              |
+| Others  | Ollama, Supabase project                                |
+
+<br/>
+
+### 2. Clone the Project
+
+```bash
 git clone https://github.com/2022764025/Lecture-Hunter.git
 cd Lecture-Hunter
+```
 
-# 2. Virtual Environment Setup (Python 3.12 recommended)
+<br/>
+
+### 3. Set Up the Backend Environment
+
+```bash
 python3 -m venv pikmin
 source pikmin/bin/activate
-
-# 3. Dependency Installation
-pip install --upgrade pip
 pip install -r requirements.txt
-
-# 4. Environment Variables Setup
-cp .env.example .env  # Create environment configuration (Required)
-# Then, enter your Supabase URL and KEY in the .env file.
 ```
 
-**Usage**
-```Bash
-# 1. Ollama Server Start (Local LLM/VLM 서빙)
+<br/>
+
+### 4. Set Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Open the `.env` file and enter your Supabase and local AI server information.
+
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+LLM_MODEL=gemma2:2b
+VLM_MODEL=llama3.2-vision:11b
+WHISPER_MODEL_SIZE=medium
+WHISPER_DEVICE=auto
+VAD_THRESHOLD=0.3
+```
+
+<br/>
+
+### 5. Set Up the Flutter App
+
+```bash
+cd Frontend
+flutter pub get
+flutter doctor
+cd ..
+```
+
+<br/>
+
+### 6. Run the Project
+
+We recommend using three separate terminal windows.
+
+### Terminal 1. Run the Local AI Server
+
+```bash
 ollama serve
-
-# FastAPI server start
-uvicorn App.main:app --reload
-
-# Vision Engine test(Local)
-python3 services/test_multimodal.py
 ```
 
----
+### Terminal 2. Run the Backend Server
 
-## Deployment & Runtime Options ##
-
-Our system supports three execution modes based on hardware resources and required inference precision.
-
-**Option A: Local Inference (Lightweight)**
-
-Recommended for testing on personal laptops (MacBook M1/M2/M3, etc.).
-
-1. **Models via Ollama**: `llama3.2-vision` (Visual Analysis) & `gemma2:2b` (Translation)
-
-2. **Faster-Whisper** `Medium` or `small` model (CPU/MPS acceleration)
-
-3. Environment Configuration:
-
-```Bash
-export RUNTIME_MODE=local
+```bash
+source pikmin/bin/activate
 uvicorn App.main:app --reload
 ```
 
-**Option B: GPU Server (High-Performance)**
+### Terminal 3. Run the Flutter App
 
-Recommended for servers with NVIDIA RTX 5060 or higher.
-
-1. **vLLM** based LLM (`Gemma2:9b` or `27b`)
-
-2. **Faster-Whisper** `Large-v3` model (CUDA acceleration)
-
-3. Execution Commands:
-
-```Bash
-# Start vLLM server (On GPU Server side)
-python -m vllm.entrypoints.openai.api_server --model google/gemma-2-9b-it
-
-# Start Backend server
-export RUNTIME_MODE=gpu
-uvicorn App.main:app --host 0.0.0.0
+```bash
+cd Frontend
+flutter run -d chrome
 ```
 
-**Option C: Docker Container (On-premises)**
+<br/>
 
-Use this for a consistent development environment across different machines.
+### 7. Check the Execution Status
 
-```Bash
-docker build -t livelecture-ai .
-docker run --gpus all -p 8000:8000 livelecture-ai
+Once the project is running successfully, check the following:
+
+* Backend server is running at `http://127.0.0.1:8000`
+* Flutter app is running in Chrome
+* LiveLectureAI screen is displayed correctly
+* Caption overlay, question panel, and glossary UI are displayed
+* Current frontend has completed mock-based UI behavior verification
+* Actual backend integration will proceed after API path alignment
+
+<br/>
+
+### 🧪 Development Commands
+
+### Flutter
+
+```bash
+cd Frontend
+
+# Install packages
+flutter pub get
+
+# Format code
+dart format .
+
+# Static analysis
+flutter analyze
+
+# Run app
+flutter run -d chrome
 ```
 
----
+<br/>
 
-## Hardware Requirements
+### Backend
 
-The system supports optimized model sizes based on the deployment environment.
+```bash
+# Activate virtual environment
+source pikmin/bin/activate
 
-| Component | Minimum (Laptop/Local) | Recommended (Server/GPU) |
-| :--- | :--- | :--- |
-| **GPU/NPU** | Apple Silicon (M1/M2/M3) | **NVIDIA RTX 40/50-series (12GB+ VRAM)** |
-| **Acceleration** | MPS (Metal) / CPU | **CUDA (vLLM / TensorRT)** |
-| **RAM** | 16GB (Unified Memory) | 32GB+ |
-| **STT Model** | Faster-Whisper **Medium** | Faster-Whisper **Large-v3** |
-| **VLM Model** | Llama-3.2-Vision-11B (Quantized) | **Llama-3.2-Vision-11B** or **LLaVA-13B** (8-bit/FP16) |
-| **LLM Model** | Gemma2-**2b** | Gemma2-**9b** or **27b** |
-| **Capacity** | Single User Analysis | **Class-wide (30+) Real-time Analysis** |
+# Run server
+uvicorn App.main:app --reload
 
----
+# Reinstall packages
+pip install -r requirements.txt
+```
 
-## License ##
+<br/>
 
-**MIT License**
+### 🔌 Current Frontend Integration Status
+
+The frontend has currently completed mock-based UI behavior verification and is in the stage of aligning API paths with the actual backend endpoints.
+
+### Verified Items
+
+* Checked backend HTTP call structure in `api_service.dart`
+* Checked real-time caption stream receiving structure in `sse_service.dart`
+* Checked Provider connection structure in `caption_controller.dart`
+* Checked mock / real server switching structure in `overlay_page.dart`
+* Checked actual backend endpoint list
+
+### Current Frontend Connection Structure
+
+* HTTP API call structure based on `ApiService`
+* Real-time caption stream receiving structure based on `SseService`
+* `sseServiceProvider` registered
+* `connectionStatusProvider` connected
+* `subtitleStreamProvider` connected
+* Latest caption display structure based on `currentSubtitleProvider`
+* Mock mode / real server connection switching structure available
+
+### Confirmed Path Mismatches
+
+| Category                    | Current Frontend Path         | Current Backend Path           |
+| --------------------------- | ----------------------------- | ------------------------------ |
+| Question API                | `POST /api/v1/qa/ask`         | `GET /lecture/ask`             |
+| Glossary API                | `GET /api/v1/glossary/search` | Backend endpoint not confirmed |
+| Real-time caption receiving | `GET /api/v1/subtitle/stream` | `WS /ws/audio/{lecture_id}`    |
+
+### Planned Fixes
+
+* Modify question API path in `api_service.dart`
+* Check request method and parameter structure for `/lecture/ask`
+* Check whether to add a backend endpoint for the glossary API
+* Decide whether to keep `sse_service.dart`
+* Match backend WebSocket structure with frontend real-time caption receiving structure
+
+<br/>
+
+### 📊 Progress
+
+### ✅ Completed Features
+
+* [x] Backend structure for speech-to-caption conversion
+* [x] Backend structure for slide image analysis
+* [x] Backend structure for AI answers based on lecture content
+* [x] FastAPI WebSocket audio receiving structure
+* [x] Multilingual translation engine integration structure
+* [x] Flutter real-time caption UI structure
+* [x] Flutter mock caption stream structure
+* [x] Flutter API/SSE service layer structure
+* [x] Flutter feature-based folder structure organization
+* [x] Flutter main UI button behavior verification
+* [x] Confirmed Flutter analyze with no issues found
+
+<br/>
+
+### 🚧 Features in Progress
+
+* [ ] Align actual STT/API/SSE connection paths
+* [ ] Connect question API `/lecture/ask` to the frontend
+* [ ] Add glossary API endpoint or modify frontend path
+* [ ] Decide real-time caption receiving method: keep SSE or switch to WebSocket
+* [ ] Finalize Flutter app UI
+* [ ] Automatic lecture summary feature
+* [ ] Multi-user concurrent access stability test
+* [ ] Learning engagement analysis dashboard
+
+<br/>
+
+### 🗓 Planned Features
+
+* [ ] Lecture-specific history storage
+* [ ] Caption search
+* [ ] Bookmark feature
+* [ ] User settings screen
+* [ ] Review summary report for lectures
+* [ ] Review iframe structure for applying to external sites
+* [ ] Review Chrome Extension-based overlay structure
