@@ -104,8 +104,8 @@ class _AssistantPanelState extends ConsumerState<AssistantPanel> {
     ref.read(questionResponseProvider.notifier).submit(question, mode);
   }
 
-  void _resetQuestion() {
-    ref.read(questionResponseProvider.notifier).reset();
+  Future<void> _resetQuestion() async {
+    await ref.read(questionResponseProvider.notifier).resetQuestionSession();
     _controller.clear();
     _focusNode.requestFocus();
   }

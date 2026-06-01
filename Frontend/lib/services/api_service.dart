@@ -44,6 +44,28 @@ class ApiService {
     }
   }
 
+  // ─── 강의 AI 질문 히스토리 초기화 ─────────────────────────────
+  Future<bool> resetQuestionHistory() async {
+    try {
+      final uri = Uri.parse('$_baseUrl/lecture/ask/reset').replace(
+        queryParameters: {
+          'lecture_id': AppConfig.defaultLectureId,
+        },
+      );
+
+      final response = await _client
+          .post(
+            uri,
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(_timeout);
+
+      return response.statusCode == 200;
+    } on Exception {
+      return false;
+    }
+  }
+
   // ─── 용어집 조회 ─────────────────────────────────────────────
   Future<List<GlossaryEntry>> searchGlossary(String term) async {
     try {

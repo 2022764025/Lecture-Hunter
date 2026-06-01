@@ -175,6 +175,11 @@ class QuestionResponseNotifier extends StateNotifier<QuestionResponseState> {
   }
 
   void reset() => state = const QuestionResponseState();
+
+  Future<void> resetQuestionSession() async {
+    await _apiService.resetQuestionHistory();
+    state = const QuestionResponseState();
+  }
 }
 
 // ─── 용어집 검색 Provider ─────────────────────────────────────
