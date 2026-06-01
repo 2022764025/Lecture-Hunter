@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.database import get_supabase
 
 # [서비스 레이어 임포트]
-from services.rag_service import get_answer_with_memory
+from services.rag_service import get_answer_with_memory, reset_lecture_history
 from services.analytics_service import (
     get_interaction_intensity,
     get_student_inactivity_timeline,
@@ -92,6 +92,22 @@ async def ask_ai_assistant(lecture_id: str, question: str, target_lang: str = "K
     try:
         answer = await get_answer_with_memory(question, lecture_id, target_lang)
         return {"question": question, "answer": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/lecture/ask/reset", tags=["AI Assistant"])
+async def reset_chat_history(lecture_id: str):
+    """
+    Flutter '새 질문 시작' 버튼 클릭 시 호출
+    해당 강의의 질문 히스토리 초기화
+    """
+    try:
+        reset_lecture_history(lecture_id)
+        return {
+            "status": "success",
+            "lecture_id": lecture_id,
+            "message": "질문 히스토리가 초기화되었습니다."
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

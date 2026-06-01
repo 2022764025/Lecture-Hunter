@@ -8,6 +8,10 @@
     - 학생이 질문하면, DB에서 가장 관련 있는 자막 3개를 찾아온다. 자막 앞에 [ko], [zh] 같은 꼬리표를 붙여서 AI가 "이건 중국어 설명이었구나"라고 인지
 (3) 슬라이딩 윈도우 메모리
     - chat_histories를 통해 최근 10개의 대화를 기억한다. history.pop(0) 로직을 통해 고정된 메모리 크기(Sliding Window)를 유지
+
+<추가>
+(1) 중복 답변 방지
+    - 모델과 방지 로직이 없어서 로직을 추가, 나중에 모델만 교체하면 됌.
 """
 
 import asyncio
@@ -109,3 +113,15 @@ async def get_answer_with_memory(question: str, lecture_id: str, target_lang: st
     except Exception as e:
         print(f"get_answer_with_memory 오류: {e}")
         raise
+
+def reset_lecture_history(lecture_id: str):
+    """
+    특정 강의의 질문 히스토리 초기화
+    Flutter "새 질문 시작" 버튼에서 호출
+    """
+    if lecture_id in chat_histories:
+        chat_histories.pop(lecture_id, None)
+        history_last_access.pop(lecture_id, None)
+        print(f"[History] {lecture_id} 히스토리 초기화 완료")
+        return True
+    return False
