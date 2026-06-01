@@ -79,8 +79,13 @@ class _AssistantPanelState extends ConsumerState<AssistantPanel> {
                   isLoading: responseState.status == ResponseStatus.loading,
                   onTap: () => _submit(mode),
                 ),
-                if (responseState.status != ResponseStatus.idle)
+                if (responseState.status != ResponseStatus.idle) ...[
+                  const SizedBox(height: 8),
+                  _ResetQuestionButton(
+                    onTap: _resetQuestion,
+                  ),
                   _ResponseCard(state: responseState),
+                ],
               ] else ...[
                 // 용어집 모드 - GlossaryPanel 임베드
                 const GlossaryTab(embedded: true),
@@ -97,6 +102,12 @@ class _AssistantPanelState extends ConsumerState<AssistantPanel> {
     if (question.isEmpty) return;
     FocusScope.of(context).unfocus();
     ref.read(questionResponseProvider.notifier).submit(question, mode);
+  }
+
+  void _resetQuestion() {
+    ref.read(questionResponseProvider.notifier).reset();
+    _controller.clear();
+    _focusNode.requestFocus();
   }
 }
 
@@ -331,6 +342,29 @@ class _SubmitButton extends StatelessWidget {
                 Text('질문 전송', style: TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
+    );
+  }
+}
+
+class _ResetQuestionButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ResetQuestionButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: TextButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.refresh, size: 14),
+        label: const Text('새 질문 시작'),
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.white54,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          textStyle: const TextStyle(fontSize: 12),
+        ),
+      ),
     );
   }
 }
