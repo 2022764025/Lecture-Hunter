@@ -47,23 +47,33 @@ class ApiService {
   // ─── 용어집 조회 ─────────────────────────────────────────────
   Future<List<GlossaryEntry>> searchGlossary(String term) async {
     try {
+      final uri = Uri.parse(
+        '$_baseUrl/lecture/glossary/${AppConfig.defaultLectureId}',
+      ).replace(
+        queryParameters: {
+          if (term.trim().isNotEmpty) 'keyword': term.trim(),
+        },
+      );
+
       final response = await _client
           .get(
-            Uri.parse(
-              '$_baseUrl/api/v1/glossary/search?term=${Uri.encodeComponent(term)}',
-            ),
+            uri,
             headers: {'Accept': 'application/json'},
           )
           .timeout(_timeout);
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
-        if (data is List) {
-          return data
+        final data =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final glossary = data['glossary'];
+
+        if (glossary is List) {
+          return glossary
               .map((e) => GlossaryEntry.fromJson(e as Map<String, dynamic>))
               .toList();
         }
       }
+
       return [];
     } on Exception {
       return [];
