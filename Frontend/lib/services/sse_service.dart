@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/app_config.dart';
@@ -18,6 +20,11 @@ class SseService {
   StreamController<SubtitleSegment>? _subtitleController;
   StreamController<ConnectionStatus>? _statusController;
 
+  SseService() {
+    _subtitleController = StreamController<SubtitleSegment>.broadcast();
+    _statusController = StreamController<ConnectionStatus>.broadcast();
+  }
+
   String? _lectureId;
 
   Stream<SubtitleSegment> get subtitleStream =>
@@ -32,7 +39,13 @@ class SseService {
 
     _lectureId = lectureId ?? AppConfig.defaultLectureId;
 
+    debugPrint('[SSE] connect start lectureId=$_lectureId');
+    debugPrint(
+      '[SSE] supabaseUrl empty=${_supabaseUrl.isEmpty}, anonKey empty=${_supabaseAnonKey.isEmpty}',
+    );
+
     if (_supabaseUrl.isEmpty || _supabaseAnonKey.isEmpty) {
+      debugPrint('[SSE] missing Supabase config');
       _statusController?.add(ConnectionStatus.error);
       return;
     }
@@ -48,15 +61,39 @@ class SseService {
           .onBroadcast(
             event: 'new_caption',
             callback: (payload) {
-              final json = Map<String, dynamic>.from(payload);
+              debugPrint('[SSE] new_caption payload: $payload');
+
+              final payloadMap = Map<String, dynamic>.from(payload);
+              final json = payloadMap['payload'] is Map
+                  ? Map<String, dynamic>.from(payloadMap['payload'] as Map)
+                  : payloadMap;
+
               final segment = SubtitleSegment.fromJson(json);
               _subtitleController?.add(segment);
             },
           )
-          .subscribe();
+          .subscribe((status, error) {
+            debugPrint('[SSE] subscribe status: $status');
+            if (error != null) {
+              debugPrint('[SSE] subscribe error: $error');
+            }
 
-      _statusController?.add(ConnectionStatus.connected);
-    } catch (_) {
+            final statusText = status.toString();
+
+            if (statusText.contains('subscribed') ||
+                statusText.contains('SUBSCRIBED')) {
+              _statusController?.add(ConnectionStatus.connected);
+            } else if (statusText.contains('channelError') ||
+                statusText.contains('CHANNEL_ERROR') ||
+                statusText.contains('timedOut') ||
+                statusText.contains('TIMED_OUT')) {
+              _statusController?.add(ConnectionStatus.error);
+            }
+          });
+
+      debugPrint('[SSE] subscribe requested: lecture_$_lectureId');
+    } catch (e) {
+      debugPrint('[SSE] connect error: $e');
       _statusController?.add(ConnectionStatus.error);
     }
   }
@@ -81,6 +118,9 @@ class SseService {
   Timer? _mockTimer;
 
   void startMock() {
+    _mockTimer?.cancel();
+    _mockTimer = null;
+
     _subtitleController ??= StreamController<SubtitleSegment>.broadcast();
     _statusController ??= StreamController<ConnectionStatus>.broadcast();
     _statusController?.add(ConnectionStatus.connected);
@@ -115,6 +155,7 @@ class SseService {
 
   void stopMock() {
     _mockTimer?.cancel();
+    _mockTimer = null;
     _statusController?.add(ConnectionStatus.disconnected);
   }
 }

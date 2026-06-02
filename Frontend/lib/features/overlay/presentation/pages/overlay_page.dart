@@ -173,7 +173,7 @@ class _DevControlBar extends ConsumerWidget {
           const Spacer(),
           // Mock 모드 토글
           TextButton.icon(
-            onPressed: () {
+            onPressed: () async {
               final newMock = !isMock;
               ref.read(mockModeProvider.notifier).state = newMock;
               final sseService = ref.read(sseServiceProvider);
@@ -182,7 +182,7 @@ class _DevControlBar extends ConsumerWidget {
                 sseService.startMock();
               } else {
                 sseService.stopMock();
-                sseService.connect();
+                await sseService.connect();
               }
             },
             icon: Icon(
