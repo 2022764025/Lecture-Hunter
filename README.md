@@ -87,11 +87,13 @@ TV에서 자막 보신 적 있으시죠?
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/caption_screen.png" width="360"/><br/>
+      준비 중
+      <br/>
       <sub>강의 자막이 화면에 바로 나타나요.</sub>
     </td>
     <td align="center">
-      <img src="./assets/screens/caption_screen.png" width="360"/><br/>
+      준비 중
+      <br/>
       <sub>수신된 자막의 원문과 한국어 번역을 함께 볼 수 있어요.</sub>
     </td>
   </tr>
@@ -369,6 +371,8 @@ Lecture-Hunter
 ---
 
 ### 참고 자료
+
+만드는 데 도움받은 자료들이에요.
 
 - Flutter 공식 문서: https://docs.flutter.dev/
 - FastAPI 공식 문서: https://fastapi.tiangolo.com/
