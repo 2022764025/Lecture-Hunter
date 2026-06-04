@@ -23,9 +23,9 @@
 
 <p align="center">
   🇰🇷 한국어 &nbsp;·&nbsp;
-  <a href="docs/README_en.md">🇺🇸 English</a> &nbsp;·&nbsp;
-  <a href="docs/README_jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
-  <a href="docs/README_zh-CN.md">🇨🇳 简体中文</a>
+  <a href="docs/README.en.md">🇺🇸 English</a> &nbsp;·&nbsp;
+  <a href="docs/README.jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
+  <a href="docs/README.zh.md">🇨🇳 简体中文</a>
 </p>
 
 > [!NOTE]
@@ -103,7 +103,7 @@ TV에서 자막 보신 적 있으시죠?
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/glossary_tab.png" width="360"/><br/>
+      <img src="./assets/screens/question_input.png" width="360"/><br/>
       <sub>강의 내용을 바탕으로 AI에게 질문할 수 있어요.</sub>
     </td>
     <td align="center">
