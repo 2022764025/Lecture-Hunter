@@ -22,287 +22,202 @@
 </p>
 
 <p align="center">
-  <b>🇰🇷 한국어</b>
-  ·
-  <a href="docs/README_en.md">🇺🇸 English</a>
-  ·
-  <a href="docs/README_jp.md">🇯🇵 日本語</a>
+  🇰🇷 한국어 &nbsp;·&nbsp;
+  <a href="docs/README_en.md">🇺🇸 English</a> &nbsp;·&nbsp;
+  <a href="docs/README_jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
+  <a href="docs/README_zh-CN.md">🇨🇳 简体中文</a>
 </p>
 
 > [!NOTE]
-> 🎓 **동아대학교 AI학과** SW중심대학사업 현장미러형 연계 프로젝트
+> 동아대학교 AI학과 SW중심대학사업 현장미러형 연계 프로젝트
+<br>
+> 👩🏻‍🎓👨🏻‍🎓👨🏻‍🎓 **과제헌터 팀**
 
-> [!TIP]
-> 처음 보는 분이라면 [이런 문제를 해결합니다](#-이런-문제를-해결합니다) → [핵심 기능](#-핵심-기능) → [사용 예시](#-사용-예시) 순서로 읽으면 빠르게 이해할 수 있습니다.
+---
 
-<br/>
+### 📺 이 프로젝트가 뭔가요?
 
-## 📌 프로젝트 소개
+TV에서 자막 보신 적 있으시죠?
 
-**Lecture Hunter**는 실시간 강의를 더 쉽게 이해하고 복습할 수 있도록 도와주는 AI 기반 학습 도우미입니다.
+**강의 화면 위에 실시간 자막이 뜨는 AI 프로그램이에요.**
 
-강의 중 발생하는 음성, 슬라이드 화면, 질문 내용을 함께 분석하여 다음과 같은 기능을 제공합니다.
+교수님이 말씀하시는 순간, 바로 글자로 화면에 나타나요.
+외국어 강의도 **한국어로 번역**해서 보여드리고,
+모르는게 있다면 **검색**도 가능해요.
+강의를 놓쳤다면 **"지금까지 뭐 했는지" 요약**도 해드려요.
 
-- 교수님 음성을 실시간 자막으로 변환
-- 외국어 강의를 한국어로 번역
-- 슬라이드 속 도표, 수식, 그림까지 함께 분석
-- 강의 흐름을 놓쳤을 때 핵심 내용 요약
-- 강의 맥락을 반영한 AI 질문 답변
-- 어려운 용어를 자동으로 정리하는 용어집 제공
+> 💡 **TIP**
+손 들고 질문하기 두려울 때 특히 유용해요. 아무도 모르게 AI한테만 물어볼 수 있거든요! 🙈
 
-<br/>
+---
 
-## 📚 목차
+### 📚 목차
 
-- [이런 문제를 해결합니다](#-이런-문제를-해결합니다)
-- [핵심 기능](#-핵심-기능)
-- [사용 흐름](#-사용-흐름)
-- [화면 구성](#-화면-구성)
-- [사용 예시](#-사용-예시)
-- [기술 스택](#-기술-스택)
-- [프로젝트 구조](#-프로젝트-구조)
-- [시작하기](#-시작하기)
-- [개발 명령어](#-개발-명령어)
-- [현재 프론트엔드 연결 상태](#-현재-프론트엔드-연결-상태)
-- [진행 상황](#-진행-상황)
+* [이런 상황에서 유용해요](#-이런-상황에서-유용해요)
+* [주요 기능 미리보기](#-주요-기능-미리보기)
+* [사용 예시](#-사용-예시)
+* [어떻게 작동하나요?](#-어떻게-작동하나요)
+* [시작하는 방법](#-시작하는-방법)
+* [현재 개발 상황](#-현재-개발-상황)
+* [어떻게 사용하나요?](#-어떻게-사용하나요)
+* [어떤 기술로 만들었나요?](#-어떤-기술로-만들었나요)
+* [프로젝트 구조](#-프로젝트-구조)
+* [참고 자료](#참고-자료)
 
-<br/>
+---
 
-## 🤔 이런 문제를 해결합니다
+### 🙋 이런 상황에서 유용해요
 
-> *"영어 강의인데 한 단어 놓치니까 그 뒤로 다 못 알아듣겠어…"*
+| 이런 상황이라면...                  | 이렇게 도와줘요    |
+| ---------------------------- | --------------------------- |
+| “영어 강의라 하나도 못 알아듣겠어...”      | 한국어 번역 자막으로 이해를 도와줘요.       |
+| “교수님이 너무 빠르게 말씀하셔...”        | 놓친 내용을 자막으로 다시 확인할 수 있어요.   |
+| “10분 늦게 들어왔는데 지금 무슨 얘기야...”  | 강의 흐름을 AI 질문으로 확인할 수 있어요.   |
+| “질문하고 싶은데 손들기 부끄러워...”       | AI에게 조용히 질문할 수 있어요.         |
+| “어려운 단어가 나왔는데 다시 확인하고 싶어...” | 저장된 강의 용어를 검색해서 확인할 수 있어요.  |
+| “지나간 자막을 다시 보고 싶어...”        | 자막 히스토리에서 이전 자막을 확인할 수 있어요. |
 
-> *"수업 중에 모르는 용어가 나왔는데, 손 들고 물어보기는 부담스러워…"*
+---
 
-> *"10분 늦게 들어왔는데, 지금 무슨 얘기를 하는지 모르겠어…"*
+### 🖼 주요 기능 미리보기
 
-> *"복습할 때 1시간짜리 강의를 처음부터 다시 듣기는 너무 길어…"*
+<table align="center">
+  <tr>
+    <th align="center">🎙 실시간 자막</th>
+    <th align="center">🌐 실시간 번역</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/caption_screen.png" width="360"/><br/>
+      <sub>강의 자막이 화면에 바로 나타나요.</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/caption_screen.png" width="360"/><br/>
+      <sub>수신된 자막의 원문과 한국어 번역을 함께 볼 수 있어요.</sub>
+    </td>
+  </tr>
 
-**Lecture Hunter는 강의 이해, 질문, 요약, 복습을 한 화면에서 도와주는 학습 보조 도구입니다.**
+  <tr>
+    <th align="center">💬 강의 AI 질문</th>
+    <th align="center">📚 용어집 조회</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/question_panel.png" width="360"/><br/>
+      <sub>강의 내용을 바탕으로 AI에게 질문할 수 있어요.</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/glossary_tab.png" width="360"/><br/>
+      <sub>저장된 강의 용어를 검색해서 확인할 수 있어요.</sub>
+    </td>
+  </tr>
 
-<br/>
+  <tr>
+    <th align="center">⚙️ 자막 설정</th>
+    <th align="center">📜 지난 자막 보기</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/caption_settings.png" width="360"/><br/>
+      <sub>자막 크기, 위치, 투명도, 테마를 조절할 수 있어요.</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/caption_history.png" width="360"/><br/>
+      <sub>지나간 자막도 다시 확인할 수 있어요.</sub>
+    </td>
+  </tr>
 
-## ✨ 핵심 기능
-
-| 기능 | 설명 |
-| --- | --- |
-| 🎙 실시간 자막 | 강의 음성을 텍스트로 변환하여 화면에 표시합니다. |
-| 🌐 실시간 번역 | 외국어 강의를 한국어로 번역하여 함께 보여줍니다. |
-| 🖼 슬라이드 분석 | 슬라이드의 도표, 수식, 그림을 함께 분석하여 강의 맥락을 파악합니다. |
-| 💬 강의 중 질문 | 사용자가 질문하면 지금까지의 강의 내용을 바탕으로 AI가 답변합니다. |
-| 📝 핵심 요약 | 5~10분 단위로 강의 내용을 요약해 흐름을 빠르게 따라갈 수 있도록 돕습니다. |
-| 📚 자동 용어집 | 수업 중 등장한 어려운 개념과 키워드를 자동으로 정리합니다. |
-
-<br/>
-
-## 🔄 사용 흐름
-
-```mermaid
-flowchart LR
-    A[강의 음성 입력] --> B[음성 인식]
-    C[슬라이드 화면 입력] --> D[이미지 분석]
-    B --> E[실시간 자막/번역]
-    D --> F[강의 맥락 이해]
-    E --> G[요약/질문 답변/용어집]
-    F --> G
-    G --> H[Flutter 앱에서 확인]
-```
-
-> GitHub에서 Mermaid가 보이지 않는 환경이라면 아래 흐름으로 이해하면 됩니다.
->
-> **강의 입력 → 음성·슬라이드 분석 → 자막·번역 생성 → 요약·질문 답변·용어집 제공 → 앱에서 확인**
-
-<br/>
-
-## 🖼 데모 호스트 기반 위젯 화면 구성
-
-<p align="center">
-  <table>
-    <tr>
-      <th align="center">자막 오버레이</th>
-      <th align="center">용어집 위젯</th>
-      <th align="center">강의 AI 질문 패널</th>
-    </tr>
-    <tr>
-      <td align="center">
-        <img src="./assets/screens/caption_screen.png" width="300"/>
-      </td>
-      <td align="center">
-        <img src="./assets/screens/glossary_tab.png" width="300"/>
-      </td>
-      <td align="center">
-        <img src="./assets/screens/question_panel.png" width="300"/>
-      </td>
-    </tr>
-    <tr>
-      <th align="center">자막 설정</th>
-      <th align="center">자막 히스토리</th>
-      <th align="center">-</th>
-    </tr>
-    <tr>
-      <td align="center">
-        <img src="./assets/screens/caption_settings.png" width="300"/>
-      </td>
-      <td align="center">
-        <img src="./assets/screens/caption_history.png" width="300"/>
-      </td>
-      <td align="center">-</td>
-    </tr>
-  </table>
-</p>
+  <tr>
+    <th align="center">🔄 새 질문 시작</th>
+    <th align="center">📝 핵심 요약</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/question_input.png" width="360"/><br/>
+      <sub>이전 질문 흐름을 지우고 새 질문을 시작할 수 있어요.</sub>
+    </td>
+    <td align="center">
+      준비 중<br/>
+      <sub>강의 내용을 짧게 요약해줘요.</sub>
+    </td>
+  </tr>
+</table>
 
 <br/>
 
-## 💡 사용 예시
+---
 
-**상황: 영어로 진행되는 머신러닝 강의**
+
+
+### 💡 사용 예시
+
+**상황: 영어로 진행되는 수업**
 
 ```text
-🎤 교수님
-"Now let's discuss the vanishing gradient problem..."
+교수님:
+"Now let's discuss the vanishing gradient problem."
 
-📺 자막 화면
-원문: Now let's discuss the vanishing gradient problem...
+화면 자막:
+원문: Now let's discuss the vanishing gradient problem.
 번역: 이제 기울기 소실 문제에 대해 다뤄보겠습니다.
 
-💬 학생 질문
-"기울기 소실이 왜 문제인가요?"
+학생 질문:
+"기울기 소실이 뭐예요?"
 
-🤖 AI 답변
-"지금 보고 계신 슬라이드 7번 그래프처럼,
-신경망이 깊어질수록 학습 신호가 앞쪽 계층까지 잘 전달되지 않아
+AI 답변:
+기울기 소실은 신경망이 깊어질수록 학습 신호가 앞쪽까지 잘 전달되지 않아
 학습이 어려워지는 현상입니다.
-강의 15분 시점에서 설명한 역전파 과정과 관련이 있습니다."
+```
+
+<br>
+
+
+## 🔄 어떻게 작동하나요?
+
+> **마이크로 교수님 목소리를 듣고 → AI가 글자로 바꾸고 → 내 화면에 보여준다**
+
+조금 더 풀어보면 이래요:
+
+```
+1️⃣  교수님이 말씀하신다
+        ↓
+2️⃣  AI가 목소리를 듣고 글자로 바꾼다
+   (영어면 한국어로도 자동 번역)
+        ↓
+3️⃣  내 화면에 자막으로 표시된다
+        ↓
+4️⃣  모르는 게 있으면?  → AI한테 질문!
+    강의 흐름 놓쳤으면? → 요약 버튼 클릭!
 ```
 
 <br/>
 
-## 🛠 기술 스택
 
-### 📱 Frontend
+## 🚀 시작하는 방법
 
-| 기술 | 역할 |
-| --- | --- |
-| Flutter 3.x | Web 기반 실시간 자막 오버레이 UI 개발 |
-| Dart | Flutter 앱 개발 언어 |
-| Riverpod | 자막, 테마, 질문 패널 상태 관리 |
-| HTTP API | 질문, 용어집, 요약 API 연결 준비 |
-| SSE / WebSocket | 실시간 자막 수신 및 오디오 스트리밍 연결 준비 |
 
-<br/>
-
-### ⚙️ Backend
-
-| 기술 | 역할 |
-| --- | --- |
-| Python 3.12 | 백엔드 개발 언어 |
-| FastAPI | API 서버 구축 |
-| Faster-Whisper | 음성 인식 및 자막 생성 |
-| Llama 3.2 Vision | 슬라이드 이미지 분석 |
-| Gemma 2 | 다국어 번역 |
-| Silero VAD | 음성 구간 감지 |
-
-<br/>
-
-### 🗄 Database / Infra
-
-| 기술 | 역할 |
-| --- | --- |
-| Supabase | 인증, 데이터 저장, API 연동 |
-| PostgreSQL | 강의 데이터 저장 |
-| pgvector | 강의 내용 벡터 검색 |
-| Ollama | 로컬 LLM 실행 |
-
-<br/>
-
-## 📁 프로젝트 구조
-
-```text
-Lecture-Hunter
-│
-├── 📂 App/                     # FastAPI backend
-│   ├── main.py
-│   ├── api/
-│   ├── core/
-│   ├── services/
-│   ├── setup_db.sql
-│   └── ...
-│
-├── 📂 Frontend/                # Flutter application
-│   ├── android/
-│   ├── ios/
-│   ├── lib/
-│   │   ├── core/
-│   │   ├── features/
-│   │   │   ├── assistant/
-│   │   │   ├── caption/
-│   │   │   └── overlay/
-│   │   ├── services/
-│   │   ├── shared/
-│   │   └── main.dart
-│   ├── web/
-│   ├── macos/
-│   ├── windows/
-│   ├── linux/
-│   ├── pubspec.yaml
-│   └── analysis_options.yaml
-│
-├── 📂 assets/
-│   └── LectureHunter_Logo3.jpeg
-│
-├── 📄 README.md
-├── 📄 README.en.md
-├── 📄 README.zh.md
-├── 📄 CONTRIBUTING.md
-├── 📄 CODE_OF_CONDUCT.md
-├── 📄 SECURITY.md
-├── 📄 LICENSE
-├── 📄 Dockerfile
-└── 📄 requirements.txt
-```
-
-<br/>
-
-## 🚀 시작하기
-
-### 1. 필요한 환경
-
-| 항목 | 권장 버전 / 조건 |
-| --- | --- |
-| OS | macOS Apple Silicon 또는 NVIDIA GPU 탑재 PC 권장 |
+| 항목 | 버전 |
+|------|------|
 | Python | 3.12 |
 | Flutter | 3.x |
-| Memory | 16GB 이상 권장 |
-| 기타 | Ollama, Supabase 프로젝트 |
+| Ollama | 최신 버전 |
+| Supabase 계정 | - |
 
-<br/>
-
-### 2. 프로젝트 클론
+**설치하기**
 
 ```bash
+# 1. 프로젝트 가져오기
 git clone https://github.com/2022764025/Lecture-Hunter.git
 cd Lecture-Hunter
-```
 
-<br/>
-
-### 3. 백엔드 환경 설정
-
-```bash
+# 2. 백엔드 준비
 python3 -m venv pikmin
 source pikmin/bin/activate
 pip install -r requirements.txt
-```
 
-<br/>
-
-### 4. 환경 변수 설정
-
-```bash
+# 3. 환경 설정 (.env 파일 생성 후 아래 내용 입력)
 cp .env.example .env
 ```
-
-`.env` 파일을 열고 Supabase 및 로컬 AI 서버 정보를 입력합니다.
 
 ```env
 SUPABASE_URL=your_supabase_url
@@ -314,172 +229,156 @@ WHISPER_DEVICE=auto
 VAD_THRESHOLD=0.3
 ```
 
-<br/>
-
-### 5. Flutter 앱 설정
-
 ```bash
+# 4. 화면(프론트엔드) 준비
 cd Frontend
 flutter pub get
-flutter doctor
 cd ..
 ```
 
-<br/>
-
-### 6. 실행 방법
-
-터미널을 3개로 나누어 실행하는 것을 권장합니다.
-
-#### Terminal 1. 로컬 AI 서버 실행
+**실행하기 → 터미널 창을 3개 열어주세요**
 
 ```bash
+# 터미널 1: AI 모델 서버 켜기
 ollama serve
-```
 
-#### Terminal 2. 백엔드 서버 실행
-
-```bash
+# 터미널 2: 백엔드 서버 켜기
+cd ~/Downloads/Lecture-Hunter
 source pikmin/bin/activate
-uvicorn App.main:app --reload
-```
+cd App
+uvicorn main:app --reload
 
-#### Terminal 3. Flutter 앱 실행
-
-```bash
+# 터미널 3: 화면 실행
 cd Frontend
-flutter run -d chrome
+flutter run -d chrome \
+  --dart-define=API_BASE_URL=http://127.0.0.1:8000 \
+  --dart-define=WS_BASE_URL=ws://127.0.0.1:8000 \
+  --dart-define=SUPABASE_URL=your_supabase_url \
+  --dart-define=SUPABASE_ANON_KEY=your_supabase_publishable_or_anon_key \
+  --dart-define=LECTURE_ID=demo-lecture \
+  --dart-define=TARGET_LANG=Korean
+```
+
+**잘 실행됐는지 확인하기**
+- 주소창에 `http://127.0.0.1:8000` 열어서 응답이 오면 **OK**
+- Chrome에서 자막 화면이 뜨면 **OK**
+- 자막·질문·용어집 버튼들이 보이면 **OK**
+
+<br>
+
+---
+
+## 📊 현재 개발 상황
+
+| 기능 | 상태 |
+|------|------|
+| 질문 API 연동 | ✅ 완료 |
+| 질문 히스토리 초기화 | ✅ 완료 |
+| 용어집 API 연동 | ✅ 완료 |
+| 실시간 자막 수신 | ✅ 완료 |
+| 수동 자막 표시 테스트 | ✅ 완료 |
+| 오디오 WebSocket 연결 | ✅ 완료 |
+| 실제 마이크 음성 자막 변환 | ⏳ 예정 |
+| 핵심 요약 기능 | 🔄 진행 중 |
+| 슬라이드 이미지 분석 | 🔄 진행 중 |
+| 여러 명 동시 사용 테스트 | ⏳ 예정 |
+
+
+### 🧪 남은 핵심 작업
+
+| 작업                 | 상태 |
+| ------------------ | -- |
+| 실제 마이크 입력          | 예정 |
+| 마이크 음성 백엔드 전송      | 예정 |
+| 음성 자막 변환           | 예정 |
+| 변환된 자막 실시간 표시      | 예정 |
+| 실제 음성 기반 전체 흐름 테스트 | 예정 |
+
+---
+
+## 🧭 어떻게 사용하나요?
+
+Flutter 화면이 켜지면 강의 화면 위에 학습 도우미 위젯이 나타나요.
+버튼 하나씩 눌러보면 바로 쓸 수 있어요!
+
+| 기능 | 이렇게 쓰면 돼요 |
+|------|-----------------|
+| 자막 보기 | 화면 아래쪽에 원문이랑 번역이 같이 떠요. 그냥 보면 돼요! |
+| 질문하기 | 질문 패널 열고 궁금한 거 입력하면 AI가 답해줘요 |
+| 새 질문 시작 | 이전 질문 내용 지우고 새로 시작하고 싶을 때 눌러요 |
+| 용어 검색 | 용어집 탭에서 모르는 단어 검색해서 확인해요 |
+| 자막 히스토리 | 지나간 자막 다시 보고 싶을 때 확인해요 |
+| 실서버 연결 | 실제 강의와 연결해서 쓸 때 이 모드로 바꿔요 |
+
+<br/>
+
+---
+
+## 🛠 어떤 기술로 만들었나요?
+
+
+| 영역 | 사용 기술 | 왜 사용했나요? |
+|------|-----------|---------------|
+| 화면 | Flutter | 자막, 질문, 용어집 화면을 만들기 위해 사용했어요 |
+| 서버 | FastAPI | AI랑 화면이 서로 대화하는 통로를 만들기 위해 사용했어요 |
+| AI 모델 실행 | Ollama | 인터넷 없이도 AI를 내 컴퓨터에서 돌리기 위해 사용했어요 |
+| 음성 인식 | Faster-Whisper | 교수님 목소리를 글자로 바꾸기 위해 사용했어요 |
+| 음성 구간 감지 | Silero VAD | 말하는 구간만 골라내기 위해 사용했어요 |
+| 데이터 저장 | Supabase | 강의 내용과 자막 데이터를 저장하기 위해 사용했어요 |
+| 실시간 전송 | Supabase Realtime | 자막을 화면에 실시간으로 보내기 위해 사용했어요 |
+| 오디오 연결 | WebSocket | 마이크 소리를 서버로 보내기 위해 사용했어요 |
+
+<br/>
+
+---
+
+## 📁 프로젝트 구조
+
+
+```text
+Lecture-Hunter
+│
+├── App/                   
+│   ├── main.py
+│   ├── api/
+│   ├── core/
+│   ├── services/
+│   └── ...
+│
+├── Frontend/              
+│   ├── lib/
+│   │   ├── core/
+│   │   ├── features/
+│   │   │   ├── assistant/  
+│   │   │   ├── caption/    
+│   │   │   └── overlay/    
+│   │   ├── services/
+│   │   └── main.dart
+│   └── pubspec.yaml
+│
+├── assets/
+│   ├── LectureHunter_Logo3.jpeg
+│   └── screens/           
+│
+├── README.md
+├── requirements.txt
+└── Dockerfile
 ```
 
 <br/>
 
-### 7. 실행 확인
+---
 
-정상적으로 실행되면 다음 항목을 확인합니다.
+### 참고 자료
 
-- 백엔드 서버가 `http://127.0.0.1:8000`에서 실행되는지 확인
-- Flutter 앱이 Chrome에서 실행되는지 확인
-- LiveLectureAI 화면이 정상 표시되는지 확인
-- 자막 오버레이, 질문 패널, 용어집 UI가 표시되는지 확인
-- 현재 프론트엔드는 Mock 기반 UI 동작 확인 완료 상태
-- 실제 백엔드 연결은 API 경로 정합성 수정 후 진행 예정
+- Flutter 공식 문서: https://docs.flutter.dev/
+- FastAPI 공식 문서: https://fastapi.tiangolo.com/
+- Supabase 공식 문서: https://supabase.com/docs
+- Ollama 공식 문서: https://ollama.com/
+- Faster-Whisper GitHub: https://github.com/SYSTRAN/faster-whisper
 
-<br/>
+---
 
-## 🧪 개발 명령어
-
-### Flutter
-
-```bash
-cd Frontend
-
-# 패키지 설치
-flutter pub get
-
-# 코드 포맷팅
-dart format .
-
-# 정적 분석
-flutter analyze
-
-# 앱 실행
-flutter run -d chrome
-```
-
-<br/>
-
-### Backend
-
-```bash
-# 가상환경 활성화
-source pikmin/bin/activate
-
-# 서버 실행
-uvicorn App.main:app --reload
-
-# 패키지 재설치
-pip install -r requirements.txt
-```
-
-<br/>
-
-## 🔌 현재 프론트엔드 연결 상태
-
-현재 프론트엔드는 Mock 기반 UI 동작 확인까지 완료되었으며, 백엔드 실제 엔드포인트와의 API 경로 정합성 수정 단계에 있습니다.
-
-### 확인 완료 항목
-
-- `api_service.dart` 백엔드 HTTP 호출 구조 확인
-- `sse_service.dart` 실시간 자막 스트림 수신 구조 확인
-- `caption_controller.dart` Provider 연결 구조 확인
-- `overlay_page.dart` Mock / 실서버 전환 구조 확인
-- 백엔드 실제 엔드포인트 목록 확인
-
-### 현재 프론트 연결 구조
-
-- `ApiService` 기반 HTTP API 호출 구조 존재
-- `SseService` 기반 실시간 자막 스트림 수신 구조 존재
-- `sseServiceProvider` 등록 완료
-- `connectionStatusProvider` 연결 완료
-- `subtitleStreamProvider` 연결 완료
-- `currentSubtitleProvider` 기반 최신 자막 표시 구조 존재
-- Mock 모드 / 실서버 연결 전환 구조 존재
-
-### 확인된 경로 불일치
-
-| 구분 | 현재 프론트 경로 | 현재 백엔드 경로 |
-| --- | --- | --- |
-| 질문 API | `POST /api/v1/qa/ask` | `GET /lecture/ask` |
-| 용어집 API | `GET /api/v1/glossary/search` | 백엔드 엔드포인트 미확인 |
-| 실시간 자막 수신 | `GET /api/v1/subtitle/stream` | `WS /ws/audio/{lecture_id}` |
-
-### 다음 수정 예정
-
-- `api_service.dart` 질문 API 경로 수정
-- `/lecture/ask` 요청 방식 및 파라미터 구조 확인
-- 용어집 API 백엔드 엔드포인트 추가 여부 확인
-- `sse_service.dart` 유지 여부 결정
-- 백엔드 WebSocket 구조와 프론트 실시간 자막 수신 구조 매칭
-
-<br/>
-
-## 📊 진행 상황
-
-### ✅ 완료된 기능
-
-- [x] 음성 → 자막 변환 백엔드 구조
-- [x] 슬라이드 이미지 분석 백엔드 구조
-- [x] 강의 내용 기반 AI 답변 백엔드 구조
-- [x] FastAPI WebSocket 오디오 수신 구조
-- [x] 다국어 번역 엔진 연동 구조
-- [x] Flutter 실시간 자막 UI 구조
-- [x] Flutter Mock 자막 스트림 구조
-- [x] Flutter API/SSE 서비스 계층 구조
-- [x] Flutter feature 기반 폴더 구조 정리
-- [x] Flutter 주요 UI 버튼 동작 확인
-- [x] Flutter analyze No issues found 확인
-
-<br/>
-
-### 🚧 작업 중인 기능
-
-- [ ] STT/API/SSE 실제 연결 경로 정합성 수정
-- [ ] 질문 API `/lecture/ask` 프론트 연결
-- [ ] 용어집 API 엔드포인트 추가 또는 프론트 경로 수정
-- [ ] 실시간 자막 수신 방식 결정: SSE 유지 또는 WebSocket 구조 전환
-- [ ] Flutter 앱 UI 마무리
-- [ ] 자동 강의 요약 기능
-- [ ] 다중 사용자 동시 접속 안정성 테스트
-- [ ] 학습 참여도 분석 대시보드
-
-<br/>
-
-### 🗓 추가 예정 기능
-
-- [ ] 강의별 히스토리 저장
-- [ ] 자막 검색
-- [ ] 북마크 기능
-- [ ] 사용자 설정 화면
-- [ ] 강의 복습용 요약 리포트
-- [ ] 외부 사이트 적용을 위한 iframe 구조 검토
-- [ ] Chrome Extension 기반 오버레이 적용 구조 검토
+<p align="center">
+  <sub>🎓 강의가 조금 더 쉬워지는 그날까지</sub>
+</p>
