@@ -8,6 +8,8 @@ import '../../../caption/presentation/controllers/caption_controller.dart';
 import '../../../caption/presentation/widgets/caption_overlay.dart';
 import '../../../assistant/presentation/panels/assistant_panel.dart';
 import '../widgets/status_bar.dart';
+import '../../../../services/api_service.dart';
+import '../../../assistant/presentation/controllers/question_model.dart';
 
 class OverlayPage extends ConsumerStatefulWidget {
   const OverlayPage({super.key});
@@ -195,6 +197,19 @@ class _DevControlBar extends ConsumerWidget {
               style: const TextStyle(color: Colors.white54, fontSize: 12),
             ),
           ),
+          // 핵심 요약 보기
+          TextButton.icon(
+            onPressed: () => _showSummary(context),
+            icon: const Icon(
+              Icons.summarize,
+              size: 14,
+              color: Colors.white54,
+            ),
+            label: const Text(
+              '핵심 요약',
+              style: TextStyle(color: Colors.white54, fontSize: 12),
+            ),
+          ),
           // 자막 히스토리 보기
           IconButton(
             onPressed: () => _showHistory(context, ref),
@@ -206,6 +221,76 @@ class _DevControlBar extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _showSummary(BuildContext context) async {
+    final apiService = ApiService();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        backgroundColor: Color(0xFF1A1A2E),
+        content: Row(
+          children: [
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 16),
+            Text(
+              '핵심 요약 생성 중...',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final SummaryResponse result = await apiService.fetchAdaptiveSummary();
+
+    if (!context.mounted) {
+      apiService.dispose();
+      return;
+    }
+
+    Navigator.pop(context);
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text(
+          '핵심 요약',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: SizedBox(
+          width: 420,
+          child: Text(
+            result.summary.isEmpty ? '요약 내용이 없습니다.' : result.summary,
+            style: TextStyle(
+              color: result.status == ResponseStatus.error
+                  ? Colors.redAccent
+                  : Colors.white70,
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              '닫기',
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    apiService.dispose();
   }
 
   void _showHistory(BuildContext context, WidgetRef ref) {

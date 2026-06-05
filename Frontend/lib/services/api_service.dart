@@ -66,6 +66,32 @@ class ApiService {
     }
   }
 
+  // ─── 최근 강의 핵심 요약 조회 ───────────────────────────────
+  Future<SummaryResponse> fetchAdaptiveSummary() async {
+    try {
+      final uri = Uri.parse(
+        '$_baseUrl/lecture/summary/adaptive/${AppConfig.defaultLectureId}',
+      );
+
+      final response = await _client
+          .get(
+            uri,
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        final json =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        return SummaryResponse.fromJson(json);
+      } else {
+        return SummaryResponse.error('서버 오류: ${response.statusCode}');
+      }
+    } on Exception catch (e) {
+      return SummaryResponse.error('연결 실패: $e');
+    }
+  }
+
   // ─── 용어집 조회 ─────────────────────────────────────────────
   Future<List<GlossaryEntry>> searchGlossary(String term) async {
     try {

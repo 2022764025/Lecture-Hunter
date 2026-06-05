@@ -96,3 +96,46 @@ enum ConnectionStatus {
   reconnecting,
   error,
 }
+
+class SummaryResponse {
+  final String lectureId;
+  final int minutes;
+  final String summary;
+  final ResponseStatus status;
+
+  const SummaryResponse({
+    required this.lectureId,
+    required this.minutes,
+    required this.summary,
+    this.status = ResponseStatus.success,
+  });
+
+  factory SummaryResponse.fromJson(Map<String, dynamic> json) {
+    return SummaryResponse(
+      lectureId: json['lecture_id']?.toString() ?? '',
+      minutes: json['minutes'] is int
+          ? json['minutes'] as int
+          : int.tryParse(json['minutes']?.toString() ?? '') ?? 0,
+      summary: json['summary']?.toString() ?? '',
+      status: ResponseStatus.success,
+    );
+  }
+
+  factory SummaryResponse.error(String message) {
+    return SummaryResponse(
+      lectureId: '',
+      minutes: 0,
+      summary: message,
+      status: ResponseStatus.error,
+    );
+  }
+
+  factory SummaryResponse.loading() {
+    return const SummaryResponse(
+      lectureId: '',
+      minutes: 0,
+      summary: '',
+      status: ResponseStatus.loading,
+    );
+  }
+}
