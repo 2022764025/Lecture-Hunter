@@ -79,53 +79,51 @@
   
   ### 🖼 主な機能プレビュー
   
-  <table align="center">
-    <tr>
-      <th align="center">🎙 リアルタイム字幕と翻訳</th>
-      <th align="center">⚙️ 設定</th>
-    </tr>
-    <tr>
-      <td align="center">
-        準備中
-        <br/>
-        <sub>受信した字幕の原文と韓国語翻訳を一緒に見ることができます。</sub>
-      </td>
-      <td align="center">
-        <img src="../assets/screens/caption_settings.png" width="360"/><br/>
-        <sub>字幕のサイズ、位置、透明度、テーマを調整できます。</sub>
-      </td>
-    </tr>
-  
-    <tr>
-      <th align="center">💬 講義AIへの質問</th>
-      <th align="center">📚 用語集検索</th>
-    </tr>
-    <tr>
-      <td align="center">
-        <img src="../assets/screens/question_input.png" width="360"/><br/>
-        <sub>講義内容をもとにAIに質問できます。</sub>
-      </td>
-      <td align="center">
-        <img src="../assets/screens/glossary_tab.png" width="360"/><br/>
-        <sub>保存された講義用語を検索して確認できます。</sub>
-      </td>
-    </tr>
-  
-    <tr>
-      <th align="center">📜 過去の字幕を見る</th>
-      <th align="center">📝 要点まとめ</th>
-    </tr>
-    <tr>
-      <td align="center">
-        <img src="../assets/screens/caption_history.png" width="360"/><br/>
-        <sub>過去の字幕も再確認できます。</sub>
-      </td>
-      <td align="center">
-        準備中<br/>
-        <sub>講義内容を短くまとめます。</sub>
-      </td>
-    </tr>
-  </table>
+<table align="center">
+  <tr>
+    <th align="center">🎙 リアルタイム字幕と翻訳</th>
+    <th align="center">⚙️ 設定</th>
+  </tr>
+  <tr>
+    <td align="center">
+      準備中
+      <br/>
+      <sub>受信した字幕の原文と韓国語翻訳を一緒に見ることができます。</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/caption_settings.png" width="360"/><br/>
+      <sub>字幕のサイズ、位置、透明度、テーマを調整できます。</sub>
+    </td>
+  </tr>
+  <tr>
+    <th align="center">💬 講義AIへの質問</th>
+    <th align="center">📚 用語集検索</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/question_input.png" width="360"/><br/>
+      <sub>講義内容をもとにAIに質問できます。</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/glossary_tab.png" width="360"/><br/>
+      <sub>保存された講義用語を検索して確認できます。</sub>
+    </td>
+  </tr>
+  <tr>
+    <th align="center">📜 過去の字幕を見る</th>
+    <th align="center">📝 要点まとめ</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/caption_history.png" width="360"/><br/>
+      <sub>過去の字幕も再確認できます。</sub>
+    </td>
+    <td align="center">
+      準備中<br/>
+      <sub>講義内容を短くまとめます。</sub>
+    </td>
+  </tr>
+</table>
   
   <br/>
   
