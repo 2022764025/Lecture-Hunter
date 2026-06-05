@@ -24,7 +24,6 @@
   <p align="center">
     <a href="../README.md">🇰🇷 한국어</a> &nbsp;·&nbsp;
     <a href="README.en.md">🇺🇸 English</a> &nbsp;·&nbsp;
-    🇯🇵 日本語 &nbsp;·&nbsp;
     <a href="README.zh.md">🇨🇳 简体中文</a>
   </p>
   
