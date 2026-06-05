@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/LectureHunter_Logo3.jpeg" alt="Lecture Hunter Logo" width="100%" />
+  <img src="../assets/LectureHunter_Logo3.jpeg" alt="Lecture Hunter Logo" width="100%" />
 </p>
 
 <p align="center">
@@ -18,295 +18,186 @@
 </p>
 
 <p align="center">
-  <b>用于课堂互动的 Flutter 实时字幕与提问组件开发</b>
+  <b>基于Flutter的实时字幕·问答小组件开发（面向课堂互动）</b>
 </p>
 
 <p align="center">
-  <a href="../README.md">🇰🇷 한국어</a>
-  ·
-  <a href="README_en.md">🇺🇸 English</a>
-  ·
-  <b>🇨🇳 中文</b>
-  ·
-  <a href="README_jp.md">🇯🇵 日本語</a>
+  <a href="../README.md">🇰🇷 한국어</a> &nbsp;·&nbsp;
+  <a href="README.en.md">🇺🇸 English</a> &nbsp;·&nbsp;
+  <a href="README.jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
+  🇨🇳 简体中文
 </p>
 
 > [!NOTE]
-> 🎓 **东亚大学 AI 学科**
-> SW 中心大学事业现场镜像型联动项目
+> 东亚大学AI学系SW核心大学事业现场镜像型关联项目
+> 👩🏻‍🎓👨🏻‍🎓👨🏻‍🎓 **任务猎手团队**
 
-> [!TIP]
-> 如果你是第一次了解本项目，建议按照以下顺序阅读：
-> [我们解决的问题](#-我们解决的问题) → [核心功能](#-核心功能) → [使用示例](#-使用示例)
+---
 
-<br/>
+### 📺 这个项目是什么？
 
-### 📌 项目介绍
+看过电视字幕吗？
 
-**Lecture Hunter** 是一款基于 AI 的学习辅助工具，帮助学生更轻松地理解实时课堂内容，并在课后高效复习。
+**这是一个在课程画面上显示实时字幕的AI程序。**
 
-它会综合分析课堂中的语音、幻灯片画面和学生问题，并提供以下功能：
+教授说话的瞬间，立即以文字形式显示在屏幕上。
+外语课程也会**翻译成韩语**显示，
+如果有不懂的地方还可以**搜索**。
+如果错过了课程，还可以**总结"到目前为止讲了什么"**。
 
-* 将教师语音实时转换为字幕
-* 将外语授课内容翻译为韩语
-* 分析幻灯片中的图表、公式和图片
-* 当学生错过课堂内容时，提供重点摘要
-* 根据课堂上下文回答学生问题
-* 自动整理课堂中出现的难懂术语和关键词
+> 💡 **TIP**
+> 当你不敢举手提问时特别有用。你可以悄悄地只向AI提问！ 🙈
 
-<br/>
+---
 
 ### 📚 目录
 
-* [我们解决的问题](#-我们解决的问题)
-* [核心功能](#-核心功能)
-* [使用流程](#-使用流程)
-* [界面构成](#-界面构成)
+* [适用场景](#-适用场景)
+* [主要功能预览](#-主要功能预览)
 * [使用示例](#-使用示例)
+* [如何运行？](#-如何运行)
+* [快速开始](#-快速开始)
+* [当前开发状况](#-当前开发状况)
+* [使用方法](#-使用方法)
 * [技术栈](#-技术栈)
 * [项目结构](#-项目结构)
-* [快速开始](#-快速开始)
-* [开发命令](#-开发命令)
-* [当前前端连接状态](#-当前前端连接状态)
-* [开发进度](#-开发进度)
+* [参考资料](#参考资料)
+
+---
+
+### 🙋 适用场景
+
+| 如果遇到这种情况...                                    | 这样帮助你                                       |
+| ------------------------------------------------------ | ------------------------------------------------ |
+| 「全英文授课，完全听不懂...」                           | 韩语翻译字幕帮助理解。                           |
+| 「教授说话太快了...」                                   | 可以通过字幕重新确认漏听的内容。                 |
+| 「晚到10分钟，现在在讲什么？...」                       | 可以通过向AI提问确认课程进度。                   |
+| 「想提问但不好意思举手...」                             | 可以悄悄向AI提问。                               |
+| 「出现了难懂的词，想再确认一下...」                     | 可以搜索已保存的讲座词汇进行确认。               |
+| 「想再看看刚才的字幕...」                               | 可以在字幕历史中确认之前的字幕。                 |
+
+---
+
+### 🖼 主要功能预览
+
+<table align="center">
+  <tr>
+    <th align="center">🎙 实时字幕及翻译</th>
+    <th align="center">⚙️ 设置</th>
+  </tr>
+  <tr>
+    <td align="center">
+      准备中
+      <br/>
+      <sub>可以同时查看接收到的字幕原文和韩语翻译。</sub>
+    </td>
+    <td align="center">
+      <img src="../assets/screens/caption_settings.png" width="360"/><br/>
+      <sub>可以调整字幕大小、位置、透明度和主题。</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <th align="center">💬 讲座AI问答</th>
+    <th align="center">📚 词汇表查询</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="../assets/screens/question_input.png" width="360"/><br/>
+      <sub>可以根据讲座内容向AI提问。</sub>
+    </td>
+    <td align="center">
+      <img src="../assets/screens/glossary_tab.png" width="360"/><br/>
+      <sub>可以搜索已保存的讲座词汇进行确认。</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <th align="center">📜 查看历史字幕</th>
+    <th align="center">📝 核心摘要</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="../assets/screens/caption_history.png" width="360"/><br/>
+      <sub>可以再次确认过去的字幕。</sub>
+    </td>
+    <td align="center">
+      准备中<br/>
+      <sub>对讲座内容进行简短总结。</sub>
+    </td>
+  </tr>
+</table>
 
 <br/>
 
-### 🤔 我们解决的问题
-
-> *“这节课是英语授课，只要漏听一个单词，后面的内容就完全跟不上了……”*
-
-> *“课堂上出现了不懂的术语，但又不好意思举手提问……”*
-
-> *“迟到了 10 分钟进入课堂，现在完全不知道老师讲到哪里了……”*
-
-> *“复习时重新看一小时的课程视频太耗时间了……”*
-
-**Lecture Hunter 在一个界面中帮助学生完成课堂理解、提问、摘要和复习。**
-
-<br/>
-
-### ✨ 核心功能
-
-| 功能       | 说明                             |
-| -------- | ------------------------------ |
-| 🎙 实时字幕  | 将课堂语音转换为文本，并显示在屏幕上。            |
-| 🌐 实时翻译  | 将外语授课内容实时翻译为韩语并同步显示。           |
-| 🖼 幻灯片分析 | 分析幻灯片中的图表、公式和图片，理解课堂上下文。       |
-| 💬 课堂提问  | 当学生提问时，AI 会基于目前为止的课堂内容进行回答。    |
-| 📝 重点摘要  | 每隔 5–10 分钟总结课堂重点，帮助学生快速跟上课堂节奏。 |
-| 📚 自动术语表 | 自动整理课堂中出现的难懂概念和关键词。            |
-
-<br/>
-
-### 🔄 使用流程
-
-```mermaid
-flowchart LR
-    A[课堂语音输入] --> B[语音识别]
-    C[幻灯片画面输入] --> D[图像分析]
-    B --> E[实时字幕 / 翻译]
-    D --> F[课堂上下文理解]
-    E --> G[摘要 / 问答 / 术语表]
-    F --> G
-    G --> H[在 Flutter 应用中查看]
-```
-
-> 如果 GitHub 环境中无法显示 Mermaid 图表，可以按照以下流程理解：
->
-> **课堂输入 → 语音与幻灯片分析 → 字幕与翻译生成 → 摘要、问答和术语表提供 → 在应用中查看**
-
-<br/>
-
-### 🖼 Demo Host 基础组件界面构成
-
-<p align="center">
-  <table>
-    <tr>
-      <th align="center">字幕浮层</th>
-      <th align="center">术语表组件</th>
-      <th align="center">课堂 AI 提问面板</th>
-    </tr>
-    <tr>
-      <td align="center">
-        <img src="./assets/screens/caption_screen.png" width="300"/>
-      </td>
-      <td align="center">
-        <img src="./assets/screens/glossary_tab.png" width="300"/>
-      </td>
-      <td align="center">
-        <img src="./assets/screens/question_panel.png" width="300"/>
-      </td>
-    </tr>
-    <tr>
-      <th align="center">字幕设置</th>
-      <th align="center">字幕历史</th>
-      <th align="center">-</th>
-    </tr>
-    <tr>
-      <td align="center">
-        <img src="./assets/screens/caption_settings.png" width="300"/>
-      </td>
-      <td align="center">
-        <img src="./assets/screens/caption_history.png" width="300"/>
-      </td>
-      <td align="center">-</td>
-    </tr>
-  </table>
-</p>
-
-<br/>
+---
 
 ### 💡 使用示例
 
-**场景：一节用英语进行的机器学习课程**
+**场景：全英文授课**
 
 ```text
-🎤 教授
-"Now let's discuss the vanishing gradient problem..."
+教授:
+"Now let's discuss the vanishing gradient problem."
 
-📺 字幕画面
-原文: Now let's discuss the vanishing gradient problem...
-翻译: 现在我们来讨论梯度消失问题。
+屏幕字幕:
+原文: Now let's discuss the vanishing gradient problem.
+翻译: 이제 기울기 소실 문제에 대해 다뤄보겠습니다.
 
-💬 学生提问
-“为什么梯度消失是一个问题？”
+学生提问:
+「梯度消失是什么？」
 
-🤖 AI 回答
-“就像当前第 7 页幻灯片中的图表所示，
-神经网络越深，学习信号越难传递到前面的层，
-因此模型训练会变得困难。
-这与课程第 15 分钟左右讲到的反向传播过程有关。”
+AI回答:
+梯度消失是指随着神经网络层数加深，学习信号越来越难以传递到前面的层，
+从而导致训练困难的现象。
+```
+
+<br>
+
+## 🔄 如何运行？
+
+> **麦克风听取教授的声音 → AI转换成文字 → 显示在屏幕上**
+
+更详细地说：
+
+```
+1️⃣  教授说话
+        ↓
+2️⃣  AI听取声音并转换成文字
+   （英语则自动翻译成韩语）
+        ↓
+3️⃣  以字幕形式显示在屏幕上
+        ↓
+4️⃣  有不懂的地方？  → 向AI提问！
+    错过课程进度了？  → 点击摘要按钮！
 ```
 
 <br/>
 
-### 🛠 技术栈
+## 🚀 快速开始
 
-### 📱 Frontend
+| 项目             | 版本         |
+|------------------|-------------|
+| Python           | 3.12        |
+| Flutter          | 3.x         |
+| Ollama           | 最新版本     |
+| Supabase账户     | -           |
 
-| 技术              | 作用                  |
-| --------------- | ------------------- |
-| Flutter 3.x     | 开发基于 Web 的实时字幕浮层 UI |
-| Dart            | Flutter 应用开发语言      |
-| Riverpod        | 管理字幕、主题和提问面板状态      |
-| HTTP API        | 准备连接提问、术语表和摘要 API   |
-| SSE / WebSocket | 准备实时字幕接收与音频流传输      |
-
-<br/>
-
-### ⚙️ Backend
-
-| 技术               | 作用        |
-| ---------------- | --------- |
-| Python 3.12      | 后端开发语言    |
-| FastAPI          | API 服务器构建 |
-| Faster-Whisper   | 语音识别与字幕生成 |
-| Llama 3.2 Vision | 幻灯片图像分析   |
-| Gemma 2          | 多语言翻译     |
-| Silero VAD       | 语音活动检测    |
-
-<br/>
-
-### 🗄 Database / Infra
-
-| 技术         | 作用                |
-| ---------- | ----------------- |
-| Supabase   | 身份认证、数据存储和 API 集成 |
-| PostgreSQL | 课堂数据存储            |
-| pgvector   | 课堂内容向量检索          |
-| Ollama     | 本地 LLM 运行环境       |
-
-<br/>
-
-### 📁 项目结构
-
-```text
-Lecture-Hunter
-│
-├── 📂 App/                     # FastAPI backend
-│   ├── main.py
-│   ├── api/
-│   ├── core/
-│   ├── services/
-│   ├── setup_db.sql
-│   └── ...
-│
-├── 📂 Frontend/                # Flutter application
-│   ├── android/
-│   ├── ios/
-│   ├── lib/
-│   │   ├── core/
-│   │   ├── features/
-│   │   │   ├── assistant/
-│   │   │   ├── caption/
-│   │   │   └── overlay/
-│   │   ├── services/
-│   │   ├── shared/
-│   │   └── main.dart
-│   ├── web/
-│   ├── macos/
-│   ├── windows/
-│   ├── linux/
-│   ├── pubspec.yaml
-│   └── analysis_options.yaml
-│
-├── 📂 assets/
-│   └── LectureHunter_Logo3.jpeg
-│
-├── 📄 README.md
-├── 📄 README.en.md
-├── 📄 README.zh.md
-├── 📄 CONTRIBUTING.md
-├── 📄 CODE_OF_CONDUCT.md
-├── 📄 SECURITY.md
-├── 📄 LICENSE
-├── 📄 Dockerfile
-└── 📄 requirements.txt
-```
-
-<br/>
-
-### 🚀 快速开始
-
-### 1. 环境要求
-
-| 项目      | 推荐版本 / 条件                                  |
-| ------- | ------------------------------------------ |
-| OS      | 推荐 macOS Apple Silicon 或搭载 NVIDIA GPU 的 PC |
-| Python  | 3.12                                       |
-| Flutter | 3.x                                        |
-| Memory  | 推荐 16GB 以上                                 |
-| 其他      | Ollama、Supabase 项目                         |
-
-<br/>
-
-### 2. 克隆项目
+**安装**
 
 ```bash
+# 1. 获取项目
 git clone https://github.com/2022764025/Lecture-Hunter.git
 cd Lecture-Hunter
-```
 
-<br/>
-
-### 3. 后端环境设置
-
-```bash
+# 2. 后端准备
 python3 -m venv pikmin
 source pikmin/bin/activate
 pip install -r requirements.txt
-```
 
-<br/>
-
-### 4. 环境变量设置
-
-```bash
+# 3. 环境配置（创建.env文件后输入以下内容）
 cp .env.example .env
 ```
-
-打开 `.env` 文件，并填写 Supabase 与本地 AI 服务器相关信息。
 
 ```env
 SUPABASE_URL=your_supabase_url
@@ -318,172 +209,153 @@ WHISPER_DEVICE=auto
 VAD_THRESHOLD=0.3
 ```
 
-<br/>
-
-### 5. Flutter 应用设置
-
 ```bash
+# 4. 前端准备
 cd Frontend
 flutter pub get
-flutter doctor
 cd ..
 ```
 
-<br/>
-
-### 6. 运行方法
-
-建议将终端分为 3 个窗口分别运行。
-
-### Terminal 1. 运行本地 AI 服务器
+**运行 → 请打开3个终端窗口**
 
 ```bash
+# 终端1: 启动AI模型服务器
 ollama serve
-```
 
-### Terminal 2. 运行后端服务器
-
-```bash
+# 终端2: 启动后端服务器
+cd ~/Downloads/Lecture-Hunter
 source pikmin/bin/activate
-uvicorn App.main:app --reload
-```
+cd App
+uvicorn main:app --reload
 
-### Terminal 3. 运行 Flutter 应用
-
-```bash
+# 终端3: 运行前端界面
 cd Frontend
-flutter run -d chrome
+flutter run -d chrome \
+  --dart-define=API_BASE_URL=http://127.0.0.1:8000 \
+  --dart-define=WS_BASE_URL=ws://127.0.0.1:8000 \
+  --dart-define=SUPABASE_URL=your_supabase_url \
+  --dart-define=SUPABASE_ANON_KEY=your_supabase_publishable_or_anon_key \
+  --dart-define=LECTURE_ID=demo-lecture \
+  --dart-define=TARGET_LANG=Korean
+```
+
+**确认是否正常运行**
+- 在地址栏打开 `http://127.0.0.1:8000`，若收到响应则 **OK**
+- Chrome中出现字幕界面则 **OK**
+- 字幕、提问、词汇表按钮可见则 **OK**
+
+<br>
+
+---
+
+## 📊 当前开发状况
+
+| 功能                         | 状态         |
+|------------------------------|--------------|
+| 问答API集成                  | ✅ 完成      |
+| 问题历史重置                 | ✅ 完成      |
+| 词汇表API集成                | ✅ 完成      |
+| 实时字幕接收                 | ✅ 完成      |
+| 手动字幕显示测试             | ✅ 完成      |
+| 音频WebSocket连接            | ✅ 完成      |
+| 实际麦克风语音字幕转换       | ⏳ 计划中    |
+| 核心摘要功能                 | 🔄 进行中    |
+| 幻灯片图像分析               | 🔄 进行中    |
+| 多人同时使用测试             | ⏳ 计划中    |
+
+### 🧪 剩余核心任务
+
+| 任务                           | 状态   |
+|--------------------------------|--------|
+| 实际麦克风输入                  | 计划中 |
+| 麦克风音频传输至后端            | 计划中 |
+| 语音字幕转换                    | 计划中 |
+| 转换字幕实时显示                | 计划中 |
+| 基于实际语音的全流程测试        | 计划中 |
+
+---
+
+## 🧭 使用方法
+
+Flutter界面启动后，讲座画面上方会出现学习助手小组件。
+逐一点击按钮即可立即使用！
+
+| 功能           | 使用方法                                                                  |
+|----------------|---------------------------------------------------------------------------|
+| 查看字幕       | 屏幕下方同时显示原文和翻译。直接查看即可！                               |
+| 提问           | 打开问题面板，输入想知道的内容，AI会回答                                 |
+| 开始新提问     | 想清除之前的问题重新开始时点击                                           |
+| 词汇搜索       | 在词汇表标签页搜索不认识的单词进行确认                                   |
+| 字幕历史       | 想再次查看过去字幕时确认                                                 |
+| 连接实际服务器 | 与实际讲座连接使用时切换到此模式                                         |
+
+<br/>
+
+---
+
+## 🛠 技术栈
+
+| 领域           | 使用技术           | 使用原因                                               |
+|----------------|--------------------|--------------------------------------------------------|
+| 界面           | Flutter            | 用于制作字幕、问答、词汇表界面                         |
+| 服务器         | FastAPI            | 用于创建AI和界面互相通信的通道                         |
+| AI模型运行     | Ollama             | 用于在本地计算机上无需互联网运行AI                     |
+| 语音识别       | Faster-Whisper     | 用于将教授的声音转换为文字                             |
+| 语音段检测     | Silero VAD         | 用于只检测说话的区间                                   |
+| 数据存储       | Supabase           | 用于存储讲座内容和字幕数据                             |
+| 实时传输       | Supabase Realtime  | 用于实时将字幕发送到界面                               |
+| 音频连接       | WebSocket          | 用于将麦克风声音发送到服务器                           |
+
+<br/>
+
+---
+
+## 📁 项目结构
+
+```text
+Lecture-Hunter
+│
+├── App/                   
+│   ├── main.py
+│   ├── api/
+│   ├── core/
+│   ├── services/
+│   └── ...
+│
+├── Frontend/              
+│   ├── lib/
+│   │   ├── core/
+│   │   ├── features/
+│   │   │   ├── assistant/  
+│   │   │   ├── caption/    
+│   │   │   └── overlay/    
+│   │   ├── services/
+│   │   └── main.dart
+│   └── pubspec.yaml
+│
+├── assets/
+│   ├── LectureHunter_Logo3.jpeg
+│   └── screens/           
+│
+├── README.md
+├── requirements.txt
+└── Dockerfile
 ```
 
 <br/>
 
-### 7. 运行确认
+---
 
-项目正常运行后，请确认以下内容：
+### 参考资料
 
-* 后端服务器是否运行在 `http://127.0.0.1:8000`
-* Flutter 应用是否在 Chrome 中正常启动
-* LiveLectureAI 画面是否正常显示
-* 字幕浮层、提问面板、术语表 UI 是否显示
-* 当前前端已完成基于 Mock 的 UI 行为验证
-* 实际后端连接将在 API 路径一致性修改后进行
+- Flutter官方文档: https://docs.flutter.dev/
+- FastAPI官方文档: https://fastapi.tiangolo.com/
+- Supabase官方文档: https://supabase.com/docs
+- Ollama官方文档: https://ollama.com/
+- Faster-Whisper GitHub: https://github.com/SYSTRAN/faster-whisper
 
-<br/>
+---
 
-### 🧪 开发命令
-
-### Flutter
-
-```bash
-cd Frontend
-
-# 安装依赖
-flutter pub get
-
-# 代码格式化
-dart format .
-
-# 静态分析
-flutter analyze
-
-# 运行应用
-flutter run -d chrome
-```
-
-<br/>
-
-### Backend
-
-```bash
-# 激活虚拟环境
-source pikmin/bin/activate
-
-# 运行服务器
-uvicorn App.main:app --reload
-
-# 重新安装依赖
-pip install -r requirements.txt
-```
-
-<br/>
-
-### 🔌 当前前端连接状态
-
-当前前端已完成基于 Mock 的 UI 行为验证，正在进行与实际后端端点的 API 路径一致性调整。
-
-### 已确认项目
-
-* 已确认 `api_service.dart` 的后端 HTTP 调用结构
-* 已确认 `sse_service.dart` 的实时字幕流接收结构
-* 已确认 `caption_controller.dart` 的 Provider 连接结构
-* 已确认 `overlay_page.dart` 的 Mock / 实际服务器切换结构
-* 已确认实际后端端点列表
-
-### 当前前端连接结构
-
-* 基于 `ApiService` 的 HTTP API 调用结构
-* 基于 `SseService` 的实时字幕流接收结构
-* 已注册 `sseServiceProvider`
-* 已连接 `connectionStatusProvider`
-* 已连接 `subtitleStreamProvider`
-* 基于 `currentSubtitleProvider` 的最新字幕显示结构
-* 支持 Mock 模式 / 实际服务器连接切换结构
-
-### 已确认的路径不一致
-
-| 分类      | 当前前端路径                        | 当前后端路径                      |
-| ------- | ----------------------------- | --------------------------- |
-| 提问 API  | `POST /api/v1/qa/ask`         | `GET /lecture/ask`          |
-| 术语表 API | `GET /api/v1/glossary/search` | 后端端点未确认                     |
-| 实时字幕接收  | `GET /api/v1/subtitle/stream` | `WS /ws/audio/{lecture_id}` |
-
-### 后续修改计划
-
-* 修改 `api_service.dart` 中的提问 API 路径
-* 确认 `/lecture/ask` 的请求方式与参数结构
-* 确认是否需要新增术语表 API 后端端点
-* 决定是否保留 `sse_service.dart`
-* 将后端 WebSocket 结构与前端实时字幕接收结构进行匹配
-
-<br/>
-
-### 📊 开发进度
-
-### ✅ 已完成功能
-
-* [x] 语音转字幕后端结构
-* [x] 幻灯片图像分析后端结构
-* [x] 基于课堂内容的 AI 回答后端结构
-* [x] FastAPI WebSocket 音频接收结构
-* [x] 多语言翻译引擎集成结构
-* [x] Flutter 实时字幕 UI 结构
-* [x] Flutter Mock 字幕流结构
-* [x] Flutter API/SSE 服务层结构
-* [x] Flutter feature-based 文件夹结构整理
-* [x] Flutter 主要 UI 按钮行为确认
-* [x] Flutter analyze No issues found 确认
-
-<br/>
-
-### 🚧 开发中的功能
-
-* [ ] STT/API/SSE 实际连接路径一致性修改
-* [ ] 提问 API `/lecture/ask` 前端连接
-* [ ] 新增术语表 API 端点或修改前端路径
-* [ ] 决定实时字幕接收方式：保留 SSE 或切换为 WebSocket
-* [ ] Flutter 应用 UI 收尾
-* [ ] 自动课堂摘要功能
-* [ ] 多用户同时访问稳定性测试
-* [ ] 学习参与度分析仪表板
-
-<br/>
-
-### 🗓 后续计划功能
-
-* [ ] 按课程保存历史记录
-* [ ] 字幕搜索
-* [ ] 书签功能
-* [ ] 用户设置页面
-* [ ] 课堂复习用摘要报告
-* [ ] 用于外部网站应用的 iframe 结构 بررسی
-* [ ] 基于 Chrome Extension 的浮层应用结构 검토
+<p align="center">
+  <sub>🎓 直到课程变得更轻松的那一天</sub>
+</p>
