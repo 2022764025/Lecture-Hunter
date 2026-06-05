@@ -121,7 +121,7 @@ If you missed the lecture, it also **summarizes "what has been covered so far"**
       <sub>Review past captions again.</sub>
     </td>
     <td align="center">
-      Coming Soon<br/>
+      <img src="./assets/screens/key_summary_features.png" width="360"/><br/>
       <sub>Provides a brief summary of the lecture content.</sub>
     </td>
   </tr>

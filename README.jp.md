@@ -119,7 +119,7 @@
       <sub>過去の字幕も再確認できます。</sub>
     </td>
     <td align="center">
-      準備中<br/>
+      <img src="./assets/screens/key_summary_features.png" width="360"/><br/>
       <sub>講義内容を短くまとめます。</sub>
     </td>
   </tr>
