@@ -116,7 +116,7 @@ the community.
 
 In instances of Code of Conduct violations or other concerns, please contact the project maintainer directly using the methods listed below:
 
-Email: myloveson01@gmail.com
+Email: withmaru729@gmail.com / myloveson01@gmail.com
 
 GitHub Issues: For non-confidential matters, feel free to use the Issues tab.
 
