@@ -21,6 +21,12 @@
   <b>Real-Time Lecture Captioning and AI Interaction Widget Built with Flutter</b>
 </p>
 
+<p align="center">
+    <a href="../README.md">🇰🇷 한국어</a> &nbsp;·&nbsp;
+    <a href="README.jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
+    <a href="README.zh.md">🇨🇳 简体中文</a>
+  </p>
+
 > [!NOTE]
 > Dong-A University AI Department SW-Centered University Industry-Linked Project
 >
