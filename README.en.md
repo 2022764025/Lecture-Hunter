@@ -29,7 +29,7 @@
 
 > [!NOTE]
 > Dong-A University AI Department SW-Centered University Industry-Linked Mirror Project
-> 👩🏻‍🎓👨🏻‍🎓👨🏻‍🎓 **Task Hunter Team**
+> 👩🏻‍🎓👨🏻‍🎓👨🏻‍🎓 **과제헌터**
 
 ---
 
