@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="./assets/LectureHunter_Logo3.jpeg" alt="Lecture Hunter Logo" width="100%" />
+  <img src="../assets/LectureHunter_Logo3.jpeg" alt="Lecture Hunter Logo" width="100%" />
 </p>
 
 <p align="center">
   <a href="#-getting-started">
     <img src="https://img.shields.io/badge/QUICK%20START-4FC08D?style=for-the-badge&logoColor=white" alt="Quick Start" />
   </a>
-  <a href="#-demo">
+  <a href="#-usage-examples">
     <img src="https://img.shields.io/badge/DEMO-5C86FA?style=for-the-badge&logoColor=white" alt="Demo" />
   </a>
   <br/>
-  <img alt="Status" src="https://img.shields.io/badge/status-in%20development-orange?style=flat-square" />
+  <img alt="Status" src="https://img.shields.io/badge/status-In%20Development-orange?style=flat-square" />
   <img alt="License" src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" />
   <img alt="Flutter" src="https://img.shields.io/badge/Flutter-3.x-02569B?style=flat-square&logo=flutter&logoColor=white" />
   <img alt="Python" src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white" />
@@ -18,19 +18,18 @@
 </p>
 
 <p align="center">
-  <b>Real-Time Lecture Captioning and AI Interaction Widget Built with Flutter</b>
+  <b>Development of Flutter-based real-time caption and question widget for lecture interaction</b>
 </p>
 
 <p align="center">
-    <a href="../README.md">🇰🇷 한국어</a> &nbsp;·&nbsp;
-    <a href="README.jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
-    <a href="README.zh.md">🇨🇳 简体中文</a>
-  </p>
+  <a href="../README.md">🇰🇷 한국어</a> &nbsp;·&nbsp;
+  <a href="README.jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
+  <a href="README.zh.md">🇨🇳 简体中文</a>
+</p>
 
 > [!NOTE]
-> Dong-A University AI Department SW-Centered University Industry-Linked Project
->
-> 👩🏻‍🎓👨🏻‍🎓👨🏻‍🎓 **과제헌터**
+> Dong-A University AI Department SW-Centered University Industry-Linked Mirror Project
+> 👩🏻‍🎓👨🏻‍🎓👨🏻‍🎓 **Task Hunter Team**
 
 ---
 
@@ -38,26 +37,26 @@
 
 Have you ever seen subtitles on TV?
 
-**Lecture Hunter displays real-time captions directly on top of lecture screens.**
+**It's an AI program that displays real-time captions on top of your lecture screen.**
 
-As soon as a professor speaks, the speech is converted into text and displayed instantly.
-Foreign-language lectures can be automatically translated into Korean.
-Students can ask questions about the lecture content, search lecture-related terms, and even request summaries of what has been covered so far.
+The moment your professor speaks, it instantly appears as text on the screen.
+Foreign language lectures are also shown with **Korean translations**,
+and if there's something you don't understand, you can also **search** for it.
+If you missed the lecture, it also **summarizes "what has been covered so far"**.
 
 > 💡 **TIP**
->
-> Especially useful when you're too shy to raise your hand. You can quietly ask the AI instead. 🙈
+> It's especially useful when you're afraid to raise your hand and ask questions. You can ask the AI secretly without anyone knowing! 🙈
 
 ---
 
 ### 📚 Table of Contents
 
-* [Use Cases](#-use-cases)
-* [Features Preview](#-features-preview)
-* [Demo](#-demo)
-* [How It Works](#-how-it-works)
+* [Useful Situations](#-useful-situations)
+* [Feature Preview](#-feature-preview)
+* [Usage Examples](#-usage-examples)
+* [How Does It Work?](#-how-does-it-work)
 * [Getting Started](#-getting-started)
-* [Development Status](#-development-status)
+* [Current Development Status](#-current-development-status)
 * [How to Use](#-how-to-use)
 * [Tech Stack](#-tech-stack)
 * [Project Structure](#-project-structure)
@@ -65,96 +64,138 @@ Students can ask questions about the lecture content, search lecture-related ter
 
 ---
 
-### 🙋 Use Cases
+### 🙋 Useful Situations
 
-| Situation                                                | How Lecture Hunter Helps                           |
-| -------------------------------------------------------- | -------------------------------------------------- |
-| "The lecture is in English and I can't follow it."       | Provides translated Korean subtitles in real time. |
-| "The professor speaks too fast."                         | Lets you review missed content through captions.   |
-| "I joined 10 minutes late. What are they talking about?" | AI can explain the lecture context and flow.       |
-| "I'm too shy to ask questions in class."                 | Ask the AI privately instead.                      |
-| "I want to check a technical term again."                | Search the built-in lecture glossary.              |
-| "I want to review previous captions."                    | Access caption history anytime.                    |
-
----
-
-### 🖼 Features Preview
-
-| Feature                             | Description                                                      |
-| ----------------------------------- | ---------------------------------------------------------------- |
-| 🎙 Real-Time Captions & Translation | Displays original speech and translated captions simultaneously. |
-| ⚙️ Caption Settings                 | Customize size, position, transparency, and theme.               |
-| 💬 AI Lecture Assistant             | Ask questions based on lecture content.                          |
-| 📚 Glossary Search                  | Search and review lecture-related terms.                         |
-| 📜 Caption History                  | Revisit previous captions.                                       |
-| 📝 Lecture Summary                  | Generate concise summaries of lecture content. *(In Progress)*   |
+| If you're in this situation...                                          | Here's how it helps                                              |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| "I can't understand a word of this English lecture..."                  | Korean translated captions help you understand.                  |
+| "The professor speaks way too fast..."                                  | You can review missed content through the captions.              |
+| "I came in 10 minutes late, what are we even talking about..."          | You can check the lecture flow by asking the AI.                 |
+| "I want to ask a question but I'm too embarrassed to raise my hand..."  | You can quietly ask the AI.                                      |
+| "A difficult word came up and I want to check it again..."              | You can search saved lecture terms to verify.                    |
+| "I want to see the previous captions again..."                          | You can check past captions in the caption history.              |
 
 ---
 
-### 💡 Demo
+### 🖼 Feature Preview
 
-**Scenario: An English Lecture**
+<table align="center">
+  <tr>
+    <th align="center">🎙 Real-time Captions & Translation</th>
+    <th align="center">⚙️ Settings</th>
+  </tr>
+  <tr>
+    <td align="center">
+      Coming Soon
+      <br/>
+      <sub>View both the original text and Korean translation of received captions.</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/caption_settings.png" width="360"/><br/>
+      <sub>Adjust caption size, position, opacity, and theme.</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <th align="center">💬 Lecture AI Q&A</th>
+    <th align="center">📚 Glossary Lookup</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/question_input.png" width="360"/><br/>
+      <sub>Ask the AI questions based on the lecture content.</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/glossary_tab.png" width="360"/><br/>
+      <sub>Search and verify saved lecture terminology.</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <th align="center">📜 Caption History</th>
+    <th align="center">📝 Key Summary</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/caption_history.png" width="360"/><br/>
+      <sub>Review past captions again.</sub>
+    </td>
+    <td align="center">
+      Coming Soon<br/>
+      <sub>Provides a brief summary of the lecture content.</sub>
+    </td>
+  </tr>
+</table>
+
+<br/>
+
+---
+
+### 💡 Usage Examples
+
+**Situation: A class conducted in English**
 
 ```text
 Professor:
 "Now let's discuss the vanishing gradient problem."
 
-Caption:
+On-screen Caption:
 Original: Now let's discuss the vanishing gradient problem.
 Translation: 이제 기울기 소실 문제에 대해 다뤄보겠습니다.
 
 Student Question:
-"What is the vanishing gradient problem?"
+"What is the vanishing gradient?"
 
-AI Response:
-The vanishing gradient problem occurs when gradients become
-progressively smaller as they propagate through deep neural networks,
-making learning difficult in earlier layers.
+AI Answer:
+The vanishing gradient is a phenomenon where, as a neural network becomes deeper,
+the learning signal becomes difficult to propagate to earlier layers,
+making training challenging.
 ```
 
----
+<br>
 
-### 🔄 How It Works
+## 🔄 How Does It Work?
 
-> **The microphone captures the professor's voice → AI converts speech into text → Captions appear on your screen**
+> **Microphone listens to the professor's voice → AI converts it to text → Displayed on your screen**
 
-```text
-1️⃣ Professor speaks
+In a bit more detail:
+
+```
+1️⃣  The professor speaks
         ↓
-2️⃣ AI converts speech into text
-   (and translates it when needed)
+2️⃣  AI listens and converts speech to text
+   (Automatically translated to Korean if in English)
         ↓
-3️⃣ Captions are displayed on screen
+3️⃣  Displayed as captions on your screen
         ↓
-4️⃣ Need help?
-    → Ask the AI a question
-    → Generate a lecture summary
+4️⃣  Something you don't understand?  → Ask the AI!
+    Missed the lecture flow?          → Click the Summary button!
 ```
 
----
+<br/>
 
-### 🚀 Getting Started
+## 🚀 Getting Started
 
-| Component        | Version  |
-| ---------------- | -------- |
-| Python           | 3.12     |
-| Flutter          | 3.x      |
-| Ollama           | Latest   |
-| Supabase Account | Required |
+| Item             | Version      |
+|------------------|--------------|
+| Python           | 3.12         |
+| Flutter          | 3.x          |
+| Ollama           | Latest       |
+| Supabase Account | -            |
 
-#### Installation
+**Installation**
 
 ```bash
-# Clone repository
+# 1. Clone the project
 git clone https://github.com/2022764025/Lecture-Hunter.git
 cd Lecture-Hunter
 
-# Backend setup
+# 2. Set up the backend
 python3 -m venv pikmin
 source pikmin/bin/activate
 pip install -r requirements.txt
 
-# Environment configuration
+# 3. Configure environment (create .env file and enter the following)
 cp .env.example .env
 ```
 
@@ -169,30 +210,25 @@ VAD_THRESHOLD=0.3
 ```
 
 ```bash
-# Frontend setup
+# 4. Set up the frontend
 cd Frontend
 flutter pub get
 cd ..
 ```
 
-#### Run the Project
-
-Open three terminal windows.
+**Running → Please open 3 terminal windows**
 
 ```bash
-# Terminal 1: Start Ollama
+# Terminal 1: Start the AI model server
 ollama serve
-```
 
-```bash
-# Terminal 2: Start Backend
+# Terminal 2: Start the backend server
+cd ~/Downloads/Lecture-Hunter
 source pikmin/bin/activate
 cd App
 uvicorn main:app --reload
-```
 
-```bash
-# Terminal 3: Run Flutter
+# Terminal 3: Run the frontend
 cd Frontend
 flutter run -d chrome \
   --dart-define=API_BASE_URL=http://127.0.0.1:8000 \
@@ -203,117 +239,123 @@ flutter run -d chrome \
   --dart-define=TARGET_LANG=Korean
 ```
 
-#### Verify Installation
+**Verify it's running correctly**
+- Open `http://127.0.0.1:8000` in your browser — if you get a response, it's **OK**
+- If the caption screen appears in Chrome — **OK**
+- If the caption, question, and glossary buttons are visible — **OK**
 
-* Open `http://127.0.0.1:8000` → Backend responds ✅
-* Flutter UI appears in Chrome ✅
-* Caption, Question, and Glossary buttons are visible ✅
+<br>
 
 ---
 
-### 📊 Development Status
+## 📊 Current Development Status
 
 | Feature                            | Status         |
-| ---------------------------------- | -------------- |
-| Question API Integration           | ✅ Completed    |
-| Question History Reset             | ✅ Completed    |
-| Glossary API Integration           | ✅ Completed    |
-| Real-Time Caption Reception        | ✅ Completed    |
-| Manual Caption Rendering Test      | ✅ Completed    |
-| Audio WebSocket Connection         | ✅ Completed    |
-| Live Microphone Speech Recognition | ⏳ Planned      |
-| Lecture Summary Feature            | 🔄 In Progress |
-| Slide Image Analysis               | 🔄 In Progress |
-| Multi-User Testing                 | ⏳ Planned      |
+|------------------------------------|----------------|
+| Question API integration           | ✅ Complete    |
+| Question history reset             | ✅ Complete    |
+| Glossary API integration           | ✅ Complete    |
+| Real-time caption reception        | ✅ Complete    |
+| Manual caption display test        | ✅ Complete    |
+| Audio WebSocket connection         | ✅ Complete    |
+| Live microphone speech-to-caption  | ⏳ Planned     |
+| Key summary feature                | 🔄 In Progress |
+| Slide image analysis               | 🔄 In Progress |
+| Multi-user concurrent test         | ⏳ Planned     |
+
+### 🧪 Remaining Core Tasks
+
+| Task                                    | Status  |
+|-----------------------------------------|---------|
+| Live microphone input                   | Planned |
+| Sending mic audio to backend            | Planned |
+| Speech-to-caption conversion            | Planned |
+| Real-time display of converted captions | Planned |
+| Full flow test with live audio          | Planned |
 
 ---
 
-### 🧪 Remaining Tasks
+## 🧭 How to Use
 
-| Task                              | Status  |
-| --------------------------------- | ------- |
-| Live Microphone Input             | Planned |
-| Audio Streaming to Backend        | Planned |
-| Speech-to-Text Processing         | Planned |
-| Real-Time Caption Display         | Planned |
-| End-to-End Voice Workflow Testing | Planned |
+When the Flutter screen launches, a learning assistant widget appears over the lecture screen.
+Just tap each button to start using it right away!
 
----
+| Feature              | How to Use                                                                  |
+|----------------------|-----------------------------------------------------------------------------|
+| View Captions        | The original text and translation appear at the bottom of the screen. Just look! |
+| Ask a Question       | Open the question panel, type your question, and the AI will answer         |
+| Start New Question   | Press this when you want to clear previous questions and start fresh        |
+| Search Terminology   | Search for unfamiliar words in the Glossary tab                             |
+| Caption History      | Check this when you want to review past captions                            |
+| Live Server Mode     | Switch to this mode when connecting to a real lecture                       |
 
-### 🧭 How to Use
-
-Once the Flutter application is running, a lecture assistant widget appears on top of the lecture screen.
-
-| Feature          | Usage                                                       |
-| ---------------- | ----------------------------------------------------------- |
-| Captions         | View original and translated captions in real time.         |
-| Ask Questions    | Open the question panel and ask anything about the lecture. |
-| New Session      | Clear previous conversations and start fresh.               |
-| Glossary Search  | Search lecture-related terms.                               |
-| Caption History  | Review previously displayed captions.                       |
-| Live Server Mode | Connect to a real lecture environment.                      |
+<br/>
 
 ---
 
-### 🛠 Tech Stack
+## 🛠 Tech Stack
 
-| Area                     | Technology        | Purpose                                     |
-| ------------------------ | ----------------- | ------------------------------------------- |
-| Frontend                 | Flutter           | Interactive caption and AI assistant UI     |
-| Backend                  | FastAPI           | Communication layer between AI and frontend |
-| AI Runtime               | Ollama            | Local AI model execution                    |
-| Speech Recognition       | Faster-Whisper    | Speech-to-text conversion                   |
-| Voice Activity Detection | Silero VAD        | Detects speaking segments                   |
-| Database                 | Supabase          | Stores lecture and caption data             |
-| Realtime Sync            | Supabase Realtime | Real-time caption delivery                  |
-| Audio Streaming          | WebSocket         | Transfers microphone audio to backend       |
+| Area                    | Technology        | Why We Used It                                              |
+|-------------------------|-------------------|-------------------------------------------------------------|
+| Frontend                | Flutter           | To build the caption, question, and glossary screens        |
+| Backend                 | FastAPI           | To create the communication channel between AI and frontend |
+| AI Model Runtime        | Ollama            | To run AI locally without an internet connection            |
+| Speech Recognition      | Faster-Whisper    | To convert the professor's voice to text                    |
+| Voice Activity Detection | Silero VAD       | To detect only the speaking segments                        |
+| Data Storage            | Supabase          | To store lecture content and caption data                   |
+| Real-time Transmission  | Supabase Realtime | To send captions to the screen in real time                 |
+| Audio Connection        | WebSocket         | To send microphone audio to the server                      |
+
+<br/>
 
 ---
 
-### 📁 Project Structure
+## 📁 Project Structure
 
 ```text
 Lecture-Hunter
 │
-├── App/
+├── App/                   
 │   ├── main.py
 │   ├── api/
 │   ├── core/
 │   ├── services/
 │   └── ...
 │
-├── Frontend/
+├── Frontend/              
 │   ├── lib/
 │   │   ├── core/
 │   │   ├── features/
-│   │   │   ├── assistant/
-│   │   │   ├── caption/
-│   │   │   └── overlay/
+│   │   │   ├── assistant/  
+│   │   │   ├── caption/    
+│   │   │   └── overlay/    
 │   │   ├── services/
 │   │   └── main.dart
 │   └── pubspec.yaml
 │
 ├── assets/
 │   ├── LectureHunter_Logo3.jpeg
-│   └── screens/
+│   └── screens/           
 │
 ├── README.md
 ├── requirements.txt
 └── Dockerfile
 ```
 
+<br/>
+
 ---
 
 ### References
 
-* Flutter: https://docs.flutter.dev/
-* FastAPI: https://fastapi.tiangolo.com/
-* Supabase: https://supabase.com/docs
-* Ollama: https://ollama.com/
-* Faster-Whisper: https://github.com/SYSTRAN/faster-whisper
+- Flutter Official Docs: https://docs.flutter.dev/
+- FastAPI Official Docs: https://fastapi.tiangolo.com/
+- Supabase Official Docs: https://supabase.com/docs
+- Ollama Official Docs: https://ollama.com/
+- Faster-Whisper GitHub: https://github.com/SYSTRAN/faster-whisper
 
 ---
 
 <p align="center">
-  <sub>🎓 Making lectures easier to understand, one caption at a time.</sub>
+  <sub>🎓 Until lectures become a little easier</sub>
 </p>
