@@ -91,7 +91,7 @@
       <sub>可以同时查看接收到的字幕原文和韩语翻译。</sub>
     </td>
     <td align="center">
-      <img src="../assets/screens/caption_settings.png" width="360"/><br/>
+      <img src="./assets/screens/caption_settings.png" width="360"/><br/>
       <sub>可以调整字幕大小、位置、透明度和主题。</sub>
     </td>
   </tr>
@@ -102,11 +102,11 @@
   </tr>
   <tr>
     <td align="center">
-      <img src="../assets/screens/question_input.png" width="360"/><br/>
+      <img src="./assets/screens/question_input.png" width="360"/><br/>
       <sub>可以根据讲座内容向AI提问。</sub>
     </td>
     <td align="center">
-      <img src="../assets/screens/glossary_tab.png" width="360"/><br/>
+      <img src="./assets/screens/glossary_tab.png" width="360"/><br/>
       <sub>可以搜索已保存的讲座词汇进行确认。</sub>
     </td>
   </tr>
@@ -117,7 +117,7 @@
   </tr>
   <tr>
     <td align="center">
-      <img src="../assets/screens/caption_history.png" width="360"/><br/>
+      <img src="./assets/screens/caption_history.png" width="360"/><br/>
       <sub>可以再次确认过去的字幕。</sub>
     </td>
     <td align="center">
@@ -137,11 +137,11 @@
 
 ```text
 教授:
-"Now let's discuss the vanishing gradient problem."
+"이제 기울기 소실 문제에 대해 다뤄보겠습니다."
 
 屏幕字幕:
-原文: Now let's discuss the vanishing gradient problem.
-翻译: 이제 기울기 소실 문제에 대해 다뤄보겠습니다.
+原文: 이제 기울기 소실 문제에 대해 다뤄보겠습니다.
+翻译: 现在让我们来讨论梯度消失问题。
 
 学生提问:
 「梯度消失是什么？」
