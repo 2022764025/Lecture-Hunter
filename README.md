@@ -356,8 +356,6 @@ Lecture-Hunter
 
 ### 참고 자료
 
-만드는 데 도움받은 자료들이에요.
-
 - Flutter 공식 문서: https://docs.flutter.dev/
 - FastAPI 공식 문서: https://fastapi.tiangolo.com/
 - Supabase 공식 문서: https://supabase.com/docs
