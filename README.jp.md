@@ -138,8 +138,8 @@
   "Now let's discuss the vanishing gradient problem."
   
   画面の字幕:
-  原文: Now let's discuss the vanishing gradient problem.
-  翻訳: 이제 기울기 소실 문제에 대해 다뤄보겠습니다.
+  原文: 이제 기울기 소실 문제에 대해 다뤄보겠습니다.
+  翻訳: では、勾配消失問題について見ていきましょう。
   
   学生の質問:
   「勾配消失って何ですか？」
