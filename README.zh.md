@@ -25,12 +25,11 @@
   <a href="../README.md">🇰🇷 한국어</a> &nbsp;·&nbsp;
   <a href="README.en.md">🇺🇸 English</a> &nbsp;·&nbsp;
   <a href="README.jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
-  🇨🇳 简体中文
 </p>
 
 > [!NOTE]
 > 东亚大学AI学系SW核心大学事业现场镜像型关联项目
-> 👩🏻‍🎓👨🏻‍🎓👨🏻‍🎓 **任务猎手团队**
+> 👩🏻‍🎓👨🏻‍🎓👨🏻‍🎓 **과제헌터**
 
 ---
 
