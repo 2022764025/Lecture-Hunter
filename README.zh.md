@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <a href="../README.md">🇰🇷 한국어</a> &nbsp;·&nbsp;
+  <a href="README.md">🇰🇷 한국어</a> &nbsp;·&nbsp;
   <a href="README.en.md">🇺🇸 English</a> &nbsp;·&nbsp;
   <a href="README.jp.md">🇯🇵 日本語</a>
 </p>
