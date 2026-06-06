@@ -121,7 +121,7 @@
       <sub>可以再次确认过去的字幕。</sub>
     </td>
     <td align="center">
-      准备中<br/>
+      <img src="./assets/screens/key_summary_features.png" width="360"/><br/>
       <sub>对讲座内容进行简短总结。</sub>
     </td>
   </tr>
