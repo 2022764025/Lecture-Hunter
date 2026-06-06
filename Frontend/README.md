@@ -124,7 +124,7 @@
       <sub>지나간 자막도 다시 확인할 수 있어요.</sub>
     </td>
     <td align="center">
-      준비 중<br/>
+      <img src="../assets/screens/key_summary_features.png" width="360"/><br/>
       <sub>강의 내용을 짧게 요약해줘요.</sub>
     </td>
   </tr>
