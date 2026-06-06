@@ -123,9 +123,8 @@ TV에서 자막 보신 적 있으시죠?
     </td>
     <td align="center">
       <img src="./assets/screens/key_summary_features.png" width="360"/><br/>
-      <sub>지나간 자막도 다시 확인할 수 있어요.</sub>
-    </td>
       <sub>강의 내용을 짧게 요약해줘요.</sub>
+    </td>
     </td>
   </tr>
 </table>
@@ -357,8 +356,6 @@ Lecture-Hunter
 ---
 
 ### 참고 자료
-
-만드는 데 도움받은 자료들이에요.
 
 - Flutter 공식 문서: https://docs.flutter.dev/
 - FastAPI 공식 문서: https://fastapi.tiangolo.com/
