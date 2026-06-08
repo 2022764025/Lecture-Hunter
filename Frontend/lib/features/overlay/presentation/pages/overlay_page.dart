@@ -11,6 +11,7 @@ import '../../../caption/presentation/widgets/caption_overlay.dart';
 import '../../../assistant/presentation/panels/assistant_panel.dart';
 import '../widgets/status_bar.dart';
 import '../../../../services/api_service.dart';
+import '../../../../services/display_audio_capture_service.dart';
 import '../../../assistant/presentation/controllers/question_model.dart';
 
 class OverlayPage extends ConsumerStatefulWidget {
@@ -212,6 +213,19 @@ class _DevControlBar extends ConsumerWidget {
               style: TextStyle(color: Colors.white54, fontSize: 12),
             ),
           ),
+          // 강의 화면 연결
+          TextButton.icon(
+            onPressed: () => _connectLectureScreen(context, ref),
+            icon: const Icon(
+              Icons.cast_connected,
+              size: 14,
+              color: Colors.white54,
+            ),
+            label: const Text(
+              '강의 화면 연결',
+              style: TextStyle(color: Colors.white54, fontSize: 12),
+            ),
+          ),
           // 슬라이드 분석
           TextButton.icon(
             onPressed: () => _analyzeSlide(context),
@@ -236,6 +250,57 @@ class _DevControlBar extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _connectLectureScreen(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final audioStreamService = ref.read(audioStreamServiceProvider);
+    final captureService = DisplayAudioCaptureService();
+
+    try {
+      await captureService.start(
+        audioStreamService: audioStreamService,
+        lectureId: 'demo-lecture',
+        targetLang: 'Korean',
+      );
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('강의 화면/탭 오디오 연결 시작'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } on Exception catch (e) {
+      if (!context.mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1A2E),
+          title: const Text(
+            '강의 화면 연결 실패',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            '$e',
+            style: const TextStyle(color: Colors.white70, height: 1.5),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                '닫기',
+                style: TextStyle(color: Colors.white54),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Future<void> _analyzeSlide(BuildContext context) async {

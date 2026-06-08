@@ -42,5 +42,66 @@
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
   <script src="flutter_bootstrap.js" async></script>
+
+<script>
+  let lectureCaptureStream = null;
+
+  window.addEventListener('message', async (event) => {
+    const data = event.data || {};
+
+    if (data.type === 'lecture_capture_start') {
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          window.postMessage({
+            type: 'lecture_capture_error',
+            message: '이 브라우저는 화면/탭 공유를 지원하지 않습니다.'
+          }, '*');
+          return;
+        }
+
+        lectureCaptureStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true
+        });
+
+        const audioTracks = lectureCaptureStream.getAudioTracks();
+
+        if (!audioTracks || audioTracks.length === 0) {
+          lectureCaptureStream.getTracks().forEach((track) => track.stop());
+          lectureCaptureStream = null;
+
+          window.postMessage({
+            type: 'lecture_capture_error',
+            message: '오디오 트랙이 없습니다. 공유 창에서 오디오 공유를 체크하세요.'
+          }, '*');
+          return;
+        }
+
+        lectureCaptureStream.getTracks().forEach((track) => {
+          track.onended = () => {
+            window.postMessage({ type: 'lecture_capture_stopped' }, '*');
+          };
+        });
+
+        window.postMessage({
+          type: 'lecture_capture_started'
+        }, '*');
+      } catch (error) {
+        window.postMessage({
+          type: 'lecture_capture_error',
+          message: error && error.message ? error.message : String(error)
+        }, '*');
+      }
+    }
+
+    if (data.type === 'lecture_capture_stop') {
+      if (lectureCaptureStream) {
+        lectureCaptureStream.getTracks().forEach((track) => track.stop());
+        lectureCaptureStream = null;
+      }
+    }
+  });
+</script>
+
 </body>
 </html>
