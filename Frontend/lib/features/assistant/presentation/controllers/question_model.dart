@@ -139,3 +139,43 @@ class SummaryResponse {
     );
   }
 }
+
+
+class SlideAnalysisResponse {
+  final bool hasVisual;
+  final String message;
+  final String visualContext;
+  final int? anchoredContentId;
+  final ResponseStatus status;
+
+  const SlideAnalysisResponse({
+    required this.hasVisual,
+    required this.message,
+    required this.visualContext,
+    this.anchoredContentId,
+    this.status = ResponseStatus.success,
+  });
+
+  factory SlideAnalysisResponse.fromJson(Map<String, dynamic> json) {
+    return SlideAnalysisResponse(
+      hasVisual: json['has_visual'] == true,
+      message: json['message']?.toString() ?? '',
+      visualContext: json['visual_context']?.toString() ??
+          json['summary']?.toString() ??
+          '',
+      anchoredContentId: json['anchored_content_id'] is int
+          ? json['anchored_content_id'] as int
+          : int.tryParse(json['anchored_content_id']?.toString() ?? ''),
+      status: ResponseStatus.success,
+    );
+  }
+
+  factory SlideAnalysisResponse.error(String message) {
+    return SlideAnalysisResponse(
+      hasVisual: false,
+      message: message,
+      visualContext: '',
+      status: ResponseStatus.error,
+    );
+  }
+}

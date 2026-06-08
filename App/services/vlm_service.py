@@ -76,10 +76,10 @@ class VLMService:
 
             # 비율 유지 리사이징 (기존 512×512 고정 → 왜곡 문제 수정)
             # RTX 5060에서 1280px로 올림
-            img.thumbnail((1024, 1024))
+            img.thumbnail((640, 640))
             
             buffered = io.BytesIO()
-            img.save(buffered, format="JPEG", quality=80)
+            img.save(buffered, format="JPEG", quality=65)
             
             # Ollama 클라이언트는 bytes를 직접 받거나 base64 문자열을 받는다.
             img_data = buffered.getvalue()
