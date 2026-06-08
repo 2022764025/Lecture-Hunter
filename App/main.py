@@ -1,8 +1,10 @@
 import asyncio
+import ollama
 from datetime import datetime, timedelta
 from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, UploadFile, File
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from core.database import get_supabase
 
@@ -17,6 +19,13 @@ from services.analytics_service import (
 from services.vlm_service import vlm_engine
 from services.summary_service import generate_lecture_summary, generate_adaptive_summary
 from api.v1 import websocket 
+
+
+class TestLectureContentRequest(BaseModel):
+    text: str
+    translated_text: Optional[str] = None
+    target_lang: str = "Korean"
+    source_lang: str = "test"
 
 # (0.1) 전역 상태 관리
 # 비전 제거 후 student_scores → active_lecture_ids로 교체
@@ -333,6 +342,52 @@ async def get_glossary(lecture_id: str, keyword: str = None):
             "glossary": result.data
         }
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- [개발용] 테스트 강의 텍스트 주입 ---
+@app.post("/lecture/test/content/{lecture_id}", tags=["Test"])
+async def insert_test_lecture_content(
+    lecture_id: str,
+    request: TestLectureContentRequest
+):
+    """
+    마이크 없이 테스트용 강의 문장을 lecture_contents에 저장
+    핵심 요약 기능 검증용
+    """
+    try:
+        supabase = await get_supabase()
+        ollama_client = ollama.AsyncClient()
+
+        text = request.text.strip()
+        if not text:
+            raise HTTPException(status_code=400, detail="text is required")
+
+        translated_text = request.translated_text or text
+
+        embed = await ollama_client.embeddings(
+            model="nomic-embed-text",
+            prompt=text
+        )
+
+        await supabase.table("lecture_contents").insert({
+            "lecture_id": lecture_id,
+            "original_text": text,
+            "translated_text": translated_text,
+            "target_lang": request.target_lang,
+            "source_lang": request.source_lang,
+            "content_embedding": embed["embedding"]
+        }).execute()
+
+        return {
+            "status": "inserted",
+            "lecture_id": lecture_id,
+            "text": text
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
