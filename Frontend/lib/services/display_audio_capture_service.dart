@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:html' as html;
 
+import '../core/config/app_config.dart';
 import 'audio_stream_service.dart';
 
 class DisplayAudioCaptureService {
@@ -16,10 +17,13 @@ class DisplayAudioCaptureService {
   }) async {
     if (_isCapturing) return;
 
-    await audioStreamService.connect(
-      lectureId: lectureId,
-      targetLang: targetLang,
-    );
+    final wsUrl = Uri.parse(
+      '${AppConfig.wsBaseUrl}/ws/audio/$lectureId',
+    ).replace(
+      queryParameters: {
+        'target_lang': targetLang,
+      },
+    ).toString();
 
     final completer = Completer<void>();
 
@@ -53,6 +57,7 @@ class DisplayAudioCaptureService {
 
     html.window.postMessage({
       'type': 'lecture_capture_start',
+      'wsUrl': wsUrl,
     }, '*');
 
     return completer.future.timeout(

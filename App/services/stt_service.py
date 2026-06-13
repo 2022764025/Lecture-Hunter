@@ -55,8 +55,8 @@ last_received_times = {}
 
 # [핵심 2] 민재님이 지정한 실시간 최적화 설정값
 SAMPLE_RATE      = 16000
-MIN_BUFFER_SIZE  = 160000   # 5초 (중간 모델 부하 감소 및 문맥 확보)
-MAX_BUFFER_SIZE  = 320000   # 10초 (강제 처리 임계점)
+MIN_BUFFER_SIZE  = 96000   # 5초 (중간 모델 부하 감소 및 문맥 확보)
+MAX_BUFFER_SIZE  = 192000   # 10초 (강제 처리 임계점)
 SILENCE_GAP      = 1.0      # 1.0초 침묵 시 즉시 처리
 OVERLAP_SIZE     = 16000    # 0.5초 오버랩 (단어 잘림 방지)
 
