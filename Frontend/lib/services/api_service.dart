@@ -2,6 +2,7 @@
 // FastAPI 백엔드 REST / WebSocket 통신 서비스
 
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../core/config/app_config.dart';
 import '../features/assistant/presentation/controllers/question_model.dart';
@@ -66,6 +67,32 @@ class ApiService {
     }
   }
 
+  // ─── 최근 강의 핵심 요약 조회 ───────────────────────────────
+  Future<SummaryResponse> fetchAdaptiveSummary() async {
+    try {
+      final uri = Uri.parse(
+        '$_baseUrl/lecture/summary/adaptive/${AppConfig.defaultLectureId}',
+      );
+
+      final response = await _client
+          .get(
+            uri,
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        final json =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        return SummaryResponse.fromJson(json);
+      } else {
+        return SummaryResponse.error('서버 오류: ${response.statusCode}');
+      }
+    } on Exception catch (e) {
+      return SummaryResponse.error('연결 실패: $e');
+    }
+  }
+
   // ─── 용어집 조회 ─────────────────────────────────────────────
   Future<List<GlossaryEntry>> searchGlossary(String term) async {
     try {
@@ -99,6 +126,44 @@ class ApiService {
       return [];
     } on Exception {
       return [];
+    }
+  }
+
+  // ─── 슬라이드 이미지 분석 ───────────────────────────────────
+  Future<SlideAnalysisResponse> analyzeSlide({
+    required Uint8List imageBytes,
+    required String filename,
+  }) async {
+    try {
+      final uri = Uri.parse(
+        '$_baseUrl/lecture/analyze-slide/${AppConfig.defaultLectureId}',
+      ).replace(
+        queryParameters: {
+          'target_lang': AppConfig.defaultTargetLang,
+        },
+      );
+
+      final request = http.MultipartRequest('POST', uri)
+        ..files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            imageBytes,
+            filename: filename,
+          ),
+        );
+
+      final streamed = await request.send().timeout(_timeout);
+      final response = await http.Response.fromStream(streamed);
+
+      if (response.statusCode == 200) {
+        final json =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        return SlideAnalysisResponse.fromJson(json);
+      } else {
+        return SlideAnalysisResponse.error('서버 오류: ${response.statusCode}');
+      }
+    } on Exception catch (e) {
+      return SlideAnalysisResponse.error('연결 실패: $e');
     }
   }
 

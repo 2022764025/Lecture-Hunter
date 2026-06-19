@@ -96,3 +96,86 @@ enum ConnectionStatus {
   reconnecting,
   error,
 }
+
+class SummaryResponse {
+  final String lectureId;
+  final int minutes;
+  final String summary;
+  final ResponseStatus status;
+
+  const SummaryResponse({
+    required this.lectureId,
+    required this.minutes,
+    required this.summary,
+    this.status = ResponseStatus.success,
+  });
+
+  factory SummaryResponse.fromJson(Map<String, dynamic> json) {
+    return SummaryResponse(
+      lectureId: json['lecture_id']?.toString() ?? '',
+      minutes: json['minutes'] is int
+          ? json['minutes'] as int
+          : int.tryParse(json['minutes']?.toString() ?? '') ?? 0,
+      summary: json['summary']?.toString() ?? '',
+      status: ResponseStatus.success,
+    );
+  }
+
+  factory SummaryResponse.error(String message) {
+    return SummaryResponse(
+      lectureId: '',
+      minutes: 0,
+      summary: message,
+      status: ResponseStatus.error,
+    );
+  }
+
+  factory SummaryResponse.loading() {
+    return const SummaryResponse(
+      lectureId: '',
+      minutes: 0,
+      summary: '',
+      status: ResponseStatus.loading,
+    );
+  }
+}
+
+
+class SlideAnalysisResponse {
+  final bool hasVisual;
+  final String message;
+  final String visualContext;
+  final int? anchoredContentId;
+  final ResponseStatus status;
+
+  const SlideAnalysisResponse({
+    required this.hasVisual,
+    required this.message,
+    required this.visualContext,
+    this.anchoredContentId,
+    this.status = ResponseStatus.success,
+  });
+
+  factory SlideAnalysisResponse.fromJson(Map<String, dynamic> json) {
+    return SlideAnalysisResponse(
+      hasVisual: json['has_visual'] == true,
+      message: json['message']?.toString() ?? '',
+      visualContext: json['visual_context']?.toString() ??
+          json['summary']?.toString() ??
+          '',
+      anchoredContentId: json['anchored_content_id'] is int
+          ? json['anchored_content_id'] as int
+          : int.tryParse(json['anchored_content_id']?.toString() ?? ''),
+      status: ResponseStatus.success,
+    );
+  }
+
+  factory SlideAnalysisResponse.error(String message) {
+    return SlideAnalysisResponse(
+      hasVisual: false,
+      message: message,
+      visualContext: '',
+      status: ResponseStatus.error,
+    );
+  }
+}

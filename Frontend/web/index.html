@@ -42,5 +42,207 @@
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
   <script src="flutter_bootstrap.js" async></script>
+
+
+<script>
+  let lectureCaptureStream = null;
+  let lectureAudioContext = null;
+  let lectureAudioSource = null;
+  let lectureAudioProcessor = null;
+  let lectureAudioSocket = null;
+
+  function floatTo16BitPcm(float32Array) {
+    const buffer = new ArrayBuffer(float32Array.length * 2);
+    const view = new DataView(buffer);
+
+    for (let i = 0; i < float32Array.length; i++) {
+      let sample = Math.max(-1, Math.min(1, float32Array[i]));
+      sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+      view.setInt16(i * 2, sample, true);
+    }
+
+    return buffer;
+  }
+
+  function downsampleBuffer(buffer, inputSampleRate, outputSampleRate) {
+    if (outputSampleRate === inputSampleRate) {
+      return buffer;
+    }
+
+    const sampleRateRatio = inputSampleRate / outputSampleRate;
+    const newLength = Math.round(buffer.length / sampleRateRatio);
+    const result = new Float32Array(newLength);
+
+    let offsetResult = 0;
+    let offsetBuffer = 0;
+
+    while (offsetResult < result.length) {
+      const nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio);
+      let accum = 0;
+      let count = 0;
+
+      for (let i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
+        accum += buffer[i];
+        count++;
+      }
+
+      result[offsetResult] = count > 0 ? accum / count : 0;
+      offsetResult++;
+      offsetBuffer = nextOffsetBuffer;
+    }
+
+    return result;
+  }
+
+  function stopLectureCapture() {
+    if (lectureAudioProcessor) {
+      try {
+        lectureAudioProcessor.disconnect();
+      } catch (e) {}
+      lectureAudioProcessor = null;
+    }
+
+    if (lectureAudioSource) {
+      try {
+        lectureAudioSource.disconnect();
+      } catch (e) {}
+      lectureAudioSource = null;
+    }
+
+    if (lectureAudioContext) {
+      try {
+        lectureAudioContext.close();
+      } catch (e) {}
+      lectureAudioContext = null;
+    }
+
+    const lectureVideo = document.getElementById('lecture-shared-video');
+    if (lectureVideo) {
+      lectureVideo.pause();
+      lectureVideo.srcObject = null;
+    }
+
+    if (lectureCaptureStream) {
+      lectureCaptureStream.getTracks().forEach((track) => track.stop());
+      lectureCaptureStream = null;
+    }
+
+    if (lectureAudioSocket) {
+      try {
+        lectureAudioSocket.close();
+      } catch (e) {}
+      lectureAudioSocket = null;
+    }
+  }
+
+  window.addEventListener('message', async (event) => {
+    const data = event.data || {};
+
+    if (data.type === 'lecture_capture_start') {
+      try {
+        stopLectureCapture();
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          window.postMessage({
+            type: 'lecture_capture_error',
+            message: '이 브라우저는 화면/탭 공유를 지원하지 않습니다.'
+          }, '*');
+          return;
+        }
+
+        const wsUrl = data.wsUrl;
+        if (!wsUrl) {
+          window.postMessage({
+            type: 'lecture_capture_error',
+            message: 'WebSocket 주소가 없습니다.'
+          }, '*');
+          return;
+        }
+
+        lectureCaptureStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true
+        });
+
+        const lectureVideo = document.getElementById('lecture-shared-video');
+        if (lectureVideo) {
+          lectureVideo.srcObject = lectureCaptureStream;
+          lectureVideo.muted = true;
+          lectureVideo.playsInline = true;
+          await lectureVideo.play();
+        }
+
+        const audioTracks = lectureCaptureStream.getAudioTracks();
+
+        if (!audioTracks || audioTracks.length === 0) {
+          stopLectureCapture();
+
+          window.postMessage({
+            type: 'lecture_capture_error',
+            message: '오디오 트랙이 없습니다. 공유 창에서 오디오 공유를 체크하세요.'
+          }, '*');
+          return;
+        }
+
+        lectureAudioSocket = new WebSocket(wsUrl);
+        lectureAudioSocket.binaryType = 'arraybuffer';
+
+        await new Promise((resolve, reject) => {
+          lectureAudioSocket.onopen = resolve;
+          lectureAudioSocket.onerror = () => reject(new Error('오디오 WebSocket 연결 실패'));
+          setTimeout(() => reject(new Error('오디오 WebSocket 연결 시간 초과')), 5000);
+        });
+
+        lectureAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        lectureAudioSource = lectureAudioContext.createMediaStreamSource(lectureCaptureStream);
+        lectureAudioProcessor = lectureAudioContext.createScriptProcessor(4096, 1, 1);
+
+        lectureAudioProcessor.onaudioprocess = (audioProcessingEvent) => {
+          if (!lectureAudioSocket || lectureAudioSocket.readyState !== WebSocket.OPEN) {
+            return;
+          }
+
+          const inputBuffer = audioProcessingEvent.inputBuffer;
+          const channelData = inputBuffer.getChannelData(0);
+          const downsampled = downsampleBuffer(
+            channelData,
+            lectureAudioContext.sampleRate,
+            16000
+          );
+          const pcm16 = floatTo16BitPcm(downsampled);
+
+          lectureAudioSocket.send(pcm16);
+        };
+
+        lectureAudioSource.connect(lectureAudioProcessor);
+        lectureAudioProcessor.connect(lectureAudioContext.destination);
+
+        lectureCaptureStream.getTracks().forEach((track) => {
+          track.onended = () => {
+            stopLectureCapture();
+            window.postMessage({ type: 'lecture_capture_stopped' }, '*');
+          };
+        });
+
+        window.postMessage({
+          type: 'lecture_capture_started'
+        }, '*');
+      } catch (error) {
+        stopLectureCapture();
+
+        window.postMessage({
+          type: 'lecture_capture_error',
+          message: error && error.message ? error.message : String(error)
+        }, '*');
+      }
+    }
+
+    if (data.type === 'lecture_capture_stop') {
+      stopLectureCapture();
+    }
+  });
+</script>
+
+
 </body>
 </html>
