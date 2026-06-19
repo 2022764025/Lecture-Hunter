@@ -355,6 +355,52 @@ async def get_adaptive_summary(lecture_id: str, minutes: int = 5):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+# --- [임시 추가] 실시간 자막 브로드캐스트 연동 테스트용 엔드포인트 (가입 절차 추가 완료) ---
+'''
+@app.post("/lecture/test-broadcast/{lecture_id}", tags=["Test"])
+async def test_supabase_broadcast(lecture_id: str):
+    """
+    백엔드에서 Supabase Realtime 채널로 가짜 자막을 송신하여
+    프론트엔드(Flutter) 화면에 실시간으로 자막이 꽂히는지 선제 검증하는 API
+    """
+    try:
+        # 1. 메인 인프라에서 초기화된 Supabase 클라이언트 획득
+        supabase = await get_supabase()
+        
+        # 2. 수지 분의 프론트엔드(sse_service.dart)가 리스닝하는 방(채널) 생성
+        channel_name = f"lecture_{lecture_id}"
+        realtime_channel = supabase.channel(channel_name)
+        
+        # 3. 🔥 [결정적 수정] 브로드캐스트 패킷을 밀어 넣기 전에 채널에 먼저 연결(Join)합니다.
+        await realtime_channel.subscribe()
+        
+        # 4. 프론트엔드 데이터 바인딩 규격에 맞춘 가짜 자막 데이터 구조화
+        mock_payload = {
+            "id": "realtime_test_uuid_999",
+            "original_text": "인공지능학과 실시간 연동 테스트 중입니다. 음성 인식 자막이 정상적으로 출력됩니다.",
+            "translated_text": "AI Department real-time integration test in progress. Voice recognition captions are displayed normally.",
+            "language": "ko",
+            "has_visual": False
+        }
+        
+        # 5. 채널 가입이 수락된 상태에서 'new_caption' 이벤트 명세로 패킷 브로드캐스트
+        response = await realtime_channel.send_broadcast(
+            "new_caption",   # 1번째 인자: 이벤트명
+            mock_payload     # 2번째 인자: 전송할 페이로드
+        )
+        
+        print(f"[Supabase Broadcast] 채널 {channel_name} 가입 및 자막 송신 완료")
+        
+        return {
+            "status": "success",
+            "channel": channel_name,
+            "sent_data": mock_payload,
+            "supabase_status": str(response)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+'''
 
 if __name__ == "__main__":
     import uvicorn

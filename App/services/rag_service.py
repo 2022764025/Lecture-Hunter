@@ -1,13 +1,18 @@
 """
 <설명>
-이 코드는 "질문 -> 검색 -> [이전 대화 기억] -> [언어 정보 참고] -> 답변"에 더해 "자막 저장(Indexing)" 기능이다.
+본 모듈은 "학생 질문 -> 벡터 검색(Retrieval) -> 컨텍스트 강화 -> LLM 답변 생성(Generation)"으로 이어지는 
+핵심 RAG 파이프라인 및 대화 컨텍스트 관리 엔진입니다.
 
-(1) 벡터 데이터 파이프라인
-    - index_lecture_content 함수가 STT 자막을 실시간으로 받아 벡터 좌표로 변환한 뒤 Supabase DB에 저장 (768차원 의미 공간에 배치)
-(2) 컨텍스트 강화 검색
-    - 학생이 질문하면, DB에서 가장 관련 있는 자막 3개를 찾아온다. 자막 앞에 [ko], [zh] 같은 꼬리표를 붙여서 AI가 "이건 중국어 설명이었구나"라고 인지
-(3) 슬라이딩 윈도우 메모리
-    - chat_histories를 통해 최근 10개의 대화를 기억한다. history.pop(0) 로직을 통해 고정된 메모리 크기(Sliding Window)를 유지
+(1) 컨텍스트 강화 유사도 검색 (Retrieval)
+    - 학생이 위젯을 통해 질문을 던지면, nomic-embed-text 모델로 질문을 벡터화한 후 
+        Supabase RPC(match_lecture_contents)를 호출해 가장 연관성 높은 강의 자막 컨텍스트 3개를 추출합니다.
+        이때 [ko], [en] 등 다국어 소스 태그를 꼬리표로 붙여 AI가 맥락을 정확히 인지하도록 유도합니다.
+(2) 대화 메모리 및 슬라이딩 윈도우 (Memory)
+    - 강의 세션별(`lecture_id`) 독립된 chat_histories를 관리하며, 최근 3개의 대화 요약을 Prompt에 주입합니다.
+        메모리 과부하를 방지하기 위해 최대 10개까지만 대화를 유지하는 Sliding Window(pop(0)) 방식을 채택했습니다.
+(3) 자동 자원 회수 인프라 (Memory Optimization)
+    - 대화가 끝난 세션이 메모리를 점유하는 것을 막기 위해 1시간(TTL) 동안 접근이 없는 히스토리를 
+        자동으로 감지하고 소거하는 백그라운드 클린업 로직이 반영되어 있습니다.
 
 <추가>
 (1) 중복 답변 방지
@@ -101,7 +106,7 @@ async def get_answer_with_memory(question: str, lecture_id: str, target_lang: st
             model=settings.LLM_MODEL,
             prompt=prompt
         )
-        answer = response['response']
+        answer = response['response'].strip()
 
         # 히스토리 저장 (최대 10개 유지)
         history.append({"q": question, "a": answer})
@@ -114,7 +119,7 @@ async def get_answer_with_memory(question: str, lecture_id: str, target_lang: st
         print(f"get_answer_with_memory 오류: {e}")
         raise
 
-def reset_lecture_history(lecture_id: str):
+def reset_lecture_history(lecture_id: str) -> bool:
     """
     특정 강의의 질문 히스토리 초기화
     Flutter "새 질문 시작" 버튼에서 호출

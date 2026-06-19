@@ -49,7 +49,7 @@ class VLMService:
             Text: "{raw_result[:200]}"
             """
             response = await ollama_client.generate(
-                model=self.model_name,
+                model=self.LLM_MODEL,
                 prompt=prompt
             )
             answer = response['response'].strip().upper()

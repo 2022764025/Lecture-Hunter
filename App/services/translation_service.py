@@ -16,13 +16,14 @@
 '''
 
 import ollama
+from core.config import settings
 
 # 순환 참조 방지: rag_service에서 가져오지 않고 독립 선언
 ollama_client = ollama.AsyncClient()
 
 class TranslationService:
-    def __init__(self, model_name: str = "gemma2:2b"):
-        self.model_name = model_name
+    def __init__(self, model_name: str = None):
+        self.model_name = model_name if model_name else settings.LLM_MODEL
 
     async def translate(self, text: str, target_lang: str = "English") -> str:
         if not text.strip():

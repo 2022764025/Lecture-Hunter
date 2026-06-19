@@ -6,8 +6,6 @@
                     stt_service로 넘기기 전에 여기서 잡음 제거 함수를 살짝 끼워 넣을 수 있는 '전략적 요충지'이다.
 """
 
-
-import os
 from services.stt_service import process_audio_and_broadcast
 
 async def process_lecture_audio(audio_data: bytes, lecture_id: str, target_lang: str = "Korean"):
