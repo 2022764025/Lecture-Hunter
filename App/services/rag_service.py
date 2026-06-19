@@ -91,14 +91,18 @@ async def get_answer_with_memory(question: str, lecture_id: str, target_lang: st
         ]) if history else "없음"
 
         prompt = f"""
-        당신은 강의 보조 AI입니다. 아래 [강의 내용]과 [이전 대화]를 참고하여 [학생의 질문]에 답하세요.
-        [강의 내용]의 각 문장은 [ko], [en], [zh], [ja] 등 원문 언어가 표시되어 있습니다. 특정 언어로 설명된 부분을 묻는다면 해당 표시를 참고하여 답변하세요.
+        You are a university lecture assistant AI. 
+        Answer the user's question based on the provided lecture context and chat history.
 
-        한국어로 답변하세요. 모르면 모른다고 하세요.
+        [CRITICAL RESPONSE RULE]
+        - You must write the entire response STRICTLY in the language specified in the variable below.
+        - TARGET LANGUAGE: "{target_lang}"
+        
+        (Change your entire thinking and output language to match the TARGET LANGUAGE perfectly. Do NOT reply in Korean unless the TARGET LANGUAGE is 'Korean' or '한국어'.)
 
-        [강의 내용]: {context}
-        [이전 대화]: {history_context}
-        [학생의 질문]: {question}
+        [Lecture Context]: {context}
+        [Chat History]: {history_context}
+        [User Question]: {question}
         """
 
         # LLM 답변 생성 (비동기)
