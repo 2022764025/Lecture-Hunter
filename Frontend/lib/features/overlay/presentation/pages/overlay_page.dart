@@ -1,11 +1,11 @@
-// lib/screens/lecture_screen.dart
+// lib/features/overlay/presentation/pages/overlay_page.dart
 import 'dart:html' as html;
 import 'dart:ui_web' as ui;
-// [Step 4] 전체 통합 메인 스크린
-// 자막 오버레이 + 질문 패널 + 용어집 + 연결 상태 모두 통합
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:live_lecture_ai/main.dart';
 import '../../../caption/presentation/controllers/caption_controller.dart';
 import '../widgets/lecture_result_strip.dart';
 
@@ -25,15 +25,37 @@ class _OverlayPageState extends ConsumerState<OverlayPage> {
     super.initState();
     _registerLectureVideoView();
 
-    // 앱 시작 시 SSE 연결 (Mock 모드)
-    WidgetsBinding.instance.addPostFrameCallback((_) => _connect());
+    if (globalLectureId != null && globalLectureId!.isNotEmpty) {
+      print("==========================================================");
+      print("[플러터 엔진] 주소창 복원 ID 감지 성공 -> 즉시 연동 파이프라인 가동!");
+      print("==========================================================");
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _connect();
+      });
+    }
+
+    html.window.onMessage.listen((event) {
+      try {
+        final rawData = event.data;
+        if (rawData is String) {
+          final Map<String, dynamic> data = jsonDecode(rawData);
+
+          if (data['type'] == 'SET_LECTURE_ID') {
+            globalLectureId = data['lectureId'];
+            _connect();
+          }
+        }
+      } catch (e) {
+        print("[디버그 크래시 추적 에러] : $e");
+      }
+    });
+
+    final readySignal = jsonEncode({'type': 'FLUTTER_READY'});
+    html.window.parent?.postMessage(readySignal, '*');
   }
 
   void _registerLectureVideoView() {
-    if (_lectureVideoViewRegistered) {
-      return;
-    }
-
+    if (_lectureVideoViewRegistered) return;
     _lectureVideoViewRegistered = true;
 
     ui.platformViewRegistry.registerViewFactory(
@@ -59,45 +81,40 @@ class _OverlayPageState extends ConsumerState<OverlayPage> {
     final isMock = ref.read(mockModeProvider);
     final sseService = ref.read(sseServiceProvider);
 
+    final currentParamId = globalLectureId;
+    print("==========================================================");
+    print("[플러터 디버그] 실시간 소켓 연동용 강의 ID: $currentParamId");
+    print("==========================================================");
+
     if (isMock) {
       sseService.startMock();
     } else {
-      sseService.connect();
+      if (currentParamId != null) {
+        print("[플러터 리버팟] sseService 직접 연결 시작: $currentParamId");
+        sseService.connect(lectureId: currentParamId);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // 잠들어 있는 자막 스트림 프로바이더를 강제로 감시(watch)
+    // 이렇게 해야 내부의 .listen() 로직이 활성화되어 수파베이스 데이터를 히스토리에 꼽기 시작
+    ref.watch(subtitleStreamProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D1A),
       body: SafeArea(
         child: Stack(
           children: [
-            // ── 배경 (실제 강의 영상 자리) ──────────────────────
             _LectureBackground(),
-
-            // ── 최종 형태: 작은 우리 위젯 + 펼쳐지는 결과 스트립 ───
             const LectureFloatingWidget(),
-
-            // ── 기존 패널형 자막/질문 UI는 최종 스트립 구조로 대체 ───
-            // // const CaptionOverlay(),
-            // // const StatusBar(),
-            // if (questionPanelVisible)
-            //   const Positioned(
-            //     right: 12,
-            //     top: 80,
-            //     child: AssistantPanel(),
-            //   ),
-
-            // ── 디버그 컨트롤 바 (개발용) ────────────────────────
           ],
         ),
       ),
     );
   }
 }
-
-// ─── 강의 배경 (영상 자리 placeholder) ───────────────────────
 
 class _LectureBackground extends StatelessWidget {
   @override
@@ -119,9 +136,9 @@ class _LectureBackground extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.18),
+                    Colors.black.withOpacity(0.18),
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.24),
+                    Colors.black.withOpacity(0.24),
                   ],
                 ),
               ),
@@ -132,8 +149,3 @@ class _LectureBackground extends StatelessWidget {
     );
   }
 }
-
-// ─── 개발용 컨트롤 바 ─────────────────────────────────────────
-
-
-

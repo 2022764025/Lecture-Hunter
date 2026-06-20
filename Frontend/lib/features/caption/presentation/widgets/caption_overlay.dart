@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/subtitle_model.dart';
 import '../../../assistant/presentation/controllers/question_model.dart';
 import '../controllers/caption_controller.dart';
-import '../../../overlay/presentation/controllers/overlay_controller.dart'; // ✨ 테마 Provider 임포트 추가!
+import '../../../overlay/presentation/controllers/overlay_controller.dart'; // 테마 Provider 임포트 추가!
 
 class CaptionOverlay extends ConsumerWidget {
   const CaptionOverlay({super.key});
@@ -86,7 +86,7 @@ class _SubtitleBox extends ConsumerWidget {
       child: Container(
         constraints: BoxConstraints(minHeight: settings.widgetHeight),
         decoration: BoxDecoration(
-          color: isDark ? Colors.black87 : Colors.white, // ✨ 배경색 자동 전환
+          color: isDark ? Colors.black87 : Colors.white; // ✨ 배경색 자동 전환
           borderRadius: _borderRadius(settings.position),
           border: Border.all(
             color: _statusColor(connectionStatus).withValues(alpha: 0.6),
@@ -188,7 +188,7 @@ class _HeaderBar extends StatelessWidget {
               ref
                 .read(subtitleSettingsProvider.notifier)
                 .update(settings.copyWith(targetLanguage: nextLanguage));
-          },
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(

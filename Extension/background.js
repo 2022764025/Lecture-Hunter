@@ -1,7 +1,6 @@
-// ===== 설정값: 본인 환경에 맞게 수정 =====
+// background.js - 완벽 연동 성공 버전으로 원상복구
 const BACKEND_WS = "ws://127.0.0.1:8000/ws/audio";
-const WIDGET_URL = "http://127.0.0.1:9998"; // flutter run -d chrome 으로 뜬 주소
-// ==========================================
+const WIDGET_URL = "http://127.0.0.1:9998"; // flutter run -d chrome 주소
 
 let activeTabId = null;
 
@@ -14,7 +13,7 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 
   activeTabId = tab.id;
-  const lectureId = `lecture-${tab.id}-${Date.now()}`;
+  const lectureId = "lecture-" + tab.id;
 
   await chrome.scripting.executeScript({
     target: { tabId: tab.id },
@@ -38,7 +37,8 @@ function injectWidget(url, lectureId) {
   if (document.getElementById("llai-widget")) return;
   const iframe = document.createElement("iframe");
   iframe.id = "llai-widget";
-  iframe.src = `${url}/?lecture_id=${lectureId}`;
+  iframe.src = url + "/?lecture_id=" + lectureId;
+  
   Object.assign(iframe.style, {
     position: "fixed", top: "20px", right: "20px",
     width: "380px", height: "560px", border: "none",

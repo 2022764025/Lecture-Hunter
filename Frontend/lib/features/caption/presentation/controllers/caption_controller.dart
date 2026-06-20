@@ -1,5 +1,5 @@
-// lib/providers/subtitle_provider.dart
-// Riverpod 전역 상태 관리
+// lib/features/caption/presentation/controllers/caption_controller.dart
+// Riverpod 전역 상태 관리 - 순정 복구 완료 버전
 
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,14 +10,11 @@ import '../../../../services/audio_stream_service.dart';
 import '../../../../services/api_service.dart';
 import '../../../../services/settings_service.dart';
 
-// ─── Service Providers ────────────────────────────────────────
-
 final sseServiceProvider = Provider<SseService>((ref) {
   final service = SseService();
   ref.onDispose(service.dispose);
   return service;
 });
-
 
 final audioStreamServiceProvider = Provider<AudioStreamService>((ref) {
   final service = AudioStreamService();
@@ -34,8 +31,6 @@ final apiServiceProvider = Provider<ApiService>((ref) {
 final settingsServiceProvider = Provider<SettingsService>((ref) {
   return SettingsService();
 });
-
-// ─── 자막 설정 Provider ───────────────────────────────────────
 
 final subtitleSettingsProvider =
     StateNotifierProvider<SubtitleSettingsNotifier, SubtitleSettings>((ref) {
@@ -65,22 +60,21 @@ class SubtitleSettingsNotifier extends StateNotifier<SubtitleSettings> {
   }
 }
 
-// ─── SSE 연결 상태 Provider ───────────────────────────────────
-
 final connectionStatusProvider = StreamProvider<ConnectionStatus>((ref) {
   final sseService = ref.watch(sseServiceProvider);
   return sseService.statusStream;
 });
 
-// ─── 자막 스트림 Provider ─────────────────────────────────────
-
 final subtitleStreamProvider = StreamProvider<SubtitleSegment>((ref) {
   final sseService = ref.watch(sseServiceProvider);
+  
+  sseService.subtitleStream.listen((segment) {
+    print('[리버팟 파이프라인] DB 스트림에서 새 자막 감지 -> 히스토리 갱신 가동!');
+    ref.read(subtitleHistoryProvider.notifier).add(segment);
+  });
+  
   return sseService.subtitleStream;
 });
-
-// ─── 자막 히스토리 Provider ───────────────────────────────────
-// 최근 N개의 자막 세그먼트를 유지
 
 final subtitleHistoryProvider =
     StateNotifierProvider<SubtitleHistoryNotifier, List<SubtitleSegment>>((ref) {
@@ -93,7 +87,9 @@ class SubtitleHistoryNotifier extends StateNotifier<List<SubtitleSegment>> {
   SubtitleHistoryNotifier() : super([]);
 
   void add(SubtitleSegment segment) {
-    // 중복 제거 후 최신 항목 유지
+    final isDuplicate = state.any((s) => s.id == segment.id || s.originalText == segment.originalText);
+    if (isDuplicate) return;
+
     final updated = [...state, segment];
     if (updated.length > _maxHistory) {
       state = updated.sublist(updated.length - _maxHistory);
@@ -105,28 +101,16 @@ class SubtitleHistoryNotifier extends StateNotifier<List<SubtitleSegment>> {
   void clear() => state = [];
 }
 
-// ─── 현재 자막 (최신 1개) Provider ───────────────────────────
-
 final currentSubtitleProvider = Provider<SubtitleSegment?>((ref) {
   final history = ref.watch(subtitleHistoryProvider);
   return history.isEmpty ? null : history.last;
 });
 
-// ─── 자막 패널 표시 여부 ─────────────────────────────────────
-
 final subtitleVisibleProvider = StateProvider<bool>((ref) => true);
-
-// ─── 질문/용어집 패널 표시 여부 ──────────────────────────────
-
 final questionPanelVisibleProvider = StateProvider<bool>((ref) => false);
-
-// ─── 현재 질문 모드 ──────────────────────────────────────────
-
 final questionModeProvider = StateProvider<QuestionMode>((ref) => QuestionMode.professor);
 
 enum QuestionMode { professor, glossary }
-
-// ─── 질문 응답 상태 Provider ─────────────────────────────────
 
 final questionResponseProvider =
     StateNotifierProvider<QuestionResponseNotifier, QuestionResponseState>((ref) {
@@ -164,7 +148,6 @@ class QuestionResponseNotifier extends StateNotifier<QuestionResponseState> {
       mode: mode == QuestionMode.professor ? 'professor' : 'glossary',
     );
 
-    // 실제 백엔드 질문 API 사용
     final response = await _apiService.askQuestion(request);
 
     state = QuestionResponseState(
@@ -178,11 +161,9 @@ class QuestionResponseNotifier extends StateNotifier<QuestionResponseState> {
 
   Future<void> resetQuestionSession() async {
     await _apiService.resetQuestionHistory();
-    state = const QuestionResponseState();
+    state = const QuestionResponseState(); 
   }
 }
-
-// ─── 용어집 검색 Provider ─────────────────────────────────────
 
 final glossarySearchProvider =
     StateNotifierProvider<GlossarySearchNotifier, GlossarySearchState>((ref) {
@@ -220,7 +201,6 @@ class GlossarySearchNotifier extends StateNotifier<GlossarySearchState> {
       query: term,
     );
 
-    // 300ms 디바운스
     _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
       final results = await _apiService.searchGlossary(term);
 
@@ -244,6 +224,4 @@ class GlossarySearchNotifier extends StateNotifier<GlossarySearchState> {
   }
 }
 
-// ─── Mock 모드 Provider ───────────────────────────────────────
-
-final mockModeProvider = StateProvider<bool>((ref) => true);
+final mockModeProvider = StateProvider<bool>((ref) => false);
