@@ -12,6 +12,9 @@ import 'dart:js_util' as js_util;
 import '../../../caption/presentation/controllers/caption_controller.dart';
 import '../../../../main.dart'; 
 
+import '../../../../services/api_service.dart';
+import '../../../assistant/presentation/controllers/question_model.dart'; // SummaryResponse가 들어있는 파일
+
 enum LectureWidgetTab {
   caption,
   question,
@@ -77,6 +80,38 @@ final glossaryLoadingProvider = StateProvider<bool>((ref) => false);
 
 final vlmSentImagesCardProvider = StateProvider<List<String>>((ref) => []);
 final vlmQueryProvider = StateProvider<String?>((ref) => null);
+
+final summaryLoadingProvider = StateProvider<bool>((ref) => false);
+
+// [추가] 요약 기록을 메모리에 순서대로 누적하는 기록 보관소
+final summaryHistoryProvider = StateProvider<List<Map<String, String>>>((ref) => []);
+
+// 1. 요약 데이터의 상태 규격 정의
+class SummaryState {
+  final String summary;
+  final int minutes;
+  SummaryState({required this.summary, required this.minutes});
+  factory SummaryState.initial() => SummaryState(summary: '', minutes: 5);
+}
+
+// 2. 백엔드 ApiService와 통신하여 데이터를 갱신하는 상태 노티파이어
+class SummaryNotifier extends StateNotifier<SummaryState> {
+  final ApiService _apiService = ApiService();
+  SummaryNotifier() : super(SummaryState.initial());
+
+  Future<void> fetchSummary({required int minutes}) async {
+    try {
+      final response = await _apiService.fetchAdaptiveSummary(minutes);
+      // SummaryResponse 내부에 요약본 텍스트 필드 명칭에 맞춰 매핑 (일반적으로 summary 또는 데이터 구조 준수)
+      state = SummaryState(summary: response.summary ?? '', minutes: minutes);
+    } catch (e) {
+      state = SummaryState(summary: '요약 데이터 로드 실패: $e', minutes: minutes);
+    }
+  }
+}
+
+// 3. 컴파일 에러를 해결할 오리지널 summaryProvider 최종 개통
+final summaryProvider = StateNotifierProvider<SummaryNotifier, SummaryState>((ref) => SummaryNotifier());
 
 class LectureFloatingWidget extends ConsumerStatefulWidget {
   const LectureFloatingWidget({super.key});
@@ -857,19 +892,146 @@ class _GlossaryTab extends ConsumerWidget {
   }
 }
 
-class _SummaryTab extends ConsumerWidget {
-  const _SummaryTab();
+class _SummaryTab extends ConsumerStatefulWidget {
+  const _SummaryTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final summary = ref.watch(lectureWidgetSummaryProvider);
-    return _PanelScroll(
+  ConsumerState<_SummaryTab> createState() => _SummaryTabState();
+}
+
+class _SummaryTabState extends ConsumerState<_SummaryTab> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(summaryProvider); 
+    final history = ref.watch(summaryHistoryProvider);
+    final isLoading = ref.watch(summaryLoadingProvider);
+
+    ref.listen(summaryProvider, (previous, next) {
+      if (next.summary.isNotEmpty) {
+        final currentHistory = ref.read(summaryHistoryProvider);
+        if (currentHistory.isEmpty || currentHistory.last['body'] != next.summary) {
+          ref.read(summaryHistoryProvider.notifier).state = [
+            ...currentHistory,
+            {
+              'title': 'AI ${next.minutes}분 구간 요약 브리핑',
+              'body': next.summary,
+            }
+          ];
+        }
+        ref.read(summaryLoadingProvider.notifier).state = false;
+      }
+    });
+
+    return Column(
       children: [
-        const _SectionTitle(tab: LectureWidgetTab.summary, icon: Icons.summarize_rounded, title: '핵심 요약', subtitle: ''),
-        const SizedBox(height: 14),
-        _ResultCard(title: '요약 결과', body: summary, accentColor: const Color(0xFF43A047)),
-        const SizedBox(height: 12),
-        const _InfoBox(text: '요약 API 연결은 다음 단계에서 이 탭 내부로 붙이면 됩니다.'),
+        Expanded(
+          child: _PanelScroll(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    child: _SectionTitle(
+                      tab: LectureWidgetTab.summary, 
+                      icon: Icons.assignment_rounded, 
+                      title: '핵심 요약', 
+                      subtitle: ''
+                ),
+              ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4CAF50).withValues(alpha: 0.1), 
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.refresh_rounded, color: Color(0xFF4CAF50), size: 20),
+                      onPressed: () {
+                        ref.invalidate(summaryHistoryProvider);
+                        ref.invalidate(summaryProvider);
+                        ref.read(summaryLoadingProvider.notifier).state = false;
+                        _controller.clear();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              if (history.isEmpty && !isLoading) ...[
+                const _ResultCard(
+                  title: '요약 결과', 
+                  body: '원하는 요약 구간(분)을 입력하면 요약문이 여기에 표시됩니다.', 
+                  accentColor: Color(0xFF4CAF50)
+                )
+              ],
+
+              ...history.map((item) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _ResultCard(
+                  title: item['title'] ?? '요약 브리핑', 
+                  body: item['body'] ?? '', 
+                  accentColor: const Color(0xFF4CAF50),
+                ),
+              )),
+
+              if (isLoading) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation(Color(0xFF4CAF50)),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          '최신 강의 데이터 요약 추출 중...',
+                          style: TextStyle(
+                            color: Colors.black45, 
+                            fontSize: 12, 
+                            fontWeight: FontWeight.w600
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        
+        _InputArea(
+          controller: _controller, 
+          hintText: '원하는 요약 구간(분)을 입력하세요. (기본: 5)', 
+          buttonIcon: Icons.bolt_rounded,
+          onSubmit: () {
+            final inputText = _controller.text.trim();
+
+            final numericString = RegExp(r'\d+').stringMatch(inputText) ?? '';
+            final minutes = int.tryParse(numericString) ?? 5;
+
+            ref.read(summaryLoadingProvider.notifier).state = true;
+            ref.read(summaryProvider.notifier).fetchSummary(minutes: minutes);
+            
+            _controller.clear();
+          },
+        ),
       ],
     );
   }

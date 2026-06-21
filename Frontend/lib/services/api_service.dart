@@ -71,11 +71,15 @@ class ApiService {
   }
 
   // ─── 최근 강의 핵심 요약 조회 ───────────────────────────────
-  Future<SummaryResponse> fetchAdaptiveSummary() async {
+  Future<SummaryResponse> fetchAdaptiveSummary(int minutes) async {
     try {
-      // 엔드포인트 URL 경로에 포함되는 방 ID 변수화 동기화 완수
+      // URL 뒤에 ?minutes=5 같은 형식으로 백엔드 main.py 규격에 맞게 쿼리 파라미터를 붙여준다.
       final uri = Uri.parse(
         '$_baseUrl/lecture/summary/adaptive/${globalLectureId ?? AppConfig.defaultLectureId}',
+      ).replace(
+        queryParameters: {
+          'minutes': minutes.toString(),
+        },
       );
 
       final response = await _client
