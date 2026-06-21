@@ -131,6 +131,11 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
   html.IFrameElement? _youtubeIframe;
   String? _loadedVideoId;
 
+  // [추가] 자유 드래그 위치 제어 및 최소화용 핵심 상태 변수
+  double _top = 24.0;        // 초기 Y축 위치
+  double _right = 24.0;      // 초기 X축 위치
+  bool _isMinimized = false; // 최소화 활성화 여부 스위치
+
   @override
   void initState() {
     super.initState();
@@ -245,105 +250,145 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
 
     return Stack(
       children: [
-        // 1. [좌측 구역] 유튜브 플레이어 또는 URL 입력창 (위젯과 동일한 흰색 배경)
-        Positioned(
-          top: 0, left: 0, bottom: 0,
-          right: panelWidth + 24, // 우측 위젯 패널만큼 공간 확보
-          child: Container(
-            color: Colors.white, // 배경색 완전 일치 통일
-            child: _loadedVideoId != null && _youtubeIframe != null
-                ? HtmlElementView(viewType: 'youtube-player-$_loadedVideoId')
-                : Center(
-                    child: Container(
-                      width: 420,
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF9FAFB),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFE4E7EC)),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.ondemand_video_rounded, size: 52, color: Color(0xFF2F6BFF)),
-                          const SizedBox(height: 20),
-                          const Text('강의 영상 주소를 입력하세요', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF101828))),
-                          const SizedBox(height: 20),
-                          TextField(
-                            onSubmitted: (value) {
-                              globalLectureId = value;
-                              _checkAndInitYoutube();
-
-                              // globalLectureId 변수 변경을 리버팟 스트림이 알아채도록 수신 채널을 강제로 리프레시(Invalidate)
-                              // 이렇게 하면 새 유튜브 URL 주소값으로 수파베이스 리얼타임 자막 감시를 즉시 재기동
-                              ref.invalidate(subtitleStreamProvider);
-
-                              setState(() {});
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'https://youtube.com/watch?v=...',
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: const Color(0xFFD0D5DD))),
-                              prefixIcon: const Icon(Icons.link_rounded),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-          ),
-        ),
-
-        // 2. [우측 구역] 명품 위젯 패널
-        Positioned(
-          top: 24, right: 24, bottom: 24, width: panelWidth,
-          child: Material(
-            color: Colors.transparent,
-            child: Opacity(
-              opacity: panelOpacity,
-              child: MediaQuery(
-                data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(fontScale)),
+        // 1. [좌측 구역] 유튜브 플레이어 또는 URL 입력창 (최소화 시 잔상 박멸)
+        if (!_isMinimized && globalLectureId == null)
+          Positioned.fill(
+            child: Container(
+              color: Colors.white,
+              child: Center(
                 child: Container(
+                  width: 420,
+                  padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: Colors.black.withValues(alpha: 0.08), width: 1),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 30, offset: const Offset(0, 12))],
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: const Color(0xFFE4E7EC)),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(22),
-                    child: Column(
-                      children: [
-                        // [위치 개조] 유튜브 영상이 로드된 상태일 때만 리셋 이벤트를 바인딩하여 헤더로 전달
-                        _WidgetHeader(
-                          tab: tab,
-                          onResetVideo: _loadedVideoId != null ? () {
-                            setState(() {
-                              _loadedVideoId = null;
-                              globalLectureId = null;
-                            });
-                          } : null,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.ondemand_video_rounded, size: 52, color: Color(0xFF2F6BFF)),
+                      const SizedBox(height: 20),
+                      const Text('강의 영상 주소를 입력하세요', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF101828))),
+                      const SizedBox(height: 20),
+                      TextField(
+                        onSubmitted: (value) {
+                          globalLectureId = value;
+                          _checkAndInitYoutube();
+                          ref.invalidate(subtitleStreamProvider);
+                          setState(() {});
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'https://youtube.com/watch?v=...',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: const Color(0xFFD0D5DD))),
+                          prefixIcon: const Icon(Icons.link_rounded),
                         ),
-                        _TabBar(tab: tab),
-                        Expanded(
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 140),
-                            child: _TabBody(
-                              key: ValueKey(tab),
-                              tab: tab,
-                              questionController: _questionController,
-                              glossaryController: _glossaryController,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
+
+        if (!_isMinimized && globalLectureId != null && _loadedVideoId != null && _youtubeIframe != null)
+          Positioned(
+            top: 0, left: 0, bottom: 0, right: panelWidth, 
+            child: Container(
+              color: Colors.white,
+              child: HtmlElementView(viewType: 'youtube-player-$_loadedVideoId'),
+            ),
+          ),
+
+        // 2. [우측 구역] 명품 위젯 패널 (마찰 제로 완전 밀착형 아키텍처)
+        Positioned(
+          // [핵심 버그 해결] 불필요한 공백 마진을 0으로 싹 밀어서 외부 iframe 경계와 1:1로 일치시킵니다!
+          top: 0,
+          right: 0,
+          child: _isMinimized 
+              ? // ────────── [A. 최소화 상태 UI: 다시 열기 버튼] ──────────
+                Container(
+                  width: 70,
+                  height: 70,
+                  alignment: Alignment.center, // iframe 박스 한가운데 정렬하여 잘림 방지
+                  child: Material(
+                    color: Colors.transparent,
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        setState(() => _isMinimized = false);
+                        // 복원 시 가로와 고정 세로 높이(560)를 동시 동기화 요청
+                        html.window.parent?.postMessage({
+                          'type': 'llai-resize', 
+                          'width': panelWidth.toInt(),
+                          'height': 560
+                        }, '*');
+                      },
+                      backgroundColor: const Color(0xFF2F6BFF),
+                      elevation: 4,
+                      tooltip: '위젯 창 복원',
+                      child: const Icon(Icons.open_in_browser_rounded, color: Colors.white, size: 24),
+                    ),
+                  ),
+                )
+              : // ────────── [B. 전체 패널 활성화 상태 UI] ──────────
+                Material(
+                  color: Colors.transparent,
+                  child: Opacity(
+                    opacity: panelOpacity,
+                    child: MediaQuery(
+                      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(fontScale)),
+                      child: Container(
+                        width: panelWidth,
+                        height: 560, // 확장 프로그램 기본 높이 스펙과 완벽 싱크 맞춤
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(color: Colors.black.withValues(alpha: 0.08), width: 1),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 30, offset: const Offset(0, 12))],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(22),
+                          child: Column(
+                            children: [
+                              _WidgetHeader(
+                                tab: tab,
+                                onMinimize: () {
+                                  setState(() => _isMinimized = true);
+                                  // 최소화 시 단추 그림자가 잘리지 않도록 여유 있게 70px 규격으로 신호 전송
+                                  html.window.parent?.postMessage({
+                                    'type': 'llai-resize', 
+                                    'width': 70,
+                                    'height': 70
+                                  }, '*');
+                                },
+                                onResetVideo: _loadedVideoId != null ? () {
+                                  setState(() {
+                                    _loadedVideoId = null;
+                                    globalLectureId = null;
+                                  });
+                                } : null,
+                              ),
+                              _TabBar(tab: tab),
+                              Expanded(
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 140),
+                                  child: _TabBody(
+                                    key: ValueKey(tab),
+                                    tab: tab,
+                                    questionController: _questionController,
+                                    glossaryController: _glossaryController,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
         ),
       ],
     );
@@ -353,10 +398,12 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
 class _WidgetHeader extends StatelessWidget {
   final LectureWidgetTab tab;
   final VoidCallback? onResetVideo; // 비디오 초기화 함수 슬롯 추가
+  final VoidCallback? onMinimize; // [추가] 최소화 이벤트 슬롯
 
   const _WidgetHeader({
     required this.tab,
     this.onResetVideo,
+    this.onMinimize,
   });
 
   @override
@@ -364,45 +411,44 @@ class _WidgetHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 24, top: 20, right: 20, bottom: 12),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, // 요소를 양 끝으로 정렬
+        mainAxisAlignment: MainAxisAlignment.spaceBetween, 
         children: [
-          // 기존 시그니처 듀얼 컬러 로고 텍스트
           Row(
             mainAxisSize: MainAxisSize.min,
             children: const [
-              Text(
-                'Lecture ',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF2F6BFF),
-                ),
-              ),
-              Text(
-                'Hunter',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF00BFA5),
-                ),
-              ),
+              Text('Lecture ', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF2F6BFF))),
+              Text('Hunter', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF00BFA5))),
             ],
           ),
           
-          // 유튜브 영상 재생 중일 때만 로고 우측 끝에 서브 톤의 리셋 단추 활성화
-          if (onResetVideo != null)
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.05),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.refresh_rounded, color: Colors.black54, size: 20),
-                splashRadius: 18,
-                tooltip: '강의실 URL 초기화',
-                onPressed: onResetVideo,
-              ),
-            ),
+          // 우측 액션 단추 모음 레이어
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // [추가] 창 최소화 마이너스(-) 버튼 가동
+              if (onMinimize != null)
+                IconButton(
+                  icon: const Icon(Icons.remove_rounded, color: Colors.black54, size: 22),
+                  onPressed: onMinimize,
+                  tooltip: '위젯 최소화',
+                ),
+              if (onMinimize != null && onResetVideo != null) const SizedBox(width: 4),
+              
+              if (onResetVideo != null)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.black54, size: 20),
+                    splashRadius: 18,
+                    tooltip: '강의실 URL 초기화',
+                    onPressed: onResetVideo,
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
     );
