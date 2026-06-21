@@ -1,11 +1,12 @@
 // lib/services/api_service.dart
-// FastAPI 백엔드 REST / WebSocket 통신 서비스
+// FastAPI 백엔드 REST / WebSocket 통신 서비스 (민재 동적 룸 ID 엔진 이식 완료)
 
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../core/config/app_config.dart';
 import '../features/assistant/presentation/controllers/question_model.dart';
+import '../main.dart'; // 주소창 파싱 변수인 globalLectureId를 가져오기 위한 임포트
 
 class ApiService {
   static const String _baseUrl = AppConfig.apiBaseUrl;
@@ -20,7 +21,8 @@ class ApiService {
     try {
       final uri = Uri.parse('$_baseUrl/lecture/ask').replace(
         queryParameters: {
-          'lecture_id': AppConfig.defaultLectureId,
+          // AppConfig의 하드코딩을 격파하고 진짜 방 번호를 주입!
+          'lecture_id': globalLectureId ?? AppConfig.defaultLectureId,
           'question': request.question,
           'target_lang': AppConfig.defaultTargetLang,
         },
@@ -50,7 +52,8 @@ class ApiService {
     try {
       final uri = Uri.parse('$_baseUrl/lecture/ask/reset').replace(
         queryParameters: {
-          'lecture_id': AppConfig.defaultLectureId,
+          // 동적 라이브 세션 룸 매핑 적용
+          'lecture_id': globalLectureId ?? AppConfig.defaultLectureId,
         },
       );
 
@@ -70,8 +73,9 @@ class ApiService {
   // ─── 최근 강의 핵심 요약 조회 ───────────────────────────────
   Future<SummaryResponse> fetchAdaptiveSummary() async {
     try {
+      // 엔드포인트 URL 경로에 포함되는 방 ID 변수화 동기화 완수
       final uri = Uri.parse(
-        '$_baseUrl/lecture/summary/adaptive/${AppConfig.defaultLectureId}',
+        '$_baseUrl/lecture/summary/adaptive/${globalLectureId ?? AppConfig.defaultLectureId}',
       );
 
       final response = await _client
@@ -93,11 +97,12 @@ class ApiService {
     }
   }
 
-  // ─── 용어집 조회 ─────────────────────────────────────────────
+  // ─── 용어집 조회  ──────────────────────
   Future<List<GlossaryEntry>> searchGlossary(String term) async {
     try {
+      // 가짜 demo-lecture를 지워버리고 진짜 룸 식별자를 패킹하여 수파베이스 연동 완전 개통
       final uri = Uri.parse(
-        '$_baseUrl/lecture/glossary/${AppConfig.defaultLectureId}',
+        '$_baseUrl/lecture/glossary/${globalLectureId ?? AppConfig.defaultLectureId}',
       ).replace(
         queryParameters: {
           if (term.trim().isNotEmpty) 'keyword': term.trim(),
@@ -135,8 +140,9 @@ class ApiService {
     required String filename,
   }) async {
     try {
+      // 멀티모달 시각 자료 바인딩 주소도 실시간 세션 방 ID로 치환 완료
       final uri = Uri.parse(
-        '$_baseUrl/lecture/analyze-slide/${AppConfig.defaultLectureId}',
+        '$_baseUrl/lecture/analyze-slide/${globalLectureId ?? AppConfig.defaultLectureId}',
       ).replace(
         queryParameters: {
           'target_lang': AppConfig.defaultTargetLang,

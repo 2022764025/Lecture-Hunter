@@ -1,14 +1,11 @@
+// lib/services/sse_service.dart
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../core/config/app_config.dart';
-
 import '../features/caption/presentation/controllers/subtitle_model.dart';
 import '../features/assistant/presentation/controllers/question_model.dart' show ConnectionStatus;
-
+import '../main.dart'; // [추가] 글로벌 룸 세션 식별 파싱 변수 스캔 연동
 
 class SseService {
   static const String _supabaseUrl = AppConfig.supabaseUrl;
@@ -38,9 +35,8 @@ class SseService {
     _subtitleController ??= StreamController<SubtitleSegment>.broadcast();
     _statusController ??= StreamController<ConnectionStatus>.broadcast();
 
-    // [치명적 버그 수정] 다른 파일에서 이미 'lecture-'를 붙여서 넘겨줬으므로,
-    // 내부에서 중복으로 접두사를 더하거나 조립하지 않고 들어온 순정 문자열 그대로 쓴다
-    _lectureId = lectureId ?? AppConfig.defaultLectureId;
+    // 파라미터가 없으면 1순위로 진짜 주소창 ID(globalLectureId)를 꽂아 하드코딩 억까 완전 차단!
+    _lectureId = lectureId ?? globalLectureId ?? AppConfig.defaultLectureId;
 
     print('==========================================================');
     print('[SseService] 순정 ID 다이렉트 매핑 가동! 강의 ID: $_lectureId');
@@ -68,7 +64,6 @@ class SseService {
 
       _pollingTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
         try {
-          // 순정 _lectureId 그대로 변조 없이 완벽하게 타겟팅 쿼리 설정
           final response = await _client!
               .from('lecture_contents')
               .select('id, original_text, translated_text, created_at')

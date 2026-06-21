@@ -71,6 +71,10 @@ final vlmLoadingStateProvider = StateProvider<bool>((ref) => false);
 
 // [다중 이미지 체계 구축] 최대 5장 이미지 관리를 위해 List<String> 구조로 전면 마이그레이션
 final uploadedImagesProvider = StateProvider<List<String>>((ref) => []);
+
+// [추가] 용어집 LLM 실시간 빌드 중인지 감시하는 상태 스위치
+final glossaryLoadingProvider = StateProvider<bool>((ref) => false);
+
 final vlmSentImagesCardProvider = StateProvider<List<String>>((ref) => []);
 final vlmQueryProvider = StateProvider<String?>((ref) => null);
 
@@ -752,28 +756,98 @@ class _GlossaryTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(glossarySearchProvider);
+    final isLoading = ref.watch(glossaryLoadingProvider);
+
+    ref.listen(glossarySearchProvider, (_, next) {
+      if (next.results.isNotEmpty) {
+        ref.read(glossaryLoadingProvider.notifier).state = false;
+      }
+    });
+
     return Column(
       children: [
         Expanded(
           child: _PanelScroll(
             children: [
-              const _SectionTitle(tab: LectureWidgetTab.glossary, icon: Icons.menu_book_rounded, title: '용어집 조회', subtitle: ''),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    child: _SectionTitle(
+                      tab: LectureWidgetTab.glossary, 
+                      icon: Icons.menu_book_rounded, 
+                      title: '용어집 조회', 
+                      subtitle: ''
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9A825).withValues(alpha: 0.1), 
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.refresh_rounded, color: Color(0xFFF9A825), size: 20),
+                      onPressed: () {
+                        ref.invalidate(glossarySearchProvider);
+                        ref.read(glossaryLoadingProvider.notifier).state = false;
+                        controller.clear();
+                      },
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 14),
-              if (state.results.isEmpty)
-                const _ResultCard(title: '검색 결과', body: '용어를 입력하면 설명이 여기에 표시됩니다.', accentColor: Color(0xFFF9A825))
-              else
+              
+              // AI 및 DB 검색 엔진 작동 UI 구역
+              if (isLoading) ...[
+                const SizedBox(height: 80),
+                const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation(Color(0xFFF9A825)),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        '로컬 AI 전공 사전에서 정의 생성 중...',
+                        style: TextStyle(
+                          color: Colors.black45, 
+                          fontSize: 13, 
+                          fontWeight: FontWeight.w600
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else if (state.results.isEmpty) ...[
+                const _ResultCard(
+                  title: '검색 결과', 
+                  body: '용어를 입력하면 설명이 여기에 표시됩니다.', 
+                  accentColor: Color(0xFFF9A825)
+                )
+              ] else ...[
                 ...state.results.map((item) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: _ResultCard(title: item.term, body: item.definition, accentColor: const Color(0xFFF9A825)),
+                  child: _ResultCard(
+                    title: item.term, 
+                    body: item.definition, 
+                    accentColor: const Color(0xFFF9A825)
+                  ),
                 )),
+              ],
             ],
           ),
         ),
         _InputArea(
-          controller: controller, hintText: '용어를 입력하세요.', buttonIcon: Icons.search_rounded,
+          controller: controller, 
+          hintText: '용어를 입력하세요.', 
+          buttonIcon: Icons.search_rounded,
           onSubmit: () {
             final text = controller.text.trim();
             if (text.isEmpty) return;
+
+            ref.read(glossaryLoadingProvider.notifier).state = true;
             ref.read(glossarySearchProvider.notifier).search(text);
             controller.clear();
           },

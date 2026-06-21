@@ -264,12 +264,13 @@ async def analyze_slide(request: VlmRequest):
         print(f"[Anchor Error] {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- [기능 6] 실시간 전문 용어 사전 조회 ---
+# --- [기능 6] 실시간 전문 용어 사전 조회 (💡 오프라인 LLM 하이브리드 폴백 엔진 완벽 이식) ---
 @app.get("/lecture/glossary/{lecture_id}", tags=["Glossary"])
 async def get_glossary(lecture_id: str, keyword: str = None):
     try:
         supabase = await get_supabase()
 
+        # 1단계: 먼저 수파베이스 DB에서 해당 강의실 추출 데이터 검색 수행
         query = supabase.table("lecture_glossary") \
             .select("term, definition, created_at") \
             .eq("lecture_id", lecture_id) \
@@ -280,6 +281,57 @@ async def get_glossary(lecture_id: str, keyword: str = None):
 
         result = await query.execute()
 
+        # 검색 키워드가 들어왔는데, DB에 매칭되는 행이 전무할 때 (강의 외적인 단어 검색 등)
+        if keyword and not result.data:
+            print(f"[Glossary DB Miss] '{keyword}' 단어가 DB에 없습니다. 로컬 LLM 오프라인 생성 모드를 가동합니다.")
+            try:
+                # lifespan 구조 설계에 맞춰 순환 임포트를 철저히 방어하고자 함수 내부에서 동적 호출
+                from services.stt_service import ollama_client
+                from core.config import settings
+
+                prompt = (
+                    f"당신은 인공지능 및 컴퓨터공학 전공의 권위 있는 백과사전입니다. "
+                    f"학습자가 질문한 단어 '{keyword}'의 개념 정의와 상세 설명을 대학생 강의 보조 목적에 부합하도록 "
+                    f"군더더기 없이 명확하게 딱 1~2문장의 완성된 한국어 문장으로 설명해 주세요."
+                )
+
+                # 외부 인터넷선이 뽑힌 완전 오프라인 상태에서도 맥북 내부 자원으로 즉시 추론 수행
+                response = await ollama_client.generate(
+                    model=settings.LLM_MODEL,
+                    prompt=prompt
+                )
+                llm_definition = response['response'].strip()
+
+                # 플러터 프론트엔드 위젯 통신 스펙이 깨지지 않도록 구조화 데이터 포맷 그대로 포장
+                fallback_data = [{
+                    "term": keyword,
+                    "definition": llm_definition,
+                    "created_at": datetime.now().isoformat()
+                }]
+
+                print(f"[Glossary LLM Success] '{keyword}'에 대한 로컬 LLM 오프라인 정의 생성 완료.")
+                return {
+                    "lecture_id": lecture_id,
+                    "keyword": keyword,
+                    "count": 1,
+                    "glossary": fallback_data
+                }
+
+            except Exception as llm_err:
+                print(f"[Glossary LLM Fallback Error] 로컬 AI 모델 연동 실패: {llm_err}")
+                # 로컬 오프라인 LLM 조차 구동 실패 시 크래시 방지용 비상 룰렛 리턴
+                return {
+                    "lecture_id": lecture_id,
+                    "keyword": keyword,
+                    "count": 1,
+                    "glossary": [{
+                        "term": keyword,
+                        "definition": f"'{keyword}' 용어에 대한 DB 기록이 없거나 로컬 AI 엔진이 작동하지 않는 상태입니다.",
+                        "created_at": datetime.now().isoformat()
+                    }]
+                }
+
+        # DB에 데이터가 존재한다면 오리지널 규격 그대로 정상 반환
         return {
             "lecture_id": lecture_id,
             "keyword": keyword,
