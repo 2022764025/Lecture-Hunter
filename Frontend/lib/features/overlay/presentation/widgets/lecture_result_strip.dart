@@ -1,3 +1,5 @@
+// lib/features/overlay/presentation/widgets/lecture_result_strip.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -40,8 +42,6 @@ Color _tabSoftColor(LectureWidgetTab tab) {
       return const Color(0xFFEEF4FF);
   }
 }
-
-
 
 final lectureWidgetTabProvider =
     StateProvider<LectureWidgetTab>((ref) => LectureWidgetTab.caption);
@@ -164,12 +164,7 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
       ),
     );
   }
-
 }
-
-
-
-
 
 class _WidgetHeader extends StatelessWidget {
   final LectureWidgetTab tab;
@@ -222,7 +217,6 @@ class _WidgetHeader extends StatelessWidget {
     );
   }
 }
-
 
 class _TabBar extends ConsumerWidget {
   final LectureWidgetTab tab;
@@ -293,8 +287,6 @@ class _TabBar extends ConsumerWidget {
   }
 }
 
-
-
 class _TabButton extends StatelessWidget {
   final String label;
   final bool selected;
@@ -332,8 +324,6 @@ class _TabButton extends StatelessWidget {
     );
   }
 }
-
-
 
 class _TabBody extends ConsumerWidget {
   final LectureWidgetTab tab;
@@ -404,7 +394,6 @@ class _CaptionTab extends ConsumerWidget {
             accentColor: const Color(0xFF98A2B3),
           ),
         ],
-
       ],
     );
   }
@@ -421,6 +410,7 @@ class _QuestionTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(questionResponseProvider);
     final answer = state.response?.answer.trim();
+    final target = ref.watch(questionTargetProvider);
 
     return Column(
       children: [
@@ -446,8 +436,17 @@ class _QuestionTab extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 14),
-              if (state.query.trim().isNotEmpty)
-                const SizedBox(height: 0),
+              
+              _QuestionTargetToggle(
+                target: target,
+                onChanged: (newTarget) {
+                  ref.read(questionTargetProvider.notifier).state = newTarget;
+                  ref.invalidate(questionResponseProvider);
+                  controller.clear();
+                },
+              ),
+              const SizedBox(height: 14),
+
               if (state.query.trim().isNotEmpty)
                 _ResultCard(
                   title: '질문',
@@ -455,11 +454,26 @@ class _QuestionTab extends ConsumerWidget {
                   accentColor: const Color(0xFFFB8C00),
                 ),
               if (state.query.trim().isNotEmpty) const SizedBox(height: 10),
+              
               _ResultCard(
-                title: 'AI 답변',
-                body: answer == null || answer.isEmpty
-                    ? '질문을 입력하면 답변이 여기에 표시됩니다.'
-                    : answer,
+                title: target == QuestionTarget.ai ? 'AI 답변' : '교수님께 전달 상태',
+                body: target == QuestionTarget.ai
+                    ? (answer == null || answer.isEmpty
+                        ? '질문을 입력하면 답변이 여기에 표시됩니다.' 
+                        : answer)
+                    : (() {
+                        // [컴파일 에러 해결] switch-case 상수의 strict한 제약을 우회하기 위해 if-else 문자열 매핑망으로 전환
+                        final statusStr = state.status.toString();
+                        if (statusStr.contains('loading')) {
+                          return '교수님께 익명 질문을 전송하는 중입니다...';
+                        } else if (statusStr.contains('success')) {
+                          return '성공적으로 전달되었습니다! 교수님의 실시간 답변이나 수업 중 피드백을 기다려주세요.';
+                        } else if (statusStr.contains('error')) {
+                          return '전송 실패: 백엔드 서버 상태를 확인해 주세요.';
+                        } else {
+                          return '교수님께 익명으로 질문할 내용을 아래에 입력하세요.';
+                        }
+                      }()),
                 accentColor: const Color(0xFFFB8C00),
               ),
             ],
@@ -467,7 +481,9 @@ class _QuestionTab extends ConsumerWidget {
         ),
         _InputArea(
           controller: controller,
-          hintText: '궁금한 내용을 입력하세요.',
+          hintText: target == QuestionTarget.ai
+              ? 'AI에게 궁금한 내용을 입력하세요.'
+              : '교수님께 전달할 익명 질문을 입력하세요.',
           buttonIcon: Icons.send_rounded,
           onSubmit: () async {
             final text = controller.text.trim();
@@ -480,7 +496,7 @@ class _QuestionTab extends ConsumerWidget {
 
             await ref.read(questionResponseProvider.notifier).submit(
                   text,
-                  QuestionMode.professor,
+                  target,
                 );
 
             controller.clear();
@@ -684,7 +700,6 @@ class _SettingsTab extends ConsumerWidget {
   }
 }
 
-
 class _HideWidgetButton extends StatelessWidget {
   final VoidCallback onTap;
 
@@ -873,7 +888,6 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-
 class _ResultCard extends StatelessWidget {
   final String title;
   final String body;
@@ -948,7 +962,6 @@ class _ResultCard extends StatelessWidget {
     );
   }
 }
-
 
 class _InfoBox extends StatelessWidget {
   final String text;
@@ -1076,6 +1089,80 @@ class _InputArea extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _QuestionTargetToggle extends StatelessWidget {
+  final QuestionTarget target;
+  final ValueChanged<QuestionTarget> onChanged;
+
+  const _QuestionTargetToggle({
+    required this.target,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE4E7EC)),
+      ),
+      child: Row(
+        children: [
+          _TargetTabButton(
+            label: 'AI에게 질문',
+            selected: target == QuestionTarget.ai,
+            onTap: () => onChanged(QuestionTarget.ai),
+          ),
+          _TargetTabButton(
+            label: '교수님께 익명 질문',
+            selected: target == QuestionTarget.professor,
+            onTap: () => onChanged(QuestionTarget.professor),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TargetTabButton extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TargetTabButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(7),
+        onTap: onTap,
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xFFFB8C00) : Colors.transparent,
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.white : const Color(0xFF667085),
+              fontSize: 11,
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+            ),
+          ),
+        ),
       ),
     );
   }

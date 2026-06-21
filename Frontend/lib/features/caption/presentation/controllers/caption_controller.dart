@@ -112,6 +112,11 @@ final questionModeProvider = StateProvider<QuestionMode>((ref) => QuestionMode.p
 
 enum QuestionMode { professor, glossary }
 
+// 익명 질문 대상 분기 (AI vs 교수님) 설정
+enum QuestionTarget { ai, professor }
+
+final questionTargetProvider = StateProvider<QuestionTarget>((ref) => QuestionTarget.ai);
+
 final questionResponseProvider =
     StateNotifierProvider<QuestionResponseNotifier, QuestionResponseState>((ref) {
   return QuestionResponseNotifier(ref.read(apiServiceProvider));
@@ -135,7 +140,8 @@ class QuestionResponseNotifier extends StateNotifier<QuestionResponseState> {
   QuestionResponseNotifier(this._apiService)
       : super(const QuestionResponseState());
 
-  Future<void> submit(String question, QuestionMode mode) async {
+  // 기존 QuestionMode 대신 새로 정의한 QuestionTarget을 인자로 받아 백엔드 분기를 명확하게 처리
+  Future<void> submit(String question, QuestionTarget target) async {
     if (question.trim().isEmpty) return;
 
     state = QuestionResponseState(
@@ -143,9 +149,10 @@ class QuestionResponseNotifier extends StateNotifier<QuestionResponseState> {
       query: question,
     );
 
+    // 토글된 타겟 상태에 따라 백엔드 API 명세에 'ai' 또는 'professor' 문자열 매핑
     final request = QuestionRequest(
       question: question,
-      mode: mode == QuestionMode.professor ? 'professor' : 'glossary',
+      mode: target == QuestionTarget.ai ? 'ai' : 'professor',
     );
 
     final response = await _apiService.askQuestion(request);

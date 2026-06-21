@@ -33,6 +33,8 @@ class _AssistantPanelState extends ConsumerState<AssistantPanel> {
     final visible = ref.watch(questionPanelVisibleProvider);
     final mode = ref.watch(questionModeProvider);
     final responseState = ref.watch(questionResponseProvider);
+    // [1번 기능] 현재 선택된 질문 타겟(AI / 교수님) 상태 관측
+    final target = ref.watch(questionTargetProvider);
 
     return AnimatedSlide(
       offset: visible ? Offset.zero : const Offset(1.0, 0),
@@ -68,16 +70,30 @@ class _AssistantPanelState extends ConsumerState<AssistantPanel> {
 
               // 모드별 콘텐츠
               if (mode == QuestionMode.professor) ...[
+                // [기능] "강의 AI 질문" 탭 진입 시, 상단에 AI vs 교수님 타겟 스위치 배치
+                _TargetToggle(
+                  target: target,
+                  onChanged: (t) {
+                    ref.read(questionTargetProvider.notifier).state = t;
+                    ref.read(questionResponseProvider.notifier).reset();
+                    _controller.clear();
+                  },
+                ),
+                const SizedBox(height: 10),
+
                 _QuestionInput(
                   controller: _controller,
                   focusNode: _focusNode,
-                  onSubmit: () => _submit(mode),
-                  hintText: '강의 내용에 대해 질문하세요...',
+                  onSubmit: _submit,
+                  // 타겟 상태에 따라 입력 힌트 텍스트 유기적 변경
+                  hintText: target == QuestionTarget.ai
+                      ? 'AI에게 궁금한 점을 질문하세요...'
+                      : '교수님께 전달할 익명 질문을 입력하세요...',
                 ),
                 const SizedBox(height: 10),
                 _SubmitButton(
                   isLoading: responseState.status == ResponseStatus.loading,
-                  onTap: () => _submit(mode),
+                  onTap: _submit,
                 ),
                 if (responseState.status != ResponseStatus.idle) ...[
                   const SizedBox(height: 8),
@@ -97,11 +113,14 @@ class _AssistantPanelState extends ConsumerState<AssistantPanel> {
     );
   }
 
-  void _submit(QuestionMode mode) {
+  // 전송 파이프라인 매개변수를 새로 구축한 QuestionTarget 구조에 맞게 변경
+  void _submit() {
     final question = _controller.text.trim();
     if (question.isEmpty) return;
     FocusScope.of(context).unfocus();
-    ref.read(questionResponseProvider.notifier).submit(question, mode);
+    
+    final currentTarget = ref.read(questionTargetProvider);
+    ref.read(questionResponseProvider.notifier).submit(question, currentTarget);
   }
 
   Future<void> _resetQuestion() async {
@@ -252,6 +271,80 @@ class _Tab extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── [1번 신규 위젯] AI vs 교수님 타겟 스위치 토글 바 ─────────────────────
+
+class _TargetToggle extends StatelessWidget {
+  final QuestionTarget target;
+  final ValueChanged<QuestionTarget> onChanged;
+
+  const _TargetToggle({required this.target, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Row(
+        children: [
+          _TargetTab(
+            label: 'AI에게 질문',
+            selected: target == QuestionTarget.ai,
+            onTap: () => onChanged(QuestionTarget.ai),
+          ),
+          _TargetTab(
+            label: '교수님께 질문',
+            selected: target == QuestionTarget.professor,
+            onTap: () => onChanged(QuestionTarget.professor),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TargetTab extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TargetTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? Colors.blueAccent.withValues(alpha: 0.15) : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: selected ? Border.all(color: Colors.blueAccent.withValues(alpha: 0.4)) : null,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: selected ? Colors.blueAccent : Colors.white38,
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
           ),
         ),
       ),
