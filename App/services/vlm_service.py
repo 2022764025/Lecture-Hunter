@@ -1,3 +1,5 @@
+# services/vlm_service.py
+
 """
 <설명>
 (1) 멀티모달 슬라이드 분석 (LLaVA)
@@ -48,8 +50,9 @@ class VLMService:
 
             Text: "{raw_result[:200]}"
             """
+            # self.LLM_MODEL 크래시를 self.model_name으로 완치
             response = await ollama_client.generate(
-                model=self.LLM_MODEL,
+                model=self.model_name,
                 prompt=prompt
             )
             answer = response['response'].strip().upper()
@@ -59,7 +62,7 @@ class VLMService:
             print(f"[VLM] Fallback 판단 에러: {e}")
             return False
 
-    async def analyze_lecture_screen(self, image_bytes: bytes, target_lang: str = "Korean") -> dict:
+    async def analyze_lecture_screen(self, image_bytes: bytes, target_lang: str = "Korean", prompt: str = None):
         """
         슬라이드 화면을 분석하여 시각적 문맥과 시각 자료 존재 여부를 반환
         반환값: {"has_visual": bool, "summary": str}
@@ -75,31 +78,31 @@ class VLMService:
             img = img.convert("RGB")
 
             # 비율 유지 리사이징 (기존 512×512 고정 → 왜곡 문제 수정)
-            # RTX 5060에서 1280px로 올림
             img.thumbnail((1024, 1024))
             
             buffered = io.BytesIO()
             img.save(buffered, format="JPEG", quality=80)
             
-            # Ollama 클라이언트는 bytes를 직접 받거나 base64 문자열을 받는다.
+            # Ollama 클라이언트는 bytes를 직접 받는다.
             img_data = buffered.getvalue()
 
             # 2. 멀티모달 프롬프트 구성
-            # "설명하지 말고 핵심 수식, 도표 내용, 텍스트만 리스트업해"라고 강하게 지시
-            prompt = f"""
-            Analyze this lecture slide in English only.
+            # 유저 질문(prompt)이 들어왔다면 덮어쓰지 않고 유저 질문을 그대로 사용하도록 분기 처리
+            if not prompt:
+                prompt = f"""
+                Analyze this lecture slide in English only.
 
-            Step 1 - Visual Detection:
-                Does it contain charts, graphs, diagrams, or formulas?
-                Start with "[VISUAL: TRUE]" or "[VISUAL: FALSE]".
+                Step 1 - Visual Detection:
+                    Does it contain charts, graphs, diagrams, or formulas?
+                    Start with "[VISUAL: TRUE]" or "[VISUAL: FALSE]".
 
-            Step 2 - Summary (English only):
-                - Extract key formulas or technical terms.
-                - If there is a chart, describe the trend in one sentence.
-                - Summarize the overall context concisely.
-            
-            Don't include phase titles or instruction text in your response.
-            """
+                Step 2 - Summary (English only):
+                    - Extract key formulas or technical terms.
+                    - If there is a chart, describe the trend in one sentence.
+                    - Summarize the overall context concisely.
+                
+                Don't include phase titles or instruction text in your response.
+                """
 
             # 3. LLaVA, Ollama 호출
             response = await ollama_client.generate(
@@ -111,8 +114,6 @@ class VLMService:
             raw_result = response['response'].strip()
 
             # 4. 정규식 파싱 + Fallback 방어 로직
-            # 대소문자 무시, 괄호 유무, 공백 변형 모두 대응
-            # 예: [Visual:True], VISUAL : FALSE, [VISUAL=TRUE] 등
             match = re.search(
                 r'\[?VISUAL\s*[:=]\s*(TRUE|FALSE)\]?',
                 raw_result,
@@ -120,7 +121,6 @@ class VLMService:
             )
 
             if match:
-                # 태그를 찾은 경우
                 has_visual = (match.group(1).upper() == 'TRUE')
                 clean_summary = re.sub(
                     r'\[?VISUAL\s*[:=]\s*(TRUE|FALSE)\]?',
@@ -130,16 +130,12 @@ class VLMService:
                 ).strip()
                 print(f"[VLM] 정규식 파싱 성공 | has_visual: {has_visual}")
             else:
-                # Fallback: 모델이 태그를 완전히 빠뜨린 경우
-                # 요약 텍스트 내 시각 자료 관련 키워드로 판단
                 print("[VLM] 정규식 파싱 실패 → LLM Fallback 시도")
                 has_visual = await self._fallback_visual_detection(raw_result)
                 clean_summary = raw_result
 
-            # 5. [추가] 불필요한 머리말 제거 (모델이 가끔 붙이는 '결과:', '요약:' 등 삭제)
+            # 5. 불필요한 머리말 제거
             clean_summary = re.sub(r'^(결과|요약|분석|Summary|Result)\s*[:=-]\s*', '', clean_summary, flags=re.IGNORECASE)
-
-            # 앞단에 불필요하게 남은 특수기호/공백 제거
             clean_summary = clean_summary.lstrip('-:*, \n').strip()
 
             # 6. translation_service로 번역 분리 (영어 분석 → 목표 언어로 번역)

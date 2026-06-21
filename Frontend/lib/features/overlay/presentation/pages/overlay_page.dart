@@ -69,7 +69,8 @@ class _OverlayPageState extends ConsumerState<OverlayPage> {
           ..style.width = '100%'
           ..style.height = '100%'
           ..style.objectFit = 'contain'
-          ..style.backgroundColor = '#000000';
+          // 외부 웹사이트 화면을 검은색으로 먹통 시키지 않도록 투명화 세팅 고정
+          ..style.backgroundColor = 'transparent';
 
         video.setAttribute('playsinline', 'true');
         return video;
@@ -103,7 +104,8 @@ class _OverlayPageState extends ConsumerState<OverlayPage> {
     ref.watch(subtitleStreamProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      // 위젯 오버레이가 LMS 웹 스크린을 가리지 않도록 전체 배경 투명 처리
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Stack(
           children: [
@@ -122,7 +124,7 @@ class _LectureBackground extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: Colors.black,
+      color: Colors.transparent, // 웹 브라우저 투명 레이어화
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -131,16 +133,8 @@ class _LectureBackground extends StatelessWidget {
           ),
           IgnorePointer(
             child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.18),
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.24),
-                  ],
-                ),
+              decoration: const BoxDecoration(
+                color: Colors.transparent, // 불필요한 시각 방해 그라데이션 제거 및 투명 박스화 완수
               ),
             ),
           ),

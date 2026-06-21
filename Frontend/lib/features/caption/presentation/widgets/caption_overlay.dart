@@ -1,11 +1,13 @@
-// lib/widgets/subtitle_overlay_widget.dart
+// lib/features/caption/presentation/widgets/caption_overlay.dart
+import 'dart:html' as html; // 웹 환경 크롬 확장 프로그램 양방향 JS 통신 엔진 가동
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/subtitle_model.dart';
 import '../../../assistant/presentation/controllers/question_model.dart';
 import '../controllers/caption_controller.dart';
-import '../../../overlay/presentation/controllers/overlay_controller.dart'; // 테마 Provider 임포트 추가!
+import '../../../overlay/presentation/controllers/overlay_controller.dart'; 
 
 class CaptionOverlay extends ConsumerWidget {
   const CaptionOverlay({super.key});
@@ -17,7 +19,7 @@ class CaptionOverlay extends ConsumerWidget {
     final currentSubtitle = ref.watch(currentSubtitleProvider);
     final connectionStatus = ref.watch(connectionStatusProvider);
 
-    // 자막 스트림 → 히스토리 추가
+    // 자막 실시간 스트림 데이터 수신 → 요약용 히스토리 스택 버퍼 누적 추가
     ref.listen(subtitleStreamProvider, (_, next) {
       next.whenData((segment) {
         ref.read(subtitleHistoryProvider.notifier).add(segment);
@@ -36,6 +38,7 @@ class CaptionOverlay extends ConsumerWidget {
     );
   }
 
+  // 사용자가 설정한 포지션(상/하/좌/우)에 맞춰 스크린 위에 오버레이 좌표 배치
   Widget _buildPositioned({
     required SubtitleSettings settings,
     required Widget child,
@@ -78,7 +81,6 @@ class _SubtitleBox extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ✨ 다크모드 여부 판별
     final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
 
     return Opacity(
@@ -86,7 +88,8 @@ class _SubtitleBox extends ConsumerWidget {
       child: Container(
         constraints: BoxConstraints(minHeight: settings.widgetHeight),
         decoration: BoxDecoration(
-          color: isDark ? Colors.black87 : Colors.white; // ✨ 배경색 자동 전환
+          // 세미콜론(;) 버그를 올바른 쉼표 구조 명세로 전면 교정 완료
+          color: isDark ? Colors.black87 : Colors.white, 
           borderRadius: _borderRadius(settings.position),
           border: Border.all(
             color: _statusColor(connectionStatus).withValues(alpha: 0.6),
@@ -103,13 +106,13 @@ class _SubtitleBox extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 상단 헤더 바
+            // 1. 상단 컨트롤 헤더 바 부품
             _HeaderBar(
               status: connectionStatus,
               settings: settings,
               ref: ref,
             ),
-            // 자막 내용
+            // 2. 하단 실시간 자막/번역 내용 렌더러 부품
             _SubtitleContent(
               subtitle: subtitle,
               settings: settings,
@@ -159,7 +162,6 @@ class _HeaderBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✨ 헤더에도 다크모드 여부 적용
     final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
 
     return Container(
@@ -175,7 +177,7 @@ class _HeaderBar extends StatelessWidget {
           Text(
             _statusLabel(status),
             style: TextStyle(
-              color: isDark ? Colors.white54 : Colors.black54, // ✨
+              color: isDark ? Colors.white54 : Colors.black54,
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
@@ -184,7 +186,6 @@ class _HeaderBar extends StatelessWidget {
           GestureDetector(
             onTap: () {
               final nextLanguage = settings.targetLanguage == 'ko' ? 'en' : 'ko';
-
               ref
                 .read(subtitleSettingsProvider.notifier)
                 .update(settings.copyWith(targetLanguage: nextLanguage));
@@ -206,7 +207,7 @@ class _HeaderBar extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          // 질문 버튼
+          // 익명 질문 단축 패널 활성화 트리거
           IconButton(
             onPressed: () {
               ref.read(questionPanelVisibleProvider.notifier).state = true;
@@ -217,7 +218,7 @@ class _HeaderBar extends StatelessWidget {
             tooltip: '질문하기',
           ),
           const SizedBox(width: 8),
-          // ✨ 테마 스위치 버튼
+          // 다크/라이트 실시간 UI 반전 스위치
           IconButton(
             onPressed: () {
               final currentTheme = ref.read(themeModeProvider);
@@ -234,7 +235,7 @@ class _HeaderBar extends StatelessWidget {
             tooltip: '테마 변경',
           ),
           const SizedBox(width: 8),
-          // 설정 버튼
+          // 하단 바텀시트 전용 대화상자 격발
           IconButton(
             onPressed: () => _showSettingsSheet(context, ref, isDark),
             icon: Icon(Icons.tune, color: isDark ? Colors.white60 : Colors.black54, size: 18),
@@ -243,10 +244,12 @@ class _HeaderBar extends StatelessWidget {
             tooltip: '자막 설정',
           ),
           const SizedBox(width: 8),
-          // 최소화 버튼
+          // 위젯 완전 폐쇄 버튼
           IconButton(
             onPressed: () {
               ref.read(subtitleVisibleProvider.notifier).state = false;
+              // [웹 보안 해제 브릿지 연동] JS 메시지를 던져 background.js 대몬이 오프스크린과 위젯 iframe을 안전하게 파괴하도록 명령
+              html.window.parent?.postMessage({'type': 'llai-close'}, '*');
             },
             icon: Icon(Icons.close, color: isDark ? Colors.white60 : Colors.black54, size: 18),
             padding: EdgeInsets.zero,
@@ -293,8 +296,7 @@ class _StatusDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = switch (status) {
       ConnectionStatus.connected => Colors.greenAccent,
-      ConnectionStatus.connecting || ConnectionStatus.reconnecting =>
-        Colors.orangeAccent,
+      ConnectionStatus.connecting || ConnectionStatus.reconnecting => Colors.orangeAccent,
       ConnectionStatus.error => Colors.redAccent,
       _ => Colors.grey,
     };
@@ -305,9 +307,7 @@ class _StatusDot extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        boxShadow: status == ConnectionStatus.connected
-            ? [BoxShadow(color: color, blurRadius: 4)]
-            : null,
+        boxShadow: status == ConnectionStatus.connected ? [BoxShadow(color: color, blurRadius: 4)] : null,
       ),
     )
         .animate(
@@ -321,7 +321,6 @@ class _StatusDot extends StatelessWidget {
   }
 }
 
-// ✨ ConsumerWidget으로 변경됨
 class _SubtitleContent extends ConsumerWidget {
   final SubtitleSegment? subtitle;
   final SubtitleSettings settings;
@@ -341,7 +340,7 @@ class _SubtitleContent extends ConsumerWidget {
         child: Text(
           '강의를 기다리는 중...',
           style: TextStyle(
-            color: isDark ? Colors.white38 : Colors.black38, // ✨ 글자색
+            color: isDark ? Colors.white38 : Colors.black38,
             fontSize: settings.fontSize - 2,
             fontStyle: FontStyle.italic,
           ),
@@ -355,11 +354,11 @@ class _SubtitleContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 원문 자막
+          // 원문 오디오 스피치 자막 출력
           Text(
             subtitle!.originalText,
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black87, // ✨ 글자색
+              color: isDark ? Colors.white : Colors.black87,
               fontSize: settings.fontSize,
               fontWeight: FontWeight.w500,
               height: 1.5,
@@ -369,7 +368,7 @@ class _SubtitleContent extends ConsumerWidget {
               .fadeIn(duration: 300.ms)
               .slideY(begin: 0.1, end: 0, duration: 300.ms),
 
-          // 번역문
+          // 번역 스트림 디스플레이 파트
           if (settings.showTranslation &&
               subtitle!.translatedText != null &&
               subtitle!.translatedText != subtitle!.originalText) ...[
@@ -379,14 +378,14 @@ class _SubtitleContent extends ConsumerWidget {
               style: TextStyle(
                 color: isDark 
                     ? Colors.lightBlueAccent.withValues(alpha: 0.85) 
-                    : Colors.blue[700]!.withValues(alpha: 0.85), // ✨ 글자색
+                    : Colors.blue[700]!.withValues(alpha: 0.85),
                 fontSize: settings.fontSize - 2,
                 height: 1.4,
               ),
             ).animate(key: ValueKey('${subtitle!.id}_tr')).fadeIn(duration: 400.ms),
           ],
 
-          // 슬라이드 연동 뱃지
+          // 실시간 강의 슬라이드 화면 감지 연동 상태 뱃지 구역
           if (subtitle!.hasVisual && subtitle!.visualSummary != null) ...[
             const SizedBox(height: 8),
             Container(
@@ -425,7 +424,7 @@ class SubtitleSettingsSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(subtitleSettingsProvider);
-    final isDark = ref.watch(themeModeProvider) == ThemeMode.dark; // ✨ 설정창도 다크모드 대응
+    final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -434,7 +433,6 @@ class SubtitleSettingsSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 핸들
             Center(
               child: Container(
                 width: 40,
@@ -456,15 +454,15 @@ class SubtitleSettingsSheet extends ConsumerWidget {
             ),
             const SizedBox(height: 20),
 
-            // 투명도
+            // 투명도 슬라이더 파트
             _SettingRow(
-              label: '투명도',
+              label: '패널 투명도',
               isDark: isDark,
               child: Slider(
                 value: settings.opacity,
-                min: 0.3,
+                min: 0.0, // [기능 해제 완료] 유저가 자막 레이어를 완전히 숨길 수 있게 0% 최소 한계축 수정
                 max: 1.0,
-                divisions: 14,
+                divisions: 20,
                 label: '${(settings.opacity * 100).round()}%',
                 activeColor: Colors.blueAccent,
                 onChanged: (v) => ref
@@ -473,7 +471,32 @@ class SubtitleSettingsSheet extends ConsumerWidget {
               ),
             ),
 
-            // 폰트 크기
+            _SettingRow(
+              label: '패널 너비',
+              isDark: isDark,
+              child: Slider(
+                value: settings.panelWidth,
+                min: 280.0,
+                max: 600.0,
+                divisions: 32,
+                label: '${settings.panelWidth.round()}px',
+                activeColor: Colors.blueAccent,
+                onChanged: (v) {
+                  ref.read(subtitleSettingsProvider.notifier).update(settings.copyWith(panelWidth: v));
+                  
+                  // 브라우저 네이티브 프레임 너비를 동적 드래그 확장하도록 확장 프로그램에 가로축 픽셀 데이터 즉시 전송
+                  html.window.parent?.postMessage(
+                    {
+                      'type': 'llai-resize',
+                      'width': v.toInt(),
+                    },
+                    '*',
+                  );
+                },
+              ),
+            ),
+
+            // 글자 크기 슬라이더 파트
             _SettingRow(
               label: '글자 크기',
               isDark: isDark,
@@ -490,7 +513,7 @@ class SubtitleSettingsSheet extends ConsumerWidget {
               ),
             ),
 
-            // 위치 선택
+            // 화면 사방 배치 위치 세그먼트 파트
             _SettingRow(
               label: '위치',
               isDark: isDark,
@@ -515,11 +538,10 @@ class SubtitleSettingsSheet extends ConsumerWidget {
               ),
             ),
 
-            // 번역 토글
+            // 실시간 자막 번역 디스플레이 유무 토글
             SwitchListTile(
               title: Text('번역 표시', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
-              subtitle: Text('원문 아래 번역문 표시',
-                  style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 12)),
+              subtitle: Text('원문 아래 번역문 표시', style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 12)),
               value: settings.showTranslation,
               activeThumbColor: Colors.blueAccent,
               onChanged: (v) => ref
@@ -527,13 +549,11 @@ class SubtitleSettingsSheet extends ConsumerWidget {
                   .update(settings.copyWith(showTranslation: v)),
             ),
 
-            // 초기화
+            // 공장 설정 값 공장 초기화 엔진
             TextButton.icon(
-              onPressed: () =>
-                  ref.read(subtitleSettingsProvider.notifier).reset(),
+              onPressed: () => ref.read(subtitleSettingsProvider.notifier).reset(),
               icon: Icon(Icons.restart_alt, color: isDark ? Colors.white38 : Colors.black38, size: 16),
-              label: Text('기본값으로 초기화',
-                  style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 13)),
+              label: Text('기본값으로 초기화', style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 13)),
             ),
           ],
         ),
