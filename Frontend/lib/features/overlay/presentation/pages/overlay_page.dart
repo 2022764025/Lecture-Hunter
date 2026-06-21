@@ -1,4 +1,3 @@
-// lib/features/overlay/presentation/pages/overlay_page.dart
 import 'dart:html' as html;
 import 'dart:ui_web' as ui;
 import 'dart:convert';
@@ -26,9 +25,6 @@ class _OverlayPageState extends ConsumerState<OverlayPage> {
     _registerLectureVideoView();
 
     if (globalLectureId != null && globalLectureId!.isNotEmpty) {
-      print("==========================================================");
-      print("[플러터 엔진] 주소창 복원 ID 감지 성공 -> 즉시 연동 파이프라인 가동!");
-      print("==========================================================");
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _connect();
       });
@@ -45,9 +41,7 @@ class _OverlayPageState extends ConsumerState<OverlayPage> {
             _connect();
           }
         }
-      } catch (e) {
-        print("[디버그 크래시 추적 에러] : $e");
-      }
+      } catch (e) {}
     });
 
     final readySignal = jsonEncode({'type': 'FLUTTER_READY'});
@@ -69,7 +63,7 @@ class _OverlayPageState extends ConsumerState<OverlayPage> {
           ..style.width = '100%'
           ..style.height = '100%'
           ..style.objectFit = 'contain'
-          ..style.backgroundColor = '#000000';
+          ..style.backgroundColor = 'transparent';
 
         video.setAttribute('playsinline', 'true');
         return video;
@@ -82,15 +76,11 @@ class _OverlayPageState extends ConsumerState<OverlayPage> {
     final sseService = ref.read(sseServiceProvider);
 
     final currentParamId = globalLectureId;
-    print("==========================================================");
-    print("[플러터 디버그] 실시간 소켓 연동용 강의 ID: $currentParamId");
-    print("==========================================================");
 
     if (isMock) {
       sseService.startMock();
     } else {
       if (currentParamId != null) {
-        print("[플러터 리버팟] sseService 직접 연결 시작: $currentParamId");
         sseService.connect(lectureId: currentParamId);
       }
     }
@@ -98,12 +88,10 @@ class _OverlayPageState extends ConsumerState<OverlayPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 잠들어 있는 자막 스트림 프로바이더를 강제로 감시(watch)
-    // 이렇게 해야 내부의 .listen() 로직이 활성화되어 수파베이스 데이터를 히스토리에 꼽기 시작
     ref.watch(subtitleStreamProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Stack(
           children: [
@@ -122,7 +110,7 @@ class _LectureBackground extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      color: Colors.black,
+      color: Colors.transparent,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -131,16 +119,8 @@ class _LectureBackground extends StatelessWidget {
           ),
           IgnorePointer(
             child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.18),
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.24),
-                  ],
-                ),
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
               ),
             ),
           ),

@@ -48,7 +48,7 @@ class LiveLectureApp extends StatelessWidget {
         brightness: Brightness.dark,
       ),
       fontFamily: 'Pretendard',
-      scaffoldBackgroundColor: const Color(0xFF0D0D1A),
+      scaffoldBackgroundColor: Colors.transparent,
 
       textTheme: const TextTheme(
         bodyMedium: TextStyle(color: Colors.white70),

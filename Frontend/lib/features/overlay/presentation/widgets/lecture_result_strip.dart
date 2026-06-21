@@ -1,5 +1,4 @@
-// lib/features/overlay/presentation/widgets/lecture_result_strip.dart
-
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,15 +15,15 @@ enum LectureWidgetTab {
 Color _tabAccentColor(LectureWidgetTab tab) {
   switch (tab) {
     case LectureWidgetTab.caption:
-      return const Color(0xFFE53935); // 자막: 빨강
+      return const Color(0xFFE53935);
     case LectureWidgetTab.question:
-      return const Color(0xFFFB8C00); // 질문: 주황
+      return const Color(0xFFFB8C00);
     case LectureWidgetTab.glossary:
-      return const Color(0xFFF9A825); // 용어집: 노랑
+      return const Color(0xFFF9A825);
     case LectureWidgetTab.summary:
-      return const Color(0xFF43A047); // 요약: 초록
+      return const Color(0xFF43A047);
     case LectureWidgetTab.settings:
-      return const Color(0xFF2F6BFF); // 설정: 파랑
+      return const Color(0xFF2F6BFF);
   }
 }
 
@@ -175,43 +174,56 @@ class _WidgetHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 84,
-      padding: const EdgeInsets.symmetric(horizontal: 22),
-      alignment: Alignment.centerLeft,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFE5E7EB),
-            width: 1,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanUpdate: (details) {
+        html.window.parent?.postMessage(
+          {
+            'type': 'llai-drag',
+            'dx': details.delta.dx,
+            'dy': details.delta.dy,
+          },
+          '*',
+        );
+      },
+      child: Container(
+        height: 84,
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        alignment: Alignment.centerLeft,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            bottom: BorderSide(
+              color: Color(0xFFE5E7EB),
+              width: 1,
+            ),
           ),
         ),
-      ),
-      child: RichText(
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        text: const TextSpan(
-          children: [
-            TextSpan(
-              text: 'Lecture ',
-              style: TextStyle(
-                color: Color(0xFF1D4ED8),
-                fontSize: 30,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1.1,
+        child: RichText(
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          text: const TextSpan(
+            children: [
+              TextSpan(
+                text: 'Lecture ',
+                style: TextStyle(
+                  color: Color(0xFF1D4ED8),
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1.1,
+                ),
               ),
-            ),
-            TextSpan(
-              text: 'Hunter',
-              style: TextStyle(
-                color: Color(0xFF14B8A6),
-                fontSize: 30,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1.1,
+              TextSpan(
+                text: 'Hunter',
+                style: TextStyle(
+                  color: Color(0xFF14B8A6),
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1.1,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -462,7 +474,6 @@ class _QuestionTab extends ConsumerWidget {
                         ? '질문을 입력하면 답변이 여기에 표시됩니다.' 
                         : answer)
                     : (() {
-                        // [컴파일 에러 해결] switch-case 상수의 strict한 제약을 우회하기 위해 if-else 문자열 매핑망으로 전환
                         final statusStr = state.status.toString();
                         if (statusStr.contains('loading')) {
                           return '교수님께 익명 질문을 전송하는 중입니다...';
@@ -675,6 +686,13 @@ class _SettingsTab extends ConsumerWidget {
           divisions: 8,
           onChanged: (value) {
             ref.read(lectureWidgetWidthProvider.notifier).state = value;
+            html.window.parent?.postMessage(
+              {
+                'type': 'llai-resize',
+                'width': value.toInt() + 48,
+              },
+              '*',
+            );
           },
         ),
         const SizedBox(height: 18),

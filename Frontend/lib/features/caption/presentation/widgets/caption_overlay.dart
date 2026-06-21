@@ -1,11 +1,13 @@
-// lib/widgets/subtitle_overlay_widget.dart
+// lib/features/caption/presentation/widgets/caption_overlay.dart
+import 'dart:html' as html; // ✨ 웹 환경 JS 통신용 추가
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/subtitle_model.dart';
 import '../../../assistant/presentation/controllers/question_model.dart';
 import '../controllers/caption_controller.dart';
-import '../../../overlay/presentation/controllers/overlay_controller.dart'; // 테마 Provider 임포트 추가!
+import '../../../overlay/presentation/controllers/overlay_controller.dart'; 
 
 class CaptionOverlay extends ConsumerWidget {
   const CaptionOverlay({super.key});
@@ -78,7 +80,6 @@ class _SubtitleBox extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ✨ 다크모드 여부 판별
     final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
 
     return Opacity(
@@ -86,7 +87,7 @@ class _SubtitleBox extends ConsumerWidget {
       child: Container(
         constraints: BoxConstraints(minHeight: settings.widgetHeight),
         decoration: BoxDecoration(
-          color: isDark ? Colors.black87 : Colors.white; // ✨ 배경색 자동 전환
+          color: isDark ? Colors.black87 : Colors.white, // ✨ 오류 수정 (세미콜론을 쉼표로 변경)
           borderRadius: _borderRadius(settings.position),
           border: Border.all(
             color: _statusColor(connectionStatus).withValues(alpha: 0.6),
@@ -159,7 +160,6 @@ class _HeaderBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✨ 헤더에도 다크모드 여부 적용
     final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
 
     return Container(
@@ -175,7 +175,7 @@ class _HeaderBar extends StatelessWidget {
           Text(
             _statusLabel(status),
             style: TextStyle(
-              color: isDark ? Colors.white54 : Colors.black54, // ✨
+              color: isDark ? Colors.white54 : Colors.black54,
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
@@ -217,7 +217,7 @@ class _HeaderBar extends StatelessWidget {
             tooltip: '질문하기',
           ),
           const SizedBox(width: 8),
-          // ✨ 테마 스위치 버튼
+          // 테마 스위치 버튼
           IconButton(
             onPressed: () {
               final currentTheme = ref.read(themeModeProvider);
@@ -243,10 +243,12 @@ class _HeaderBar extends StatelessWidget {
             tooltip: '자막 설정',
           ),
           const SizedBox(width: 8),
-          // 최소화 버튼
+          // 최소화/닫기 버튼
           IconButton(
             onPressed: () {
               ref.read(subtitleVisibleProvider.notifier).state = false;
+              // ✨ JS로 확장 프로그램 닫기 메시지 전송
+              html.window.parent?.postMessage({'type': 'llai-close'}, '*');
             },
             icon: Icon(Icons.close, color: isDark ? Colors.white60 : Colors.black54, size: 18),
             padding: EdgeInsets.zero,
@@ -321,7 +323,6 @@ class _StatusDot extends StatelessWidget {
   }
 }
 
-// ✨ ConsumerWidget으로 변경됨
 class _SubtitleContent extends ConsumerWidget {
   final SubtitleSegment? subtitle;
   final SubtitleSettings settings;
@@ -341,7 +342,7 @@ class _SubtitleContent extends ConsumerWidget {
         child: Text(
           '강의를 기다리는 중...',
           style: TextStyle(
-            color: isDark ? Colors.white38 : Colors.black38, // ✨ 글자색
+            color: isDark ? Colors.white38 : Colors.black38,
             fontSize: settings.fontSize - 2,
             fontStyle: FontStyle.italic,
           ),
@@ -359,7 +360,7 @@ class _SubtitleContent extends ConsumerWidget {
           Text(
             subtitle!.originalText,
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black87, // ✨ 글자색
+              color: isDark ? Colors.white : Colors.black87,
               fontSize: settings.fontSize,
               fontWeight: FontWeight.w500,
               height: 1.5,
@@ -379,7 +380,7 @@ class _SubtitleContent extends ConsumerWidget {
               style: TextStyle(
                 color: isDark 
                     ? Colors.lightBlueAccent.withValues(alpha: 0.85) 
-                    : Colors.blue[700]!.withValues(alpha: 0.85), // ✨ 글자색
+                    : Colors.blue[700]!.withValues(alpha: 0.85),
                 fontSize: settings.fontSize - 2,
                 height: 1.4,
               ),
@@ -425,7 +426,7 @@ class SubtitleSettingsSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(subtitleSettingsProvider);
-    final isDark = ref.watch(themeModeProvider) == ThemeMode.dark; // ✨ 설정창도 다크모드 대응
+    final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -458,18 +459,45 @@ class SubtitleSettingsSheet extends ConsumerWidget {
 
             // 투명도
             _SettingRow(
-              label: '투명도',
+              label: '패널 투명도',
               isDark: isDark,
               child: Slider(
                 value: settings.opacity,
-                min: 0.3,
+                min: 0.0, // 투명도를 완전히 0%까지 낮출 수 있게 0.0으로 수정
                 max: 1.0,
-                divisions: 14,
+                divisions: 20,
                 label: '${(settings.opacity * 100).round()}%',
                 activeColor: Colors.blueAccent,
                 onChanged: (v) => ref
                     .read(subtitleSettingsProvider.notifier)
                     .update(settings.copyWith(opacity: v)),
+              ),
+            ),
+
+            // ✨ 패널 너비 추가 및 크롬 확장 연동
+            _SettingRow(
+              label: '패널 너비',
+              isDark: isDark,
+              child: Slider(
+                value: settings.panelWidth, // subtitle_model.dart에 panelWidth 추가 필요
+                min: 280.0,
+                max: 600.0,
+                divisions: 32,
+                label: '${settings.panelWidth.round()}px',
+                activeColor: Colors.blueAccent,
+                onChanged: (v) {
+                  // Flutter 상태 업데이트
+                  ref.read(subtitleSettingsProvider.notifier).update(settings.copyWith(panelWidth: v));
+                  
+                  // JS 부모 창(크롬 확장)으로 크기 변경 명령 전송
+                  html.window.parent?.postMessage(
+                    {
+                      'type': 'llai-resize',
+                      'width': v.toInt(),
+                    },
+                    '*',
+                  );
+                },
               ),
             ),
 
