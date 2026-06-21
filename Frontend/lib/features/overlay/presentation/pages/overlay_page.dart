@@ -1,6 +1,6 @@
 // lib/features/overlay/presentation/pages/overlay_page.dart
 import 'dart:html' as html;
-import 'dart:ui_web' as ui;
+import 'dart:ui_web' as ui_web;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -58,7 +58,7 @@ class _OverlayPageState extends ConsumerState<OverlayPage> {
     if (_lectureVideoViewRegistered) return;
     _lectureVideoViewRegistered = true;
 
-    ui.platformViewRegistry.registerViewFactory(
+    ui_web.platformViewRegistry.registerViewFactory(
       _lectureVideoViewType,
       (int viewId) {
         final video = html.VideoElement()

@@ -21,7 +21,6 @@ class ApiService {
     try {
       final uri = Uri.parse('$_baseUrl/lecture/ask').replace(
         queryParameters: {
-          // AppConfig의 하드코딩을 격파하고 진짜 방 번호를 주입!
           'lecture_id': globalLectureId ?? AppConfig.defaultLectureId,
           'question': request.question,
           'target_lang': AppConfig.defaultTargetLang,
@@ -52,7 +51,6 @@ class ApiService {
     try {
       final uri = Uri.parse('$_baseUrl/lecture/ask/reset').replace(
         queryParameters: {
-          // 동적 라이브 세션 룸 매핑 적용
           'lecture_id': globalLectureId ?? AppConfig.defaultLectureId,
         },
       );
@@ -73,11 +71,10 @@ class ApiService {
   // ─── 최근 강의 핵심 요약 조회 ───────────────────────────────
   Future<SummaryResponse> fetchAdaptiveSummary(int minutes) async {
     try {
-      // URL 뒤에 ?minutes=5 같은 형식으로 백엔드 main.py 규격에 맞게 쿼리 파라미터를 붙여준다.
-      final uri = Uri.parse(
-        '$_baseUrl/lecture/summary/adaptive/${globalLectureId ?? AppConfig.defaultLectureId}',
-      ).replace(
+      // 🛠️ [경로 버그 격파] 기존 경로 변수(/adaptive/$lectureId) 구조를 허물고 쿼리 스트링 파라미터로 안전하게 패킹
+      final uri = Uri.parse('$_baseUrl/lecture/summary/adaptive').replace(
         queryParameters: {
+          'lecture_id': globalLectureId ?? AppConfig.defaultLectureId,
           'minutes': minutes.toString(),
         },
       );
@@ -104,11 +101,10 @@ class ApiService {
   // ─── 용어집 조회  ──────────────────────
   Future<List<GlossaryEntry>> searchGlossary(String term) async {
     try {
-      // 가짜 demo-lecture를 지워버리고 진짜 룸 식별자를 패킹하여 수파베이스 연동 완전 개통
-      final uri = Uri.parse(
-        '$_baseUrl/lecture/glossary/${globalLectureId ?? AppConfig.defaultLectureId}',
-      ).replace(
+      // 🛠️ [경로 버그 격파] 특수문자 크래시 방지를 위해 /glossary/$lectureId 주소를 평탄화하고 쿼리 파라미터 바인딩
+      final uri = Uri.parse('$_baseUrl/lecture/glossary').replace(
         queryParameters: {
+          'lecture_id': globalLectureId ?? AppConfig.defaultLectureId,
           if (term.trim().isNotEmpty) 'keyword': term.trim(),
         },
       );
@@ -144,7 +140,6 @@ class ApiService {
     required String filename,
   }) async {
     try {
-      // 멀티모달 시각 자료 바인딩 주소도 실시간 세션 방 ID로 치환 완료
       final uri = Uri.parse(
         '$_baseUrl/lecture/analyze-slide/${globalLectureId ?? AppConfig.defaultLectureId}',
       ).replace(

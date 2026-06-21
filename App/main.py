@@ -4,7 +4,7 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import Optional
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
 from core.database import get_supabase
 
@@ -73,8 +73,8 @@ app.include_router(websocket.router)
 
 # ─── [2번 기능 동기화] 플러터 웹 JSON 수신용 Pydantic 모델 선언 ───
 class VlmRequest(BaseModel):
-    image: Optional[str] = None   # [이중 방어막] 옛날 단수형 요청 포트 유지
-    images: Optional[list[str]] = None # [이중 방어막] 신규 다중 이미지 리스트 포트 수용
+    image: Optional[str] = None   
+    images: Optional[list[str]] = None 
     lecture_id: str
     question: Optional[str] = None
 
@@ -113,8 +113,9 @@ async def reset_chat_history(lecture_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- [기능 3] 강의 분석 및 리포트 (QC/Instructor 전용) ---
-@app.get("/lecture/analytics/qc/{lecture_id}", tags=["Analytics"])
+# --- [기능 3] 강의 분석 및 리포트 (QC/Instructor 전용) ───
+# 경로에서 URL 특수문자 크래시를 방지하기 위해 쿼리 스트링 체계로 전면 마이그레이션 단행
+@app.get("/lecture/analytics/qc", tags=["Analytics"])
 async def fetch_qc_report(lecture_id: str):
     try:
         supabase = await get_supabase()
@@ -122,7 +123,7 @@ async def fetch_qc_report(lecture_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/lecture/analytics/instructor/{lecture_id}", tags=["Analytics"])
+@app.get("/lecture/analytics/instructor", tags=["Analytics"])
 async def fetch_instructor_report(lecture_id: str):
     try:
         supabase = await get_supabase()
@@ -130,7 +131,7 @@ async def fetch_instructor_report(lecture_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/lecture/analytics/interaction/{lecture_id}", tags=["Analytics"])
+@app.get("/lecture/analytics/interaction", tags=["Analytics"])
 async def fetch_interaction_intensity(lecture_id: str):
     try:
         supabase = await get_supabase()
@@ -138,7 +139,7 @@ async def fetch_interaction_intensity(lecture_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/lecture/analytics/inactivity/{lecture_id}", tags=["Analytics"])
+@app.get("/lecture/analytics/inactivity", tags=["Analytics"])
 async def fetch_inactivity_timeline(lecture_id: str, student_id: str):
     try:
         supabase = await get_supabase()
@@ -146,8 +147,8 @@ async def fetch_inactivity_timeline(lecture_id: str, student_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- [기능 4] 강의 시작 및 종료, 자동 요약 ---
-@app.post("/lecture/start/{lecture_id}", tags=["Lecture"])
+# --- [기능 4] 강의 시작 및 종료, 자동 요약 ───
+@app.post("/lecture/start", tags=["Lecture"])
 async def start_lecture(lecture_id: str):
     try:
         state.active_lecture_ids.add(lecture_id)
@@ -160,7 +161,7 @@ async def start_lecture(lecture_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/lecture/end/{lecture_id}", tags=["Lecture"])
+@app.post("/lecture/end", tags=["Lecture"])
 async def end_lecture(lecture_id: str):
     try:
         state.active_lecture_ids.discard(lecture_id)
@@ -175,7 +176,7 @@ async def end_lecture(lecture_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- [기능 5] 슬라이드 분석 및 정밀 앵커링 (VLM) 최종본 ---
+# --- [기능 5] 슬라이드 분석 및 정밀 앵커링 (VLM) ---
 @app.post("/api/vlm/analyze", tags=["Multimodal"])
 async def analyze_slide(request: VlmRequest):
     try:
@@ -183,7 +184,6 @@ async def analyze_slide(request: VlmRequest):
         user_prompt = request.question if request.question else "현재 화면 슬라이드의 시각 자료를 분석해줘."
         target_lang = "Korean"
 
-        # [500 에러 원천 차단] 단수형/복수형 어떤 규격으로 들어오든 첫 번째 이미지를 안전하게 가로채는 믹스 체인
         base64_data = None
         if request.images and len(request.images) > 0:
             base64_data = request.images[0]
@@ -201,14 +201,12 @@ async def analyze_slide(request: VlmRequest):
         except Exception:
             raise HTTPException(status_code=400, detail="유효하지 않은 이미지 Base64 데이터 규격입니다.")
 
-        # VLM 분석 엔진 구동 (Llama3.2-Vision)
         analysis = await vlm_engine.analyze_lecture_screen(
             image_bytes,
             target_lang=target_lang,
             prompt=user_prompt
         )
 
-        # 유저 커스텀 질문 처리 분기 우회
         if request.question:
             if isinstance(analysis, dict):
                 visual_context = analysis.get("summary", analysis.get("analysis", str(analysis)))
@@ -264,13 +262,13 @@ async def analyze_slide(request: VlmRequest):
         print(f"[Anchor Error] {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- [기능 6] 실시간 전문 용어 사전 조회 (💡 오프라인 LLM 하이브리드 폴백 엔진 완벽 이식) ---
-@app.get("/lecture/glossary/{lecture_id}", tags=["Glossary"])
-async def get_glossary(lecture_id: str, keyword: str = None):
+# --- [기능 6] 실시간 전문 용어 사전 조회 ───
+# 주소 매핑 충돌 우회를 위해 /{lecture_id} 경로 변수를 제거하고 쿼리 파라미터 규격으로 튜닝 변경
+@app.get("/lecture/glossary", tags=["Glossary"])
+async def get_glossary(lecture_id: str, keyword: Optional[str] = None):
     try:
         supabase = await get_supabase()
 
-        # 1단계: 먼저 수파베이스 DB에서 해당 강의실 추출 데이터 검색 수행
         query = supabase.table("lecture_glossary") \
             .select("term, definition, created_at") \
             .eq("lecture_id", lecture_id) \
@@ -281,11 +279,9 @@ async def get_glossary(lecture_id: str, keyword: str = None):
 
         result = await query.execute()
 
-        # 검색 키워드가 들어왔는데, DB에 매칭되는 행이 전무할 때 (강의 외적인 단어 검색 등)
         if keyword and not result.data:
             print(f"[Glossary DB Miss] '{keyword}' 단어가 DB에 없습니다. 로컬 LLM 오프라인 생성 모드를 가동합니다.")
             try:
-                # lifespan 구조 설계에 맞춰 순환 임포트를 철저히 방어하고자 함수 내부에서 동적 호출
                 from services.stt_service import ollama_client
                 from core.config import settings
 
@@ -295,14 +291,12 @@ async def get_glossary(lecture_id: str, keyword: str = None):
                     f"군더더기 없이 명확하게 딱 1~2문장의 완성된 한국어 문장으로 설명해 주세요."
                 )
 
-                # 외부 인터넷선이 뽑힌 완전 오프라인 상태에서도 맥북 내부 자원으로 즉시 추론 수행
                 response = await ollama_client.generate(
                     model=settings.LLM_MODEL,
                     prompt=prompt
                 )
                 llm_definition = response['response'].strip()
 
-                # 플러터 프론트엔드 위젯 통신 스펙이 깨지지 않도록 구조화 데이터 포맷 그대로 포장
                 fallback_data = [{
                     "term": keyword,
                     "definition": llm_definition,
@@ -319,7 +313,6 @@ async def get_glossary(lecture_id: str, keyword: str = None):
 
             except Exception as llm_err:
                 print(f"[Glossary LLM Fallback Error] 로컬 AI 모델 연동 실패: {llm_err}")
-                # 로컬 오프라인 LLM 조차 구동 실패 시 크래시 방지용 비상 룰렛 리턴
                 return {
                     "lecture_id": lecture_id,
                     "keyword": keyword,
@@ -331,7 +324,6 @@ async def get_glossary(lecture_id: str, keyword: str = None):
                     }]
                 }
 
-        # DB에 데이터가 존재한다면 오리지널 규격 그대로 정상 반환
         return {
             "lecture_id": lecture_id,
             "keyword": keyword,
@@ -342,8 +334,9 @@ async def get_glossary(lecture_id: str, keyword: str = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- [기능 7] 실시간 구간별 요약 브리핑 (Adaptive Briefing) ---
-@app.get("/lecture/summary/adaptive/{lecture_id}", tags=["Summary"])
+# --- [기능 7] 실시간 구간별 요약 브리핑 (Adaptive Briefing) ───
+# {lecture_id} 경로를 과감히 허물고 안전한 ?lecture_id= 형태로 쿼리 바인딩 라우팅 개조
+@app.get("/lecture/summary/adaptive", tags=["Summary"])
 async def get_adaptive_summary(lecture_id: str, minutes: int = 5):
     try:
         minutes = min(minutes, 30)

@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:js' as js;
 import 'dart:js_util' as js_util;
+import 'dart:ui_web' as ui_web;
 
 import '../../../caption/presentation/controllers/caption_controller.dart';
 import '../../../../main.dart'; 
@@ -126,31 +127,83 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
   final TextEditingController _glossaryController = TextEditingController();
   StreamSubscription? _pasteSubscription;
 
+  // 유튜브 웹 뷰 임베딩을 위한 엘리먼트 소스 세팅
+  html.IFrameElement? _youtubeIframe;
+  String? _loadedVideoId;
+
   @override
   void initState() {
     super.initState();
-    // Cmd+Shift+3 또는 4 상관없이 클립보드에 복사된 이미지를 Cmd+V로 최대 5장까지 누적 스캔하는 오토 포트 가동
+    _setupPasteListener();
+    _checkAndInitYoutube();
+  }
+
+  // 주소창 파라미터를 완벽하게 스캔하여 유튜브 ID를 추출하는 무결점 엔진
+  void _checkAndInitYoutube() {
+    final currentRoom = globalLectureId ?? '';
+    String? videoId;
+
+    if (currentRoom.contains('v=')) {
+      videoId = currentRoom.split('v=').last.split('&').first;
+    } else if (currentRoom.contains('youtu.be/')) {
+      videoId = currentRoom.split('youtu.be/').last.split('?').first;
+    } else if (currentRoom.startsWith('https://')) {
+      final uri = Uri.tryParse(currentRoom);
+      videoId = uri?.queryParameters['v'];
+    }
+
+    if (videoId != null) {
+      globalLectureId = videoId; // 전역 방 번호를 고유 ID로 치환
+    }
+
+    if (videoId != null && videoId != _loadedVideoId) {
+      _loadedVideoId = videoId;
+      
+      _youtubeIframe = html.IFrameElement()
+        ..src = 'https://www.youtube.com/embed/$videoId?autoplay=1&mute=0&controls=1'
+        ..style.border = 'none'
+        ..style.width = '100%'
+        ..style.height = '100%';
+
+      ui_web.platformViewRegistry.registerViewFactory(
+        'youtube-player-$videoId',
+        (int viewId) => _youtubeIframe!,
+      );
+
+      // [이 한 줄이 핵심!] 프론트엔드 자막 안테나 주파수를 유튜브 고유 ID 방으로 리커넥트합니다.
+      final sseService = ref.read(sseServiceProvider);
+      sseService.connect(lectureId: videoId); 
+
+      // 백엔드 웹소켓 오디오 빨대 가동부
+      try {
+        final wsUrl = "ws://127.0.0.1:8000/ws/audio?lecture_id=$videoId";
+        print("[플러터 엔진] 유튜브 오디오 스트리밍 웹소켓 직접 연결 시도: $wsUrl");
+        
+        final youtubeWs = html.WebSocket(wsUrl);
+        youtubeWs.onOpen.listen((_) => print("[플러터 엔진] 백엔드 유튜브 오디오 빨대 개통 성공!"));
+        youtubeWs.onError.listen((error) => print("[플러터 엔진] 웹소켓 에러: $error"));
+      } catch (e) {
+        print("[플러터 엔진] 소켓 크래시 방어: $e");
+      }
+    }
+  }
+
+  void _setupPasteListener() {
     _pasteSubscription = html.document.onPaste.listen((html.ClipboardEvent e) {
       final items = e.clipboardData?.items;
-      if (items != null) {
-        // (items.length ?? 0) 구조 결합으로 int? num 할당 에러 완전 소멸
-        for (var i = 0; i < (items.length ?? 0); i++) {
-          final item = items[i];
-          if (item.type != null && item.type!.contains('image')) {
-            final file = item.getAsFile();
-            if (file != null) {
-              final reader = html.FileReader();
-              reader.readAsDataUrl(file);
-              reader.onLoadEnd.listen((loadEvent) {
-                final currentList = ref.read(uploadedImagesProvider);
-                if (currentList.length < 5) {
-                  ref.read(uploadedImagesProvider.notifier).state = [
-                    ...currentList,
-                    reader.result as String
-                  ];
-                }
-              });
-            }
+      if (items == null) return;
+      for (var i = 0; i < (items.length ?? 0); i++) {
+        final item = items[i];
+        if (item.type != null && item.type!.contains('image')) {
+          final file = item.getAsFile();
+          if (file != null) {
+            final reader = html.FileReader()..readAsDataUrl(file);
+            reader.onLoadEnd.listen((loadEvent) {
+              final currentList = ref.read(uploadedImagesProvider);
+              if (currentList.length < 5) {
+                ref.read(uploadedImagesProvider.notifier).state = [...currentList, reader.result as String];
+              }
+            });
           }
         }
       }
@@ -173,138 +226,184 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
     final panelWidth = ref.watch(lectureWidgetWidthProvider);
     final fontScale = ref.watch(lectureWidgetFontScaleProvider);
 
+    // 주소창 세션 룸 상태 변경에 실시간으로 대응하기 위해 빌드 타임 동적 리스캔 격발
+    _checkAndInitYoutube();
+
     if (!visible) {
       return Positioned(
-        right: 24,
-        bottom: 24,
+        right: 24, bottom: 24,
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
-            onTap: () {
-              ref.read(lectureWidgetVisibleProvider.notifier).state = true;
-            },
-            child: Image.asset(
-              'assets/lecture_hunter_icon.png',
-              width: 78,
-              height: 78,
-              fit: BoxFit.contain,
-            ),
+            onTap: () => ref.read(lectureWidgetVisibleProvider.notifier).state = true,
+            child: Image.asset('assets/lecture_hunter_icon.png', width: 78, height: 78, fit: BoxFit.contain),
           ),
         ),
       );
     }
 
-    return Positioned(
-      top: 24,
-      right: 24,
-      bottom: 24,
-      width: panelWidth,
-      child: Material(
-        color: Colors.transparent,
-        child: Opacity(
-          opacity: panelOpacity,
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              textScaler: TextScaler.linear(fontScale),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.20),
-                    blurRadius: 30,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(22),
-                child: Column(
-                  children: [
-                    _WidgetHeader(tab: tab),
-                    _TabBar(tab: tab),
-                    Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 140),
-                        child: _TabBody(
-                          key: ValueKey(tab),
-                          tab: tab,
-                          questionController: _questionController,
-                          glossaryController: _glossaryController,
-                        ),
+    return Stack(
+      children: [
+        // 1. [좌측 구역] 유튜브 플레이어 또는 URL 입력창 (위젯과 동일한 흰색 배경)
+        Positioned(
+          top: 0, left: 0, bottom: 0,
+          right: panelWidth + 24, // 우측 위젯 패널만큼 공간 확보
+          child: Container(
+            color: Colors.white, // 배경색 완전 일치 통일
+            child: _loadedVideoId != null && _youtubeIframe != null
+                ? HtmlElementView(viewType: 'youtube-player-$_loadedVideoId')
+                : Center(
+                    child: Container(
+                      width: 420,
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: const Color(0xFFE4E7EC)),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.ondemand_video_rounded, size: 52, color: Color(0xFF2F6BFF)),
+                          const SizedBox(height: 20),
+                          const Text('강의 영상 주소를 입력하세요', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF101828))),
+                          const SizedBox(height: 20),
+                          TextField(
+                            onSubmitted: (value) {
+                              globalLectureId = value;
+                              _checkAndInitYoutube();
+
+                              // globalLectureId 변수 변경을 리버팟 스트림이 알아채도록 수신 채널을 강제로 리프레시(Invalidate)
+                              // 이렇게 하면 새 유튜브 URL 주소값으로 수파베이스 리얼타임 자막 감시를 즉시 재기동
+                              ref.invalidate(subtitleStreamProvider);
+
+                              setState(() {});
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'https://youtube.com/watch?v=...',
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: const Color(0xFFD0D5DD))),
+                              prefixIcon: const Icon(Icons.link_rounded),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
+          ),
+        ),
+
+        // 2. [우측 구역] 명품 위젯 패널
+        Positioned(
+          top: 24, right: 24, bottom: 24, width: panelWidth,
+          child: Material(
+            color: Colors.transparent,
+            child: Opacity(
+              opacity: panelOpacity,
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(fontScale)),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: Colors.black.withValues(alpha: 0.08), width: 1),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 30, offset: const Offset(0, 12))],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: Column(
+                      children: [
+                        // [위치 개조] 유튜브 영상이 로드된 상태일 때만 리셋 이벤트를 바인딩하여 헤더로 전달
+                        _WidgetHeader(
+                          tab: tab,
+                          onResetVideo: _loadedVideoId != null ? () {
+                            setState(() {
+                              _loadedVideoId = null;
+                              globalLectureId = null;
+                            });
+                          } : null,
+                        ),
+                        _TabBar(tab: tab),
+                        Expanded(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 140),
+                            child: _TabBody(
+                              key: ValueKey(tab),
+                              tab: tab,
+                              questionController: _questionController,
+                              glossaryController: _glossaryController,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
 class _WidgetHeader extends StatelessWidget {
   final LectureWidgetTab tab;
-  const _WidgetHeader({required this.tab});
+  final VoidCallback? onResetVideo; // 비디오 초기화 함수 슬롯 추가
+
+  const _WidgetHeader({
+    required this.tab,
+    this.onResetVideo,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onPanUpdate: (details) {
-        // 위젯 상단을 마우스로 휠/드래그 시 iframe 위치를 강제 동기화
-        html.window.parent?.postMessage(
-          {
-            'type': 'llai-drag',
-            'dx': details.delta.dx,
-            'dy': details.delta.dy,
-          },
-          '*',
-        );
-      },
-      child: Container(
-        height: 84,
-        padding: const EdgeInsets.symmetric(horizontal: 22),
-        alignment: Alignment.centerLeft,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
-        ),
-        child: RichText(
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          text: const TextSpan(
-            children: [
-              TextSpan(
-                text: 'Lecture ',
+    return Padding(
+      padding: const EdgeInsets.only(left: 24, top: 20, right: 20, bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween, // 요소를 양 끝으로 정렬
+        children: [
+          // 기존 시그니처 듀얼 컬러 로고 텍스트
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text(
+                'Lecture ',
                 style: TextStyle(
-                  color: Color(0xFF1D4ED8),
-                  fontSize: 30,
+                  fontSize: 22,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: -1.1,
+                  color: Color(0xFF2F6BFF),
                 ),
               ),
-              TextSpan(
-                text: 'Hunter',
+              Text(
+                'Hunter',
                 style: TextStyle(
-                  color: Color(0xFF14B8A6),
-                  fontSize: 30,
+                  fontSize: 22,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: -1.1,
+                  color: Color(0xFF00BFA5),
                 ),
               ),
             ],
           ),
-        ),
+          
+          // 유튜브 영상 재생 중일 때만 로고 우측 끝에 서브 톤의 리셋 단추 활성화
+          if (onResetVideo != null)
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.refresh_rounded, color: Colors.black54, size: 20),
+                splashRadius: 18,
+                tooltip: '강의실 URL 초기화',
+                onPressed: onResetVideo,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -417,7 +516,8 @@ class _TabBody extends ConsumerWidget {
         return _GlossaryTab(controller: glossaryController);
       case LectureWidgetTab.summary:
         return const _SummaryTab();
-      case LectureWidgetTab.settings:
+      // [버그 해결] 기존 'setting'을 프로젝트 원본 규격인 'settings'로 올바르게 수정 완료!
+      case LectureWidgetTab.settings: 
         return const _SettingsTab();
     }
   }
@@ -428,24 +528,132 @@ class _CaptionTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final subtitle = ref.watch(currentSubtitleProvider);
-    final currentText = subtitle?.displayText.trim();
-    final originalText = subtitle?.originalText.trim();
+    final subtitleAsync = ref.watch(subtitleStreamProvider);
 
-    return _PanelScroll(
-      children: [
-        const _SectionTitle(tab: LectureWidgetTab.caption, icon: Icons.closed_caption_rounded, title: '실시간 자막', subtitle: ''),
-        const SizedBox(height: 14),
-        _ResultCard(
-          title: '현재 자막',
-          body: currentText == null || currentText.isEmpty ? '자막 대기 중입니다.' : currentText,
-          accentColor: const Color(0xFFE53935),
+    // [진단용 돋보기 로그] 주소창에 엔터 치고 백엔드가 자막을 구울 때, 플러터 콘솔에 찍히는 로그를 봐야 합니다!
+    print("==================================================");
+    print("[스트림 진단] 현재 리버팟 자막 상태 타입: ${subtitleAsync.runtimeType}");
+    print("[스트림 진단] 세부 상태 상태값: $subtitleAsync");
+    
+    if (subtitleAsync is AsyncError) {
+      print("[스트림 진단 ] 에러 원인: ${subtitleAsync.error}");
+      print("[스트림 진단 ] 에러 추적 스택: ${subtitleAsync.stackTrace}");
+    }
+    print("==================================================");
+
+    return subtitleAsync.when(
+      data: (latestSubtitle) {
+        print("[스트림 진단 ] 수신 성공! 데이터: $latestSubtitle");
+        if (latestSubtitle != null) {
+          print("[스트림 진단 ] 화면에 그릴 원문 텍스트: ${latestSubtitle.originalText}");
+        }
+
+        if (latestSubtitle == null) {
+          return const Center(
+            child: Text(
+              '강의가 시작되면 실시간 자막이 여기에 표시됩니다.',
+              style: TextStyle(color: Colors.black38, fontSize: 14),
+            ),
+          );
+        }
+
+        return Column(
+          children: [
+            _SubtitleCard(
+              title: '현재 자막',
+              text: latestSubtitle.translatedText ?? latestSubtitle.originalText, 
+              accentColor: const Color(0xFFD92D20),
+            ),
+            const SizedBox(height: 16),
+            _SubtitleCard(
+              title: '원문',
+              text: latestSubtitle.originalText,
+              accentColor: const Color(0xFF667085),
+            ),
+          ],
+        );
+      },
+      loading: () {
+        print("[스트림 진단 ] 현재 자막 로딩 중 상태입니다.");
+        return const Center(child: CircularProgressIndicator(color: Color(0xFF2F6BFF)));
+      },
+      error: (err, stack) {
+        return Center(
+          child: Text('자막 연동 오류: $err', style: const TextStyle(color: Colors.red)),
+        );
+      },
+    );
+  }
+}
+
+// ─── [원래 UI 스타일 복원 본체] 1번째 사진 레이아웃과 픽셀 단위 정렬 완료 ───
+class _SubtitleCard extends StatelessWidget {
+  final String title;
+  final String text;
+  final Color accentColor;
+
+  const _SubtitleCard({
+    required this.title,
+    required this.text,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white, // 오리지널 순정 화이트 배경
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFEAECF0), width: 1), // 연한 테두리선
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 첫 번째 사진 좌측 끝의 '두꺼운 세로 세트 인디케이터 바' 구현
+            Container(
+              width: 4,
+              decoration: BoxDecoration(
+                color: accentColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(20), // 여유로운 패딩 밸런스
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: accentColor, // 타이틀 컬러 동기화
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      text,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1D2939), // 본문 차콜 색상 매칭
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        if (originalText != null && originalText.isNotEmpty && originalText != currentText) ...[
-          const SizedBox(height: 10),
-          _ResultCard(title: '원문', body: originalText, accentColor: const Color(0xFF98A2B3)),
-        ],
-      ],
+      ),
     );
   }
 }
