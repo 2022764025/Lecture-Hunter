@@ -80,52 +80,47 @@
 
 ---
 
-### 🖼 주요 기능 미리보기
+### 🖼 주요 기능
 
 <table align="center">
   <tr>
     <th align="center">🎙 실시간 자막 및 번역</th>
-    <th align="center">⚙️ 설정</th>
+    <th align="center">💬 강의 AI 질문</th>
   </tr>
   <tr>
     <td align="center">
-      준비 중
+      <img src="../assets/screens/real-time captions.png" width="360"/>
       <br/>
       <sub>수신된 자막의 원문과 한국어 번역을 함께 볼 수 있어요.</sub>
     </td>
     <td align="center">
-      <img src="../assets/screens/caption_settings.png" width="360"/><br/>
-      <sub>자막 크기, 위치, 투명도, 테마를 조절할 수 있어요.</sub>
-    </td>
-  </tr>
-
-  <tr>
-    <th align="center">💬 강의 AI 질문</th>
-    <th align="center">📚 용어집 조회</th>
-  </tr>
-  <tr>
-    <td align="center">
       <img src="../assets/screens/question_input.png" width="360"/><br/>
       <sub>강의 내용을 바탕으로 AI에게 질문할 수 있어요.</sub>
     </td>
-    <td align="center">
-      <img src="../assets/screens/glossary_tab.png" width="360"/><br/>
-      <sub>저장된 강의 용어를 검색해서 확인할 수 있어요.</sub>
-    </td>
   </tr>
 
   <tr>
-    <th align="center">📜 지난 자막 보기</th>
+    <th align="center">📚 용어집 조회</th>
     <th align="center">📝 핵심 요약</th>
   </tr>
   <tr>
     <td align="center">
-      <img src="../assets/screens/caption_history.png" width="360"/><br/>
-      <sub>지나간 자막도 다시 확인할 수 있어요.</sub>
+      <img src="../assets/screens/glossary_tab.png" width="360"/><br/>
+      <sub>저장된 강의 용어를 검색해서 확인할 수 있어요.</sub>
     </td>
     <td align="center">
       <img src="../assets/screens/key_summary_features.png" width="360"/><br/>
       <sub>강의 내용을 짧게 요약해줘요.</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <th align="center">⚙️ 설정</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="../assets/screens/caption_settings.png" width="360"/><br/>
+      <sub>자막 크기, 위치, 투명도, 테마를 조절할 수 있어요.</sub>
     </td>
   </tr>
 </table>

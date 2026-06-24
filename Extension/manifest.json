@@ -3,13 +3,7 @@
   "name": "LiveLectureAI 자막 위젯",
   "version": "1.0",
   "permissions": ["tabCapture", "offscreen", "scripting", "activeTab"],
-  "host_permissions": [
-    "http://127.0.0.1:8000/*",
-    "ws://127.0.0.1:8000/*",
-    "https://*.donga.ac.kr/*",
-    "http://127.0.0.1:9998/*",
-    "https://*.youtube.com/*"
-  ],
+  "host_permissions": ["http://127.0.0.1:8000/*", "ws://127.0.0.1:8000/*"],
   "background": { "service_worker": "background.js" },
   "action": { "default_title": "LiveLectureAI 켜기/끄기" }
 }

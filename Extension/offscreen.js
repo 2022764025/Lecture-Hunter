@@ -15,9 +15,7 @@ chrome.runtime.onMessage.addListener(async (msg) => {
     silentGain = audioCtx.createGain();
     silentGain.gain.value = 0;
 
-    // 원본 소리는 그대로 스피커로 (캡처해도 학생이 강의 소리 계속 들림)
     source.connect(audioCtx.destination);
-    // 분석/전송용 경로는 무음 처리
     source.connect(processor);
     processor.connect(silentGain);
     silentGain.connect(audioCtx.destination);
