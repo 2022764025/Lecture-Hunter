@@ -16,14 +16,6 @@
   <b>강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯 개발</b>
 </p>
 
-<p align="center">
-  <b>🇰🇷 한국어</b>
-  ·
-  <a href="docs/README_en.md">🇺🇸 English</a>
-  ·
-  <a href="docs/README_jp.md">🇯🇵 日本語</a>
-</p>
-
 > [!IMPORTANT]
 > 이 저장소의 `Frontend` 폴더는 **LiveLectureAI의 학생용 Flutter 프론트엔드 위젯 앱**을 다룹니다.  
 > 백엔드 서버, STT/LLM 모델, 데이터베이스 구성은 `App` 폴더 또는 백엔드 문서를 참고해 주세요.
