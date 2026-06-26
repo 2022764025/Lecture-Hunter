@@ -74,7 +74,6 @@ If you missed part of a lecture, it can even **summarize what's happened so far*
 | "I came in 10 minutes late — what's going on?" | Use the AI Q&A to catch up on the lecture flow. |
 | "I want to ask a question but I'm too shy..." | Ask the AI quietly without anyone noticing. |
 | "There was a hard term I want to look up again..." | Search saved lecture terms in the glossary. |
-| "I want to re-read a caption I missed..." | Browse past captions in the caption history. |
 
 ---
 
