@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/lecture-hunter-readme.gif" alt="Lecture Hunter" width="200">
+  <img src="assets/lecture-hunter-readme.gif" alt="Lecture Hunter" width="250">
 </p>
 
 <p align="center">
