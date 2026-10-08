@@ -1,4 +1,4 @@
-// lib/features/caption/presentation/widgets/caption_overlay.dart
+\// lib/features/caption/presentation/widgets/caption_overlay.dart
 import 'dart:html' as html; // 웹 환경 크롬 확장 프로그램 양방향 JS 통신 엔진 가동
 
 import 'package:flutter/material.dart';

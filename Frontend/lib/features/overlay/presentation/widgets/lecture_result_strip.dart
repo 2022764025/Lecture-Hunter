@@ -1,4 +1,4 @@
-// lib/features/overlay/presentation/widgets/lecture_result_strip.dart
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,12 +14,12 @@ import '../../../caption/presentation/controllers/caption_controller.dart';
 import '../../../../main.dart'; 
 
 import '../../../../services/api_service.dart';
-import '../../../assistant/presentation/controllers/question_model.dart'; // SummaryResponse가 들어있는 파일
+import '../../../assistant/presentation/controllers/question_model.dart';
 
 enum LectureWidgetTab {
   caption,
   question,
-  glossary,
+  notice,
   summary,
   settings,
 }
@@ -29,8 +29,8 @@ Color _tabAccentColor(LectureWidgetTab tab) {
     case LectureWidgetTab.caption:
       return const Color(0xFFE53935); 
     case LectureWidgetTab.question:
-      return const Color(0xFFFB8C00); 
-    case LectureWidgetTab.glossary:
+      return const Color(0xFFF79009); 
+    case LectureWidgetTab.notice:
       return const Color(0xFFF9A825); 
     case LectureWidgetTab.summary:
       return const Color(0xFF43A047); 
@@ -44,8 +44,8 @@ Color _tabSoftColor(LectureWidgetTab tab) {
     case LectureWidgetTab.caption:
       return const Color(0xFFFFEBEE);
     case LectureWidgetTab.question:
-      return const Color(0xFFFFF3E0);
-    case LectureWidgetTab.glossary:
+      return const Color(0xFFFFF4E5);
+    case LectureWidgetTab.notice:
       return const Color(0xFFFFF8E1);
     case LectureWidgetTab.summary:
       return const Color(0xFFE8F5E9);
@@ -69,25 +69,24 @@ final lectureWidgetOpacityProvider = StateProvider<double>((ref) => 1.0);
 
 final lectureWidgetWidthProvider = StateProvider<double>((ref) => 360);
 
+final lectureWidgetHeightProvider = StateProvider<double>((ref) => 560);
+
 final lectureWidgetFontScaleProvider = StateProvider<double>((ref) => 1.0);
 
 final vlmLoadingStateProvider = StateProvider<bool>((ref) => false);
 
-// [다중 이미지 체계 구축] 최대 5장 이미지 관리를 위해 List<String> 구조로 전면 마이그레이션
 final uploadedImagesProvider = StateProvider<List<String>>((ref) => []);
 
-// [추가] 용어집 LLM 실시간 빌드 중인지 감시하는 상태 스위치
 final glossaryLoadingProvider = StateProvider<bool>((ref) => false);
+final questionSubTabProvider = StateProvider<int>((ref) => 0);
 
 final vlmSentImagesCardProvider = StateProvider<List<String>>((ref) => []);
 final vlmQueryProvider = StateProvider<String?>((ref) => null);
 
 final summaryLoadingProvider = StateProvider<bool>((ref) => false);
 
-// [추가] 요약 기록을 메모리에 순서대로 누적하는 기록 보관소
 final summaryHistoryProvider = StateProvider<List<Map<String, String>>>((ref) => []);
 
-// 1. 요약 데이터의 상태 규격 정의
 class SummaryState {
   final String summary;
   final int minutes;
@@ -95,7 +94,6 @@ class SummaryState {
   factory SummaryState.initial() => SummaryState(summary: '', minutes: 5);
 }
 
-// 2. 백엔드 ApiService와 통신하여 데이터를 갱신하는 상태 노티파이어
 class SummaryNotifier extends StateNotifier<SummaryState> {
   final ApiService _apiService = ApiService();
   SummaryNotifier() : super(SummaryState.initial());
@@ -103,7 +101,7 @@ class SummaryNotifier extends StateNotifier<SummaryState> {
   Future<void> fetchSummary({required int minutes}) async {
     try {
       final response = await _apiService.fetchAdaptiveSummary(minutes);
-      // SummaryResponse 내부에 요약본 텍스트 필드 명칭에 맞춰 매핑 (일반적으로 summary 또는 데이터 구조 준수)
+
       state = SummaryState(summary: response.summary ?? '', minutes: minutes);
     } catch (e) {
       state = SummaryState(summary: '요약 데이터 로드 실패: $e', minutes: minutes);
@@ -111,7 +109,6 @@ class SummaryNotifier extends StateNotifier<SummaryState> {
   }
 }
 
-// 3. 컴파일 에러를 해결할 오리지널 summaryProvider 최종 개통
 final summaryProvider = StateNotifierProvider<SummaryNotifier, SummaryState>((ref) => SummaryNotifier());
 
 class LectureFloatingWidget extends ConsumerStatefulWidget {
@@ -127,14 +124,12 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
   final TextEditingController _glossaryController = TextEditingController();
   StreamSubscription? _pasteSubscription;
 
-  // 유튜브 웹 뷰 임베딩을 위한 엘리먼트 소스 세팅
   html.IFrameElement? _youtubeIframe;
   String? _loadedVideoId;
 
-  // [추가] 자유 드래그 위치 제어 및 최소화용 핵심 상태 변수
-  double _top = 24.0;        // 초기 Y축 위치
-  double _right = 24.0;      // 초기 X축 위치
-  bool _isMinimized = false; // 최소화 활성화 여부 스위치
+  double _top = 24.0;
+  double _right = 24.0;
+  bool _isMinimized = false;
 
   @override
   void initState() {
@@ -143,7 +138,6 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
     _checkAndInitYoutube();
   }
 
-  // 주소창 파라미터를 완벽하게 스캔하여 유튜브 ID를 추출하는 무결점 엔진
   void _checkAndInitYoutube() {
     final currentRoom = globalLectureId ?? '';
     String? videoId;
@@ -158,7 +152,7 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
     }
 
     if (videoId != null) {
-      globalLectureId = videoId; // 전역 방 번호를 고유 ID로 치환
+      globalLectureId = videoId;
     }
 
     if (videoId != null && videoId != _loadedVideoId) {
@@ -175,11 +169,9 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
         (int viewId) => _youtubeIframe!,
       );
 
-      // [이 한 줄이 핵심!] 프론트엔드 자막 안테나 주파수를 유튜브 고유 ID 방으로 리커넥트합니다.
       final sseService = ref.read(sseServiceProvider);
       sseService.connect(lectureId: videoId); 
 
-      // 백엔드 웹소켓 오디오 빨대 가동부
       try {
         final wsUrl = "ws://127.0.0.1:8000/ws/audio?lecture_id=$videoId";
         print("[플러터 엔진] 유튜브 오디오 스트리밍 웹소켓 직접 연결 시도: $wsUrl");
@@ -229,9 +221,9 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
     final tab = ref.watch(lectureWidgetTabProvider);
     final panelOpacity = ref.watch(lectureWidgetOpacityProvider);
     final panelWidth = ref.watch(lectureWidgetWidthProvider);
+    final panelHeight = ref.watch(lectureWidgetHeightProvider);
     final fontScale = ref.watch(lectureWidgetFontScaleProvider);
 
-    // 주소창 세션 룸 상태 변경에 실시간으로 대응하기 위해 빌드 타임 동적 리스캔 격발
     _checkAndInitYoutube();
 
     if (!visible) {
@@ -242,7 +234,7 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
             onTap: () => ref.read(lectureWidgetVisibleProvider.notifier).state = true,
-            child: Image.asset('assets/lecture_hunter_icon.png', width: 78, height: 78, fit: BoxFit.contain),
+            child: Image.asset('assets/Lecture-Hunter_Logo1.png', width: 78, height: 78, fit: BoxFit.contain),
           ),
         ),
       );
@@ -250,7 +242,7 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
 
     return Stack(
       children: [
-        // 1. [좌측 구역] 유튜브 플레이어 또는 URL 입력창 (최소화 시 잔상 박멸)
+
         if (!_isMinimized && globalLectureId == null)
           Positioned.fill(
             child: Container(
@@ -269,7 +261,7 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
                     children: [
                       const Icon(Icons.ondemand_video_rounded, size: 52, color: Color(0xFF2F6BFF)),
                       const SizedBox(height: 20),
-                      const Text('강의 영상 주소를 입력하세요', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF101828))),
+                      const Text('강의 영상 주소를 입력하세요', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF101828))),
                       const SizedBox(height: 20),
                       TextField(
                         onSubmitted: (value) {
@@ -302,37 +294,43 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
             ),
           ),
 
-        // 2. [우측 구역] 명품 위젯 패널 (마찰 제로 완전 밀착형 아키텍처)
         Positioned(
-          // [핵심 버그 해결] 불필요한 공백 마진을 0으로 싹 밀어서 외부 iframe 경계와 1:1로 일치시킵니다!
-          top: 0,
-          right: 0,
+
+          top: _top,
+          right: _right,
           child: _isMinimized 
-              ? // ────────── [A. 최소화 상태 UI: 다시 열기 버튼] ──────────
-                Container(
-                  width: 70,
-                  height: 70,
-                  alignment: Alignment.center, // iframe 박스 한가운데 정렬하여 잘림 방지
+              ?
+                GestureDetector(
+                  onPanUpdate: (details) {
+                    setState(() {
+                      _top = (_top + details.delta.dy).clamp(0.0, double.infinity);
+                      _right = (_right - details.delta.dx).clamp(0.0, double.infinity);
+                    });
+                  },
                   child: Material(
                     color: Colors.transparent,
-                    child: FloatingActionButton(
-                      onPressed: () {
+                    child: InkWell(
+                      onTap: () {
                         setState(() => _isMinimized = false);
-                        // 복원 시 가로와 고정 세로 높이(560)를 동시 동기화 요청
                         html.window.parent?.postMessage({
-                          'type': 'llai-resize', 
+                          'type': 'llai-resize',
                           'width': panelWidth.toInt(),
-                          'height': 560
+                          'height': panelHeight.toInt()
                         }, '*');
                       },
-                      backgroundColor: const Color(0xFF2F6BFF),
-                      elevation: 4,
-                      tooltip: '위젯 창 복원',
-                      child: const Icon(Icons.open_in_browser_rounded, color: Colors.white, size: 24),
+                      child: SizedBox(
+                        width: 80,
+                        height: 50,
+                        child: Image.asset(
+                          'assets/Lecture-Hunter_Logo1.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                        ),
+                      ),
                     ),
                   ),
                 )
-              : // ────────── [B. 전체 패널 활성화 상태 UI] ──────────
+              :
                 Material(
                   color: Colors.transparent,
                   child: Opacity(
@@ -341,49 +339,133 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
                       data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(fontScale)),
                       child: Container(
                         width: panelWidth,
-                        height: 560, // 확장 프로그램 기본 높이 스펙과 완벽 싱크 맞춤
+                        height: panelHeight,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(22),
-                          border: Border.all(color: Colors.black.withValues(alpha: 0.08), width: 1),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.20), blurRadius: 30, offset: const Offset(0, 12))],
+                          border: Border.all(
+                            color: const Color(0xFFE4E7EC),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              blurRadius: 26,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(22),
-                          child: Column(
-                            children: [
-                              _WidgetHeader(
-                                tab: tab,
-                                onMinimize: () {
-                                  setState(() => _isMinimized = true);
-                                  // 최소화 시 단추 그림자가 잘리지 않도록 여유 있게 70px 규격으로 신호 전송
-                                  html.window.parent?.postMessage({
-                                    'type': 'llai-resize', 
-                                    'width': 70,
-                                    'height': 70
-                                  }, '*');
-                                },
-                                onResetVideo: _loadedVideoId != null ? () {
-                                  setState(() {
-                                    _loadedVideoId = null;
-                                    globalLectureId = null;
-                                  });
-                                } : null,
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(22),
+                                child: Column(
+                                  children: [
+                                    _WidgetHeader(
+                                      tab: tab,
+                                      onDragUpdate: (details) {
+                                        setState(() {
+                                          _top = (_top + details.delta.dy).clamp(0.0, double.infinity);
+                                          _right = (_right - details.delta.dx).clamp(0.0, double.infinity);
+                                        });
+                                      },
+                                      onMinimize: () {
+                                        setState(() => _isMinimized = true);
+                                        html.window.parent?.postMessage({
+                                          'type': 'llai-resize',
+                                          'width': 96,
+                                          'height': 64,
+                                        }, '*');
+                                      },
+                                      onResetVideo: _loadedVideoId != null
+                                          ? () {
+                                              setState(() {
+                                                _loadedVideoId = null;
+                                                globalLectureId = null;
+                                              });
+                                            }
+                                          : null,
+                                    ),
+                                    _TabBar(tab: tab),
+                                    Expanded(
+                                      child: AnimatedSwitcher(
+                                        duration: const Duration(milliseconds: 140),
+                                        layoutBuilder: (currentChild, previousChildren) => Stack(
+                                          alignment: Alignment.topCenter,
+                                          children: [
+                                            ...previousChildren,
+                                            if (currentChild != null) currentChild,
+                                          ],
+                                        ),
+                                        child: SizedBox(
+                                          key: ValueKey(tab),
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                          child: _TabBody(
+                                            tab: tab,
+                                            questionController: _questionController,
+                                            glossaryController: _glossaryController,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              _TabBar(tab: tab),
-                              Expanded(
-                                child: AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 140),
-                                  child: _TabBody(
-                                    key: ValueKey(tab),
-                                    tab: tab,
-                                    questionController: _questionController,
-                                    glossaryController: _glossaryController,
+                            ),
+                            Positioned(
+                              left: 8,
+                              bottom: 8,
+                              child: MouseRegion(
+                                cursor: SystemMouseCursors.resizeUpLeftDownRight,
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onPanUpdate: (details) {
+                                    final currentWidth = ref.read(lectureWidgetWidthProvider);
+                                    final currentHeight = ref.read(lectureWidgetHeightProvider);
+                                    final nextWidth = (currentWidth - details.delta.dx)
+                                        .clamp(300.0, 600.0)
+                                        .toDouble();
+                                    final nextHeight = (currentHeight + details.delta.dy)
+                                        .clamp(420.0, 800.0)
+                                        .toDouble();
+                                    ref.read(lectureWidgetWidthProvider.notifier).state = nextWidth;
+                                    ref.read(lectureWidgetHeightProvider.notifier).state = nextHeight;
+                                    html.window.parent?.postMessage({
+                                      'type': 'llai-resize',
+                                      'width': nextWidth.toInt(),
+                                      'height': nextHeight.toInt(),
+                                    }, '*');
+                                  },
+                                  child: Container(
+                                    width: 30,
+                                    height: 30,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.96),
+                                      borderRadius: BorderRadius.circular(9),
+                                      border: Border.all(
+                                        color: const Color(0xFFD0D5DD),
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.05),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.south_west_rounded,
+                                      size: 17,
+                                      color: Color(0xFF667085),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -397,59 +479,74 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
 
 class _WidgetHeader extends StatelessWidget {
   final LectureWidgetTab tab;
-  final VoidCallback? onResetVideo; // 비디오 초기화 함수 슬롯 추가
-  final VoidCallback? onMinimize; // [추가] 최소화 이벤트 슬롯
+  final VoidCallback? onResetVideo;
+  final VoidCallback? onMinimize;
+  final GestureDragUpdateCallback? onDragUpdate;
 
   const _WidgetHeader({
     required this.tab,
     this.onResetVideo,
     this.onMinimize,
+    this.onDragUpdate,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 24, top: 20, right: 20, bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Text('Lecture ', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF2F6BFF))),
-              Text('Hunter', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF00BFA5))),
-            ],
-          ),
-          
-          // 우측 액션 단추 모음 레이어
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // [추가] 창 최소화 마이너스(-) 버튼 가동
-              if (onMinimize != null)
-                IconButton(
-                  icon: const Icon(Icons.remove_rounded, color: Colors.black54, size: 22),
-                  onPressed: onMinimize,
-                  tooltip: '위젯 최소화',
-                ),
-              if (onMinimize != null && onResetVideo != null) const SizedBox(width: 4),
-              
-              if (onResetVideo != null)
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.refresh_rounded, color: Colors.black54, size: 20),
-                    splashRadius: 18,
-                    tooltip: '강의실 URL 초기화',
-                    onPressed: onResetVideo,
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onPanUpdate: onDragUpdate,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16, top: 12, right: 12, bottom: 10),
+        child: Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 54,
+                child: Image.asset(
+                  'assets/Lecture-Hunter_Logo4.png',
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.center,
+                  filterQuality: FilterQuality.high,
+                  errorBuilder: (context, error, stackTrace) => const Text(
+                    'Lecture Hunter',
+                    style: TextStyle(
+                      color: Color(0xFF2F6BFF),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-            ],
-          ),
-        ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (onMinimize != null)
+                  IconButton(
+                    icon: const Icon(Icons.remove_rounded, color: Colors.black54, size: 22),
+                    onPressed: onMinimize,
+                    tooltip: '위젯 최소화',
+                  ),
+                if (onMinimize != null && onResetVideo != null) const SizedBox(width: 4),
+                if (onResetVideo != null)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.refresh_rounded, color: Colors.black54, size: 20),
+                      splashRadius: 18,
+                      tooltip: '강의실 URL 초기화',
+                      onPressed: onResetVideo,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -462,36 +559,46 @@ class _TabBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      height: 48,
+      height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE8ECF5), width: 1)),
+        border: Border(bottom: BorderSide(color: Color(0xFFEAECF0), width: 1)),
       ),
       child: Row(
         children: [
           _TabButton(
             label: '자막',
+            accentColor: _tabAccentColor(LectureWidgetTab.caption),
+            softColor: _tabSoftColor(LectureWidgetTab.caption),
             selected: tab == LectureWidgetTab.caption,
             onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.caption,
           ),
           _TabButton(
             label: '질문',
+            accentColor: _tabAccentColor(LectureWidgetTab.question),
+            softColor: _tabSoftColor(LectureWidgetTab.question),
             selected: tab == LectureWidgetTab.question,
             onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.question,
           ),
           _TabButton(
-            label: '용어집',
-            selected: tab == LectureWidgetTab.glossary,
-            onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.glossary,
+            label: '공지',
+            accentColor: _tabAccentColor(LectureWidgetTab.notice),
+            softColor: _tabSoftColor(LectureWidgetTab.notice),
+            selected: tab == LectureWidgetTab.notice,
+            onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.notice,
           ),
           _TabButton(
             label: '요약',
+            accentColor: _tabAccentColor(LectureWidgetTab.summary),
+            softColor: _tabSoftColor(LectureWidgetTab.summary),
             selected: tab == LectureWidgetTab.summary,
             onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.summary,
           ),
           _TabButton(
             label: '설정',
+            accentColor: _tabAccentColor(LectureWidgetTab.settings),
+            softColor: _tabSoftColor(LectureWidgetTab.settings),
             selected: tab == LectureWidgetTab.settings,
             onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.settings,
           ),
@@ -503,11 +610,15 @@ class _TabBar extends ConsumerWidget {
 
 class _TabButton extends StatelessWidget {
   final String label;
+  final Color accentColor;
+  final Color softColor;
   final bool selected;
   final VoidCallback onTap;
 
   const _TabButton({
     required this.label,
+    required this.accentColor,
+    required this.softColor,
     required this.selected,
     required this.onTap,
   });
@@ -515,22 +626,31 @@ class _TabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(9),
-        onTap: onTap,
-        child: Container(
-          height: 34,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFF2F6BFF) : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected ? Colors.white : const Color(0xFF667085),
-              fontSize: 12,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ? softColor : Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: selected
+                    ? accentColor.withValues(alpha: 0.55)
+                    : accentColor.withValues(alpha: 0.22),
+              ),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: selected ? accentColor : const Color(0xFF667085),
+                fontSize: 11.8,
+                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+              ),
             ),
           ),
         ),
@@ -553,21 +673,32 @@ class _TabBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    late final Widget child;
+
     switch (tab) {
       case LectureWidgetTab.caption:
-        return const _CaptionTab();
+        child = const _CaptionTab();
+        break;
       case LectureWidgetTab.question:
-        return _QuestionTab(controller: questionController);
-      case LectureWidgetTab.glossary:
-        return _GlossaryTab(controller: glossaryController);
+        child = _QuestionTab(controller: questionController);
+        break;
+      case LectureWidgetTab.notice:
+        child = const _NoticeTab();
+        break;
       case LectureWidgetTab.summary:
-        return const _SummaryTab();
-      // [버그 해결] 기존 'setting'을 프로젝트 원본 규격인 'settings'로 올바르게 수정 완료!
-      case LectureWidgetTab.settings: 
-        return const _SettingsTab();
+        child = const _SummaryTab();
+        break;
+      case LectureWidgetTab.settings:
+        child = const _SettingsTab();
+        break;
     }
+
+    return child;
   }
 }
+
+final selectedCaptionLanguageProvider =
+    StateProvider<String>((ref) => 'ko');
 
 class _CaptionTab extends ConsumerWidget {
   const _CaptionTab();
@@ -575,136 +706,533 @@ class _CaptionTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subtitleAsync = ref.watch(subtitleStreamProvider);
-
-    // [진단용 돋보기 로그] 주소창에 엔터 치고 백엔드가 자막을 구울 때, 플러터 콘솔에 찍히는 로그를 봐야 합니다!
-    print("==================================================");
-    print("[스트림 진단] 현재 리버팟 자막 상태 타입: ${subtitleAsync.runtimeType}");
-    print("[스트림 진단] 세부 상태 상태값: $subtitleAsync");
-    
-    if (subtitleAsync is AsyncError) {
-      print("[스트림 진단 ] 에러 원인: ${subtitleAsync.error}");
-      print("[스트림 진단 ] 에러 추적 스택: ${subtitleAsync.stackTrace}");
-    }
-    print("==================================================");
+    final selectedLanguage = ref.watch(selectedCaptionLanguageProvider);
 
     return subtitleAsync.when(
       data: (latestSubtitle) {
-        print("[스트림 진단 ] 수신 성공! 데이터: $latestSubtitle");
-        if (latestSubtitle != null) {
-          print("[스트림 진단 ] 화면에 그릴 원문 텍스트: ${latestSubtitle.originalText}");
-        }
-
         if (latestSubtitle == null) {
-          return const Center(
-            child: Text(
-              '강의가 시작되면 실시간 자막이 여기에 표시됩니다.',
-              style: TextStyle(color: Colors.black38, fontSize: 14),
-            ),
+          return _CaptionEmptyState(
+            selectedLanguage: selectedLanguage,
+            onLanguageChanged: (language) {
+              ref.read(selectedCaptionLanguageProvider.notifier).state = language;
+            },
           );
         }
 
-        return Column(
-          children: [
-            _SubtitleCard(
-              title: '현재 자막',
-              text: latestSubtitle.translatedText ?? latestSubtitle.originalText, 
-              accentColor: const Color(0xFFD92D20),
+        final originalText = '강의가 조금 더 쉬워지는 그날까지';
+        final translatedText = _slogan(selectedLanguage);
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _CaptionHeader(
+                selectedLanguage: selectedLanguage,
+                onLanguageChanged: (language) {
+                  ref.read(selectedCaptionLanguageProvider.notifier).state = language;
+                },
+              ),
+              const SizedBox(height: 16),
+              _ModernSubtitleCard(
+                label: _originalTitle(selectedLanguage),
+                text: originalText,
+                accentColor: const Color(0xFF667085),
+                backgroundColor: const Color(0xFFF9FAFB),
+              ),
+              const SizedBox(height: 12),
+              _ModernSubtitleCard(
+                label: _languageTitle(selectedLanguage),
+                text: translatedText,
+                accentColor: const Color(0xFF2F6BFF),
+                backgroundColor: const Color(0xFFF9FAFB),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF2F6BFF),
+          strokeWidth: 2.5,
+        ),
+      ),
+      error: (err, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            '자막 연동 오류\n$err',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFFD92D20),
+              fontSize: 13,
+              height: 1.5,
             ),
-            const SizedBox(height: 16),
-            _SubtitleCard(
-              title: '원문',
-              text: latestSubtitle.originalText,
-              accentColor: const Color(0xFF667085),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _originalTitle(String language) {
+    switch (language) {
+      case 'en':
+        return 'Original';
+      case 'zh':
+        return '原文';
+      case 'ko':
+      default:
+        return '원문';
+    }
+  }
+
+  static String _languageTitle(String language) {
+    switch (language) {
+      case 'en':
+        return 'English Caption';
+      case 'zh':
+        return '中文字幕';
+      case 'ko':
+      default:
+        return '한국어 자막';
+    }
+  }
+
+  static String _languageBadge(String language) {
+    switch (language) {
+      case 'en':
+        return 'EN';
+      case 'zh':
+        return '中文';
+      case 'ko':
+      default:
+        return 'KO';
+    }
+  }
+
+
+  static String _slogan(String language) {
+    switch (language) {
+      case 'en':
+        return 'Until the day lectures become '
+            'a little easier';
+
+      case 'zh':
+        return '直到课程变得更轻松的那一天';
+
+      case 'ko':
+      default:
+        return '강의가 조금 더 쉬워지는 그날까지';
+    }
+  }
+}
+
+class _CaptionHeader extends StatelessWidget {
+  final String selectedLanguage;
+  final ValueChanged<String> onLanguageChanged;
+
+  const _CaptionHeader({
+    required this.selectedLanguage,
+    required this.onLanguageChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF1F0),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.closed_caption_rounded,
+                color: Color(0xFFE53935),
+                size: 21,
+              ),
+            ),
+            const SizedBox(width: 11),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '실시간 자막',
+                    style: TextStyle(
+                      color: Color(0xFF101828),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
-        );
-      },
-      loading: () {
-        print("[스트림 진단 ] 현재 자막 로딩 중 상태입니다.");
-        return const Center(child: CircularProgressIndicator(color: Color(0xFF2F6BFF)));
-      },
-      error: (err, stack) {
-        return Center(
-          child: Text('자막 연동 오류: $err', style: const TextStyle(color: Colors.red)),
-        );
-      },
+        ),
+        const SizedBox(height: 14),
+        _LanguageSelector(
+          selectedLanguage: selectedLanguage,
+          onChanged: onLanguageChanged,
+        ),
+      ],
     );
   }
 }
 
-// ─── [원래 UI 스타일 복원 본체] 1번째 사진 레이아웃과 픽셀 단위 정렬 완료 ───
-class _SubtitleCard extends StatelessWidget {
-  final String title;
-  final String text;
-  final Color accentColor;
+class _LanguageSelector extends StatelessWidget {
+  final String selectedLanguage;
+  final ValueChanged<String> onChanged;
 
-  const _SubtitleCard({
-    required this.title,
-    required this.text,
-    required this.accentColor,
+  const _LanguageSelector({
+    required this.selectedLanguage,
+    required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white, // 오리지널 순정 화이트 배경
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEAECF0), width: 1), // 연한 테두리선
+        color: const Color(0xFFF2F4F7),
+        borderRadius: BorderRadius.circular(14),
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // 첫 번째 사진 좌측 끝의 '두꺼운 세로 세트 인디케이터 바' 구현
-            Container(
-              width: 4,
-              decoration: BoxDecoration(
-                color: accentColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(20), // 여유로운 패딩 밸런스
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: accentColor, // 타이틀 컬러 동기화
-                        letterSpacing: -0.3,
+      child: Row(
+        children: [
+          _LanguageButton(
+            flag: '🇺🇸',
+            label: 'EN',
+            value: 'en',
+            selected: selectedLanguage == 'en',
+            onTap: onChanged,
+          ),
+          const SizedBox(width: 4),
+          _LanguageButton(
+            flag: '🇰🇷',
+            label: 'KR',
+            value: 'ko',
+            selected: selectedLanguage == 'ko',
+            onTap: onChanged,
+          ),
+          const SizedBox(width: 4),
+          _LanguageButton(
+            flag: '🇨🇳',
+            label: 'CN',
+            value: 'zh',
+            selected: selectedLanguage == 'zh',
+            onTap: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageButton extends StatelessWidget {
+  final String flag;
+  final String label;
+  final String value;
+  final bool selected;
+  final ValueChanged<String> onTap;
+
+  const _LanguageButton({
+    required this.flag,
+    required this.label,
+    required this.value,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => onTap(value),
+          borderRadius: BorderRadius.circular(10),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOut,
+            height: 42,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              border: selected
+                  ? Border.all(
+                      color: const Color(0xFFD0D5DD),
+                      width: 0.8,
+                    )
+                  : null,
+              boxShadow: selected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      text,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1D2939), // 본문 차콜 색상 매칭
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                    ]
+                  : null,
             ),
-          ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(flag, style: const TextStyle(fontSize: 18)),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: selected
+                        ? const Color(0xFF2F6BFF)
+                        : const Color(0xFF667085),
+                    fontSize: 12,
+                    fontWeight:
+                        selected ? FontWeight.w900 : FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-// 이미지 클릭 시 원본을 확대/축소하며 볼 수 있는 네이티브 모달 팝업 함수
+class _ModernSubtitleCard extends StatelessWidget {
+  final String label;
+  final String text;
+  final Color accentColor;
+  final Color backgroundColor;
+  final bool highlighted;
+
+  const _ModernSubtitleCard({
+    required this.label,
+    required this.text,
+    required this.accentColor,
+    required this.backgroundColor,
+    this.highlighted = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: highlighted
+              ? const Color(0xFFB2CCFF)
+              : const Color(0xFFEAECF0),
+          width: highlighted ? 1.2 : 1,
+        ),
+        boxShadow: highlighted
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF2F6BFF).withValues(alpha: 0.07),
+                  blurRadius: 14,
+                  offset: const Offset(0, 5),
+                ),
+              ]
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: accentColor,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 11),
+          Text(
+            text,
+            style: const TextStyle(
+              color: Color(0xFF1D2939),
+              fontSize: 14.5,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.15,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CaptionStatusBar extends StatelessWidget {
+  const _CaptionStatusBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFEAECF0)),
+      ),
+      child: const Row(
+        children: [
+          _LiveDot(),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '실시간 자막 연결 중',
+              style: TextStyle(
+                color: Color(0xFF667085),
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Icon(
+            Icons.graphic_eq_rounded,
+            size: 17,
+            color: Color(0xFF2F6BFF),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveDot extends StatefulWidget {
+  const _LiveDot();
+
+  @override
+  State<_LiveDot> createState() => _LiveDotState();
+}
+
+class _LiveDotState extends State<_LiveDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+
+    _opacity = Tween<double>(begin: 0.35, end: 1).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: Container(
+        width: 8,
+        height: 8,
+        decoration: const BoxDecoration(
+          color: Color(0xFF12B76A),
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+}
+
+class _CaptionEmptyState extends StatelessWidget {
+  final String selectedLanguage;
+  final ValueChanged<String> onLanguageChanged;
+
+  const _CaptionEmptyState({
+    required this.selectedLanguage,
+    required this.onLanguageChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+      child: Column(
+        children: [
+          _CaptionHeader(
+            selectedLanguage: selectedLanguage,
+            onLanguageChanged: onLanguageChanged,
+          ),
+          const SizedBox(height: 60),
+          Container(
+            width: 64,
+            height: 64,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F4F7),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Icon(
+              Icons.subtitles_rounded,
+              size: 29,
+              color: Color(0xFF98A2B3),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            '자막을 기다리고 있어요',
+            style: TextStyle(
+              color: Color(0xFF344054),
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 7),
+          const Text(
+            '강의가 시작되면 원문과 번역 자막이\n실시간으로 표시됩니다.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF98A2B3),
+              fontSize: 12,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 void _showOriginalImage(BuildContext context, String base64Image) {
   showDialog(
     context: context,
@@ -740,280 +1268,528 @@ class _QuestionTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(questionResponseProvider);
-    final answer = state.response?.answer.trim();
-    final target = ref.watch(questionTargetProvider);
-    final slideResult = ref.watch(lectureWidgetSlideProvider);
-    
-    final attachedImages = ref.watch(uploadedImagesProvider);
-    final cardImages = ref.watch(vlmSentImagesCardProvider);
-    final vlmQuery = ref.watch(vlmQueryProvider);
-
+    final mode = ref.watch(questionSubTabProvider);
     return Column(
       children: [
-        Expanded(
-          child: _PanelScroll(
-            children: [
-              Row(
-                children: [
-                  const Expanded(child: _SectionTitle(tab: LectureWidgetTab.question, icon: Icons.help_outline_rounded, title: '익명 질문', subtitle: '')),
-                  _SmallResetButton(
-                    onTap: () {
-                      controller.clear();
-                      ref.invalidate(questionResponseProvider);
-                      ref.invalidate(lectureWidgetSlideProvider);
-                      ref.invalidate(uploadedImagesProvider); 
-                      ref.invalidate(vlmSentImagesCardProvider);
-                      ref.invalidate(vlmQueryProvider);
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              _QuestionTargetToggle(
-                target: target,
-                onChanged: (newTarget) {
-                  ref.read(questionTargetProvider.notifier).state = newTarget;
-                  ref.invalidate(questionResponseProvider);
-                  controller.clear();
-                },
-              ),
-              const SizedBox(height: 14),
-
-              if (target == QuestionTarget.ai) ...[
-                _VlmCaptureButton(
-                  isLoading: ref.watch(vlmLoadingStateProvider),
-                  onTap: () async {
-                    try {
-                      final navigator = html.window.navigator;
-                      final mediaDevices = navigator.mediaDevices;
-                      final displayMediaPromise = js_util.callMethod(
-                        mediaDevices!, 
-                        'getDisplayMedia', 
-                        [js_util.jsify({'video': true})]
-                      );
-                      
-                      final html.MediaStream stream = await js_util.promiseToFuture(displayMediaPromise);
-                      ref.read(vlmLoadingStateProvider.notifier).state = true;
-                      ref.read(lectureWidgetSlideProvider.notifier).state = 'VLM 모델이 캡처 화면을 분석 중입니다...';
-
-                      final videoTrack = stream.getVideoTracks().first;
-                      final html.VideoElement videoElement = html.VideoElement()..srcObject = stream..autoplay = true;
-                      await videoElement.onCanPlay.first;
-                      
-                      final canvas = html.CanvasElement(width: videoElement.videoWidth, height: videoElement.videoHeight);
-                      canvas.context2D.drawImage(videoElement, 0, 0);
-                      videoTrack.stop();
-                      
-                      final base64Snapshot = canvas.toDataUrl('image/png');
-                      
-                      ref.read(uploadedImagesProvider.notifier).state = [base64Snapshot];
-                      ref.read(vlmSentImagesCardProvider.notifier).state = [base64Snapshot];
-                      ref.read(vlmQueryProvider.notifier).state = "[전체 화면 캡처 분석 요청]";
-
-                      const apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8000');
-                      final response = await http.post(
-                        Uri.parse('$apiBaseUrl/api/vlm/analyze'),
-                        headers: {'Content-Type': 'application/json'},
-                        body: jsonEncode({
-                          'images': [base64Snapshot], 
-                          'lecture_id': globalLectureId ?? 'lecture-default-room',
-                          'question': '캡처된 화면 슬라이드의 내용을 상세하게 독해하고 설명해줘.',
-                        }),
-                      );
-
-                      if (response.statusCode == 200) {
-                        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-                        final resultText = decoded['analysis'] ?? '분석 실패';
-                        
-                        // [핵심] 상태를 먼저 확실하게 할당한 뒤 위젯 상태를 격발
-                        ref.read(lectureWidgetSlideProvider.notifier).state = resultText;
-                      } else {
-                        ref.read(lectureWidgetSlideProvider.notifier).state = 'VLM 서버 에러 발생 (코드: ${response.statusCode})';
-                      }
-                    } catch (e) {
-                      ref.read(lectureWidgetSlideProvider.notifier).state = '화면 캡처가 취소되었거나 에러가 발생했습니다.';
-                    } finally {
-                      ref.read(vlmLoadingStateProvider.notifier).state = false;
-                    }
-                  },
-                ),
-                const SizedBox(height: 12),
-                if (slideResult != '슬라이드 분석 결과가 여기에 표시됩니다.') ...[
-                  _ResultCard(title: '슬라이드 시각 분석 결과', body: slideResult, accentColor: const Color(0xFF14B8A6)),
-                  const SizedBox(height: 12),
-                ],
-              ],
-
-              // 질문 완료 영역 이미지 클릭 시 대형 원본 뷰어 호출 연동
-              if (vlmQuery != null && vlmQuery.isNotEmpty) ...[
-                if (cardImages.isNotEmpty) ...[
-                  Container(
-                    height: 86,
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: cardImages.length,
-                      itemBuilder: (context, idx) {
-                        return GestureDetector(
-                          onTap: () => _showOriginalImage(context, cardImages[idx]), 
-                          child: Container(
-                            width: 86,
-                            margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFE4E7EC)),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(cardImages[idx], fit: BoxFit.cover),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-                _ResultCard(title: '질문', body: vlmQuery, accentColor: const Color(0xFFFB8C00)),
-                const SizedBox(height: 10),
-              ] else if (state.query.trim().isNotEmpty) ...[
-                _ResultCard(title: '질문', body: state.query.trim(), accentColor: const Color(0xFFFB8C00)),
-                const SizedBox(height: 10),
-              ],
-              
-              _ResultCard(
-                title: target == QuestionTarget.ai ? 'AI 답변' : '교수님께 전달 상태',
-                body: target == QuestionTarget.ai
-                    ? (answer == null || answer.isEmpty ? (vlmQuery != null ? slideResult : '질문을 입력하면 답변이 여기에 표시됩니다.') : answer)
-                    : (state.query.trim().isNotEmpty ? '성공적으로 전달되었습니다! 교수님의 실시간 피드백을 기다려주세요.' : '교수님께 질문할 내용을 입력하세요.'),
-                accentColor: const Color(0xFFFB8C00),
-              ),
-            ],
+        const Padding(
+          padding: EdgeInsets.fromLTRB(14, 14, 14, 0),
+          child: _SectionTitle(
+            tab: LectureWidgetTab.question,
+            icon: Icons.help_outline_rounded,
+            title: '질문',
+            subtitle: '',
           ),
         ),
-        
-        // 하단 전송 대기열 프리뷰 썸네일 클릭 시 원본 모달 팝업 연동
-        if (attachedImages.isNotEmpty)
-          Container(
-            height: 90,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: const BoxDecoration(color: Color(0xFFF9FAFB), border: Border(top: BorderSide(color: Color(0xFFE8ECF5)))),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: attachedImages.length,
-              itemBuilder: (context, index) {
-                return Stack(
-                  children: [
-                    GestureDetector(
-                      onTap: () => _showOriginalImage(context, attachedImages[index]), 
-                      child: Container(
-                        width: 74,
-                        height: 74,
-                        margin: const EdgeInsets.only(top: 4, right: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE4E7EC),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFFB8C00), width: 2), 
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(attachedImages[index], fit: BoxFit.cover),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 0,
-                      right: 8,
-                      child: InkWell(
-                        onTap: () {
-                          final newList = List<String>.from(attachedImages)..removeAt(index);
-                          ref.read(uploadedImagesProvider.notifier).state = newList;
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(color: Color(0xFF667085), shape: BoxShape.circle),
-                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+          child: _QuestionModeToggle(
+            mode: mode,
+            onChanged: (value) => ref.read(questionSubTabProvider.notifier).state = value,
           ),
-
-        _InputArea(
-          controller: controller,
-          hintText: target == QuestionTarget.ai ? 'AI에게 궁금한 내용을 입력하세요.' : '교수님께 전달할 익명 질문을 입력하세요.',
-          buttonIcon: Icons.send_rounded,
-          onAttachTap: () {
-            final html.FileUploadInputElement uploadInput = html.FileUploadInputElement()..accept = 'image/*'..multiple = true;
-            uploadInput.click(); 
-            uploadInput.onChange.listen((e) {
-              final files = uploadInput.files;
-              if (files != null) {
-                for (var file in files) {
-                  final reader = html.FileReader();
-                  reader.readAsDataUrl(file); 
-                  reader.onLoadEnd.listen((loadEvent) {
-                    final currentList = ref.read(uploadedImagesProvider);
-                    if (currentList.length < 5) {
-                      ref.read(uploadedImagesProvider.notifier).state = [...currentList, reader.result as String];
-                    }
-                  });
-                }
-              }
-            });
-          },
-          onSubmit: () async {
-            final text = controller.text.trim();
-            final currentImages = ref.read(uploadedImagesProvider);
-            if (text.isEmpty && currentImages.isEmpty) return;
-
-            if (currentImages.isNotEmpty && target == QuestionTarget.ai) {
-              ref.read(vlmSentImagesCardProvider.notifier).state = currentImages;
-              ref.read(vlmQueryProvider.notifier).state = text.isNotEmpty ? text : "[시각 자료 분석 요청]";
-              ref.read(lectureWidgetSlideProvider.notifier).state = 'VLM 모듈이 다중 이미지를 취합하여 분석하는 중...';
-              
-              // 입력창 텍스트와 대기열 버퍼를 즉각 초기화하여 반응성 극대화
-              controller.clear();
-              ref.read(uploadedImagesProvider.notifier).state = [];
-              ref.read(vlmLoadingStateProvider.notifier).state = true;
-
-              try {
-                const apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://localhost:8000');
-                final response = await http.post(
-                  Uri.parse('$apiBaseUrl/api/vlm/analyze'),
-                  headers: {'Content-Type': 'application/json'},
-                  body: jsonEncode({
-                    'images': currentImages, 
-                    'lecture_id': globalLectureId ?? 'lecture-default-room',
-                    'question': text.isNotEmpty ? text : '이 사진들에 대해 상세히 설명해줘.',
-                  }),
-                );
-
-                if (response.statusCode == 200) {
-                  final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-                  final resultText = decoded['analysis'] ?? '판독 실패';
-
-                  ref.read(lectureWidgetSlideProvider.notifier).state = resultText;
-                }
-              } catch (e) {
-                ref.read(lectureWidgetSlideProvider.notifier).state = 'VLM 연동 실패 에러: $e';
-              } finally {
-                ref.read(vlmLoadingStateProvider.notifier).state = false;
-              }
-              return;
-            }
-
-            ref.read(questionModeProvider.notifier).state = QuestionMode.professor;
-            await ref.read(questionResponseProvider.notifier).submit(text, target);
-            controller.clear();
-          },
+        ),
+        Expanded(
+          child: mode == 0
+              ? _AnonymousQuestionView(controller: controller)
+              : _GlossaryLookupView(controller: controller),
         ),
       ],
     );
   }
+}
+
+class _QuestionModeToggle extends StatelessWidget {
+  final int mode;
+  final ValueChanged<int> onChanged;
+  const _QuestionModeToggle({required this.mode, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget item(String text, int value, IconData? icon) {
+      final selected = mode == value;
+      return Expanded(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => onChanged(value),
+          child: Container(
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected ? const Color(0xFFFFF4E5) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: selected ? const Color(0xFFFED7AA) : const Color(0xFFE4E7EC),
+                width: selected ? 1.4 : 1,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon != null) ...[
+                  Icon(
+                    icon,
+                    size: 17,
+                    color: selected ? const Color(0xFFF79009) : const Color(0xFF98A2B3),
+                  ),
+                  const SizedBox(width: 7),
+                ],
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: selected ? const Color(0xFF7A2E0E) : const Color(0xFF475467),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        item('익명 질문', 0, null),
+        const SizedBox(width: 8),
+        item('용어집 조회', 1, null),
+      ],
+    );
+  }
+}
+
+class _AnonymousQuestionView extends ConsumerWidget {
+  final TextEditingController controller;
+  const _AnonymousQuestionView({required this.controller});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(questionResponseProvider);
+    final attached = ref.watch(uploadedImagesProvider);
+    final answer = state.response?.answer.trim();
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: controller,
+                  style: const TextStyle(
+                    color: Color(0xFF101828),
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFFF79009),
+                  minLines: 3,
+                  maxLines: 5,
+                  maxLength: 500,
+                  decoration: InputDecoration(
+                    hintText: '궁금한 내용을 입력하세요.',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF98A2B3),
+                      fontSize: 13,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFF79009),
+                        width: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(44),
+                    foregroundColor: const Color(0xFF7A2E0E),
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFFFED7AA)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => _captureForQuestion(ref),
+                  icon: const Icon(
+                    Icons.image_rounded,
+                    color: Color(0xFFF79009),
+                  ),
+                  label: const Text(
+                    '화면 캡처하기',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                if (attached.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          attached.first,
+                          height: 115,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        right: 6,
+                        top: 6,
+                        child: InkWell(
+                          onTap: () => ref.read(uploadedImagesProvider.notifier).state = [],
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Color(0xCC1D2939),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 10),
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFF79009),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(46),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final text = controller.text.trim();
+                    if (text.isEmpty) return;
+                    ref.read(questionModeProvider.notifier).state = QuestionMode.professor;
+                    await ref.read(questionResponseProvider.notifier).submit(
+                          text,
+                          QuestionTarget.professor,
+                        );
+                    controller.clear();
+                  },
+                  icon: const Icon(Icons.send_rounded, size: 18),
+                  label: const Text(
+                    '익명 질문 보내기',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                if (state.query.trim().isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  _CompactAnswerCard(
+                    label: '질문',
+                    body: state.query.trim(),
+                    accent: const Color(0xFFFED7AA),
+                  ),
+                  const SizedBox(height: 8),
+                  _CompactAnswerCard(
+                    label: '답변',
+                    body: (answer == null || answer.isEmpty)
+                        ? '질문이 전달되었습니다. 답변을 기다려주세요.'
+                        : answer,
+                    accent: const Color(0xFFF79009),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _captureForQuestion(WidgetRef ref) async {
+    try {
+      final mediaDevices = html.window.navigator.mediaDevices;
+      final promise = js_util.callMethod(
+        mediaDevices!,
+        'getDisplayMedia',
+        [js_util.jsify({'video': true})],
+      );
+      final html.MediaStream stream = await js_util.promiseToFuture(promise);
+      final track = stream.getVideoTracks().first;
+      final video = html.VideoElement()
+        ..srcObject = stream
+        ..autoplay = true;
+      await video.onCanPlay.first;
+      final canvas = html.CanvasElement(
+        width: video.videoWidth,
+        height: video.videoHeight,
+      );
+      canvas.context2D.drawImage(video, 0, 0);
+      track.stop();
+      ref.read(uploadedImagesProvider.notifier).state = [
+        canvas.toDataUrl('image/png'),
+      ];
+    } catch (_) {}
+  }
+}
+
+class _GlossaryLookupView extends ConsumerStatefulWidget {
+  final TextEditingController controller;
+
+  const _GlossaryLookupView({
+    required this.controller,
+  });
+
+  @override
+  ConsumerState<_GlossaryLookupView> createState() => _GlossaryLookupViewState();
+}
+
+class _GlossaryLookupViewState extends ConsumerState<_GlossaryLookupView> {
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(glossarySearchProvider);
+    final loading = ref.watch(glossaryLoadingProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: widget.controller,
+                  style: const TextStyle(
+                    color: Color(0xFF101828),
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFFF79009),
+                  decoration: InputDecoration(
+                    hintText: '용어를 입력하세요...',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFFB0B7C3),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 13,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFD0D5DD),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFD0D5DD),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFF79009),
+                        width: 1.4,
+                      ),
+                    ),
+                  ),
+                  onSubmitted: (_) => _search(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFF79009),
+                  foregroundColor: const Color(0xFF172033),
+                  minimumSize: const Size(68, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _search,
+                child: const Text(
+                  '조회',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (loading) ...[
+            const SizedBox(height: 18),
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: CircularProgressIndicator(
+                  color: Color(0xFFF79009),
+                  strokeWidth: 2.4,
+                ),
+              ),
+            ),
+          ],
+          if (!loading && state.results.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            ...state.results.map(
+              (e) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _GlossaryResultCard(
+                  term: e.term,
+                  definition: e.definition,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _search() {
+    final text = widget.controller.text.trim();
+    if (text.isEmpty) return;
+
+    ref.read(glossaryLoadingProvider.notifier).state = true;
+    ref.read(glossarySearchProvider.notifier).search(text);
+  }
+}
+
+class _GlossaryResultCard extends StatelessWidget {
+  final String term;
+  final String definition;
+
+  const _GlossaryResultCard({
+    required this.term,
+    required this.definition,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 15, 16, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFE4E7EC),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            term,
+            style: const TextStyle(
+              color: Color(0xFF101828),
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.2,
+            ),
+          ),
+          const SizedBox(height: 9),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 5,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F4F7),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Text(
+              '번역 서버 내부 용어집',
+              style: TextStyle(
+                color: Color(0xFF667085),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            '요약',
+            style: TextStyle(
+              color: Color(0xFFB54708),
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            definition,
+            style: const TextStyle(
+              color: Color(0xFF344054),
+              fontSize: 13.2,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () {},
+            icon: const Icon(
+              Icons.add_circle_outline_rounded,
+              size: 18,
+            ),
+            label: const Text(
+              '추가 설명 요청',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(42),
+              foregroundColor: const Color(0xFFB54708),
+              side: const BorderSide(
+                color: Color(0xFFFED7AA),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactAnswerCard extends StatelessWidget {
+  final String label, body; final Color accent;
+  const _CompactAnswerCard({required this.label, required this.body, required this.accent});
+  @override Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12)),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Container(width: 4, height: 54, decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(99))), const SizedBox(width: 12),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(color: Color(0xFF667085), fontSize: 12, fontWeight: FontWeight.w700)), const SizedBox(height: 5), Text(body, style: const TextStyle(color: Color(0xFF344054), height: 1.45))]))
+    ]),
+  );
 }
 
 class _SmallResetButton extends StatelessWidget {
@@ -1030,120 +1806,269 @@ class _SmallResetButton extends StatelessWidget {
         child: Container(
           width: 30, height: 30,
           alignment: Alignment.center,
-          decoration: BoxDecoration(color: const Color(0xFFFFF3E0), borderRadius: BorderRadius.circular(999), border: Border.all(color: const Color(0xFFFFCC80))),
-          child: const Icon(Icons.refresh_rounded, size: 17, color: Color(0xFFFB8C00)),
+          decoration: BoxDecoration(color: const Color(0xFFFFF3E0), borderRadius: BorderRadius.circular(999), border: Border.all(color: const Color(0xFFFED7AA))),
+          child: const Icon(Icons.refresh_rounded, size: 17, color: Color(0xFFF79009)),
         ),
       ),
     );
   }
 }
 
-class _GlossaryTab extends ConsumerWidget {
-  final TextEditingController controller;
-  const _GlossaryTab({required this.controller});
+class _NoticeTab extends StatelessWidget {
+  const _NoticeTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(glossarySearchProvider);
-    final isLoading = ref.watch(glossaryLoadingProvider);
-
-    ref.listen(glossarySearchProvider, (_, next) {
-      if (next.results.isNotEmpty) {
-        ref.read(glossaryLoadingProvider.notifier).state = false;
-      }
-    });
-
-    return Column(
-      children: [
-        Expanded(
-          child: _PanelScroll(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Expanded(
-                    child: _SectionTitle(
-                      tab: LectureWidgetTab.glossary, 
-                      icon: Icons.menu_book_rounded, 
-                      title: '용어집 조회', 
-                      subtitle: ''
-                    ),
+  Widget build(BuildContext context) => SingleChildScrollView(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const _SectionTitle(
+              tab: LectureWidgetTab.notice,
+              icon: Icons.campaign_rounded,
+              title: '공지',
+              subtitle: '',
+            ),
+            const SizedBox(height: 14),
+            _NoticeSection(
+              icon: null,
+              title: '',
+              child: RichText(
+                text: const TextSpan(
+                  style: TextStyle(
+                    color: Color(0xFF667085),
+                    fontSize: 13,
+                    height: 1.6,
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9A825).withValues(alpha: 0.1), 
-                      shape: BoxShape.circle,
+                  children: [
+                    TextSpan(text: '이번 주 강의는 '),
+                    TextSpan(
+                      text: '진도 흐름 파악이 중요합니다.',
+                      style: TextStyle(
+                        color: Color(0xFFF79009),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                    child: IconButton(
-                      icon: const Icon(Icons.refresh_rounded, color: Color(0xFFF9A825), size: 20),
-                      onPressed: () {
-                        ref.invalidate(glossarySearchProvider);
-                        ref.read(glossaryLoadingProvider.notifier).state = false;
-                        controller.clear();
-                      },
+                    TextSpan(
+                      text: '\n다음 주부터 중간 평가 관련 내용이 진행될 예정이니, 반드시 이번 주 내용을 숙지해 주세요.',
                     ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const _NoticeSection(
+              icon: Icons.description_rounded,
+              title: '강의 자료',
+              child: Column(
+                children: [
+                  _NoticeRow(
+                    icon: Icons.attach_file_rounded,
+                    title: '강의 슬라이드',
+                    subtitle: '출처: 교수님 제공',
+                    trailing: Icons.open_in_new_rounded,
+                    actionMessage: '강의 슬라이드 바로가기',
+                  ),
+                  SizedBox(height: 8),
+                  _NoticeRow(
+                    icon: Icons.attach_file_rounded,
+                    title: '추가 참고 자료',
+                    subtitle: '출처: 논문 (Smith et al., 2023)',
+                    trailing: Icons.open_in_new_rounded,
+                    actionMessage: '추가 참고 자료 바로가기',
+                  ),
+                  SizedBox(height: 8),
+                  _NoticeRow(
+                    icon: Icons.laptop_mac_rounded,
+                    title: '필요한 환경',
+                    subtitle: '구글 코랩(Google Colab), VS Code 권장\n필요한 라이브러리: numpy, matplotlib 등',
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              
-              // AI 및 DB 검색 엔진 작동 UI 구역
-              if (isLoading) ...[
-                const SizedBox(height: 80),
-                const Center(
+            ),
+            const SizedBox(height: 12),
+            const _NoticeSection(
+              icon: Icons.assignment_rounded,
+              title: '과제 안내',
+              child: Column(
+                children: [
+                  _NoticeRow(
+                    icon: Icons.description_outlined,
+                    title: '과제 설명',
+                    subtitle: '신경망 모델 구현 및 성능 비교',
+                    trailing: Icons.chevron_right_rounded,
+                    actionMessage: '과제 설명 열기',
+                  ),
+                  SizedBox(height: 8),
+                  _NoticeRow(
+                    icon: Icons.attach_file_rounded,
+                    title: '과제 제출 방법',
+                    subtitle: 'LMS에 코드 파일(.ipynb) 업로드',
+                    trailing: Icons.chevron_right_rounded,
+                    actionMessage: '과제 제출 방법 열기',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+}
+class _NoticeSection extends StatelessWidget {
+  final IconData? icon;
+  final String title;
+  final Widget child;
+
+  const _NoticeSection({
+    required this.icon,
+    required this.title,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFFF9A825);
+    const soft = Color(0xFFFFF8E1);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.30),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withValues(alpha: 0.035),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title.isNotEmpty) ...[
+            Row(
+              children: [
+                if (icon != null) ...[
+                  Container(
+                    width: 34,
+                    height: 34,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: soft,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: accent,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ],
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF101828),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+          child,
+        ],
+      ),
+    );
+  }
+}
+class _NoticeRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final IconData? trailing;
+  final String? actionMessage;
+
+  const _NoticeRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.trailing,
+    this.actionMessage,
+  });
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: actionMessage == null
+              ? null
+              : () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(actionMessage!),
+                      duration: const Duration(milliseconds: 900),
+                    ),
+                  );
+                },
+          child: Container(
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFFF9A825).withValues(alpha: 0.18),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: const Color(0xFFF9A825),
+                  size: 21,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation(Color(0xFFF9A825)),
-                      ),
-                      SizedBox(height: 16),
                       Text(
-                        '로컬 AI 전공 사전에서 정의 생성 중...',
-                        style: TextStyle(
-                          color: Colors.black45, 
-                          fontSize: 13, 
-                          fontWeight: FontWeight.w600
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF101828),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: Color(0xFF667085),
+                          height: 1.35,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ] else if (state.results.isEmpty) ...[
-                const _ResultCard(
-                  title: '검색 결과', 
-                  body: '용어를 입력하면 설명이 여기에 표시됩니다.', 
-                  accentColor: Color(0xFFF9A825)
-                )
-              ] else ...[
-                ...state.results.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _ResultCard(
-                    title: item.term, 
-                    body: item.definition, 
-                    accentColor: const Color(0xFFF9A825)
+                if (trailing != null)
+                  Icon(
+                    trailing,
+                    color: const Color(0xFFF9A825),
+                    size: 20,
                   ),
-                )),
               ],
-            ],
+            ),
           ),
         ),
-        _InputArea(
-          controller: controller, 
-          hintText: '용어를 입력하세요.', 
-          buttonIcon: Icons.search_rounded,
-          onSubmit: () {
-            final text = controller.text.trim();
-            if (text.isEmpty) return;
-
-            ref.read(glossaryLoadingProvider.notifier).state = true;
-            ref.read(glossarySearchProvider.notifier).search(text);
-            controller.clear();
-          },
-        ),
-      ],
-    );
-  }
+      );
 }
 
 class _SummaryTab extends ConsumerStatefulWidget {
@@ -1154,141 +2079,570 @@ class _SummaryTab extends ConsumerStatefulWidget {
 }
 
 class _SummaryTabState extends ConsumerState<_SummaryTab> {
-  late final TextEditingController _controller;
+  int _startHour = 0;
+  int _startMinutePart = 0;
+  int _endHour = 0;
+  int _endMinutePart = 5;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-  }
+  int get _startTotal => _startHour * 60 + _startMinutePart;
+  int get _endTotal => _endHour * 60 + _endMinutePart;
+  bool get _hasValidRange => _endTotal > _startTotal;
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  String _formatTime(int hour, int minute) {
+    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(summaryProvider); 
-    final history = ref.watch(summaryHistoryProvider);
-    final isLoading = ref.watch(summaryLoadingProvider);
+    final state = ref.watch(summaryProvider);
+    final loading = ref.watch(summaryLoadingProvider);
+    final body = state.summary.isEmpty
+        ? '요약을 실행하면 선택한 구간의 핵심 내용이 여기에 표시됩니다.'
+        : state.summary;
+    final summaryAccent = _tabAccentColor(LectureWidgetTab.summary);
+    final summarySoft = _tabSoftColor(LectureWidgetTab.summary);
 
-    ref.listen(summaryProvider, (previous, next) {
-      if (next.summary.isNotEmpty) {
-        final currentHistory = ref.read(summaryHistoryProvider);
-        if (currentHistory.isEmpty || currentHistory.last['body'] != next.summary) {
-          ref.read(summaryHistoryProvider.notifier).state = [
-            ...currentHistory,
-            {
-              'title': 'AI ${next.minutes}분 구간 요약 브리핑',
-              'body': next.summary,
-            }
-          ];
-        }
-        ref.read(summaryLoadingProvider.notifier).state = false;
-      }
-    });
-
-    return Column(
-      children: [
-        Expanded(
-          child: _PanelScroll(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Expanded(
-                    child: _SectionTitle(
-                      tab: LectureWidgetTab.summary, 
-                      icon: Icons.assignment_rounded, 
-                      title: '핵심 요약', 
-                      subtitle: ''
-                ),
-              ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50).withValues(alpha: 0.1), 
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.refresh_rounded, color: Color(0xFF4CAF50), size: 20),
-                      onPressed: () {
-                        ref.invalidate(summaryHistoryProvider);
-                        ref.invalidate(summaryProvider);
-                        ref.read(summaryLoadingProvider.notifier).state = false;
-                        _controller.clear();
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              if (history.isEmpty && !isLoading) ...[
-                const _ResultCard(
-                  title: '요약 결과', 
-                  body: '원하는 요약 구간(분)을 입력하면 요약문이 여기에 표시됩니다.', 
-                  accentColor: Color(0xFF4CAF50)
-                )
-              ],
-
-              ...history.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _ResultCard(
-                  title: item['title'] ?? '요약 브리핑', 
-                  body: item['body'] ?? '', 
-                  accentColor: const Color(0xFF4CAF50),
-                ),
-              )),
-
-              if (isLoading) ...[
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation(Color(0xFF4CAF50)),
-                        ),
-                        SizedBox(height: 12),
-                        Text(
-                          '최신 강의 데이터 요약 추출 중...',
-                          style: TextStyle(
-                            color: Colors.black45, 
-                            fontSize: 12, 
-                            fontWeight: FontWeight.w600
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _SectionTitle(
+            tab: LectureWidgetTab.summary,
+            icon: Icons.auto_awesome_rounded,
+            title: '구간요약',
+            subtitle: '',
           ),
-        ),
-        
-        _InputArea(
-          controller: _controller, 
-          hintText: '원하는 요약 구간(분)을 입력하세요. (기본: 5)', 
-          buttonIcon: Icons.bolt_rounded,
-          onSubmit: () {
-            final inputText = _controller.text.trim();
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+            decoration: _box(summaryAccent, summarySoft),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _TimePointSelector(
+                        label: '시작',
+                        accentColor: summaryAccent,
+                        softColor: summarySoft,
+                        hour: _startHour,
+                        minute: _startMinutePart,
+                        onHourChanged: (value) {
+                          setState(() => _startHour = value);
+                        },
+                        onMinuteChanged: (value) {
+                          setState(() => _startMinutePart = value);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _TimePointSelector(
+                        label: '종료',
+                        accentColor: summaryAccent,
+                        softColor: summarySoft,
+                        hour: _endHour,
+                        minute: _endMinutePart,
+                        onHourChanged: (value) {
+                          setState(() => _endHour = value);
+                        },
+                        onMinuteChanged: (value) {
+                          setState(() => _endMinutePart = value);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  height: 42,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: summaryAccent,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: summaryAccent.withValues(alpha: 0.28),
+                      disabledForegroundColor: Colors.white.withValues(alpha: 0.72),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: _hasValidRange ? _summarizeSelectedRange : null,
+                    icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+                    label: const Text(
+                      '요약하기',
+                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 11),
+                Row(
+                  children: [
+                    _Quick('전체 구간', () => _summarize(30)),
+                    _Quick('최근 5분', () => _summarize(5)),
+                    _Quick('최근 10분', () => _summarize(10)),
+                    _Quick('직접 선택', () {}),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: _box(summaryAccent, summarySoft),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.description_rounded, color: summaryAccent, size: 20),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'AI 요약',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF101828),
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.refresh_rounded, color: summaryAccent, size: 19),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(13, 13, 13, 13),
+                  decoration: BoxDecoration(
+                    color: summarySoft.withValues(alpha: 0.62),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: summaryAccent.withValues(alpha: 0.14)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 3,
+                        constraints: const BoxConstraints(minHeight: 54),
+                        decoration: BoxDecoration(
+                          color: summaryAccent,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                      ),
+                      const SizedBox(width: 11),
+                      Expanded(
+                        child: loading
+                            ? Center(
+                                child: CircularProgressIndicator(
+                                  color: summaryAccent,
+                                  strokeWidth: 2.4,
+                                ),
+                              )
+                            : Text(
+                                body,
+                                style: const TextStyle(
+                                  color: Color(0xFF344054),
+                                  height: 1.55,
+                                  fontSize: 12.2,
+                                ),
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+            decoration: _box(summaryAccent, summarySoft),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: summarySoft,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.timeline_rounded,
+                        color: summaryAccent,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 9),
+                    const Text(
+                      '주요 타임라인',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF101828),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const _TimelineItem(
+                  time: '00:00',
+                  title: '강의 시작 및 핵심 개념 소개',
+                  active: true,
+                ),
+                const _TimelineItem(
+                  time: '15:00',
+                  title: '주요 개념 및 내용 정리',
+                ),
+                const _TimelineItem(
+                  time: '30:00',
+                  title: '핵심 내용 심화 설명',
+                ),
+                const _TimelineItem(
+                  time: '45:00',
+                  title: '정리 및 예제 설명',
+                  last: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-            final numericString = RegExp(r'\d+').stringMatch(inputText) ?? '';
-            final minutes = int.tryParse(numericString) ?? 5;
-
-            ref.read(summaryLoadingProvider.notifier).state = true;
-            ref.read(summaryProvider.notifier).fetchSummary(minutes: minutes);
-            
-            _controller.clear();
-          },
+  BoxDecoration _box(Color accent, Color soft) {
+    return BoxDecoration(
+      color: Colors.white.withValues(alpha: 0.96),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: accent.withValues(alpha: 0.23)),
+      boxShadow: [
+        BoxShadow(
+          color: accent.withValues(alpha: 0.035),
+          blurRadius: 14,
+          offset: const Offset(0, 5),
         ),
       ],
     );
   }
+
+  void _summarizeSelectedRange() {
+    if (!_hasValidRange) return;
+    _summarize(_endTotal - _startTotal);
+  }
+
+  void _summarize(int minutes) {
+    ref.read(summaryLoadingProvider.notifier).state = true;
+    ref.read(summaryProvider.notifier).fetchSummary(minutes: minutes).whenComplete(
+          () => ref.read(summaryLoadingProvider.notifier).state = false,
+        );
+  }
+}
+
+class _TimePointSelector extends StatelessWidget {
+  final String label;
+  final Color accentColor;
+  final Color softColor;
+  final int hour;
+  final int minute;
+  final ValueChanged<int> onHourChanged;
+  final ValueChanged<int> onMinuteChanged;
+
+  const _TimePointSelector({
+    required this.label,
+    required this.accentColor,
+    required this.softColor,
+    required this.hour,
+    required this.minute,
+    required this.onHourChanged,
+    required this.onMinuteChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(
+          color: accentColor.withValues(alpha: 0.22),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xFF667085),
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _TimeUnitStepper(
+                  value: hour,
+                  min: 0,
+                  max: 23,
+                  step: 1,
+                  accentColor: accentColor,
+                  softColor: softColor,
+                  onChanged: onHourChanged,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: _TimeUnitStepper(
+                  value: minute,
+                  min: 0,
+                  max: 55,
+                  step: 5,
+                  accentColor: accentColor,
+                  softColor: softColor,
+                  onChanged: onMinuteChanged,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TimeUnitStepper extends StatelessWidget {
+  final int value;
+  final int min;
+  final int max;
+  final int step;
+  final Color accentColor;
+  final Color softColor;
+  final ValueChanged<int> onChanged;
+
+  const _TimeUnitStepper({
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.step,
+    required this.accentColor,
+    required this.softColor,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final canDecrease = value > min;
+    final canIncrease = value < max;
+
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: softColor.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: accentColor.withValues(alpha: 0.18),
+        ),
+      ),
+      child: Row(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(9),
+            onTap: canDecrease
+                ? () => onChanged((value - step).clamp(min, max).toInt())
+                : null,
+            child: SizedBox(
+              width: 18,
+              height: 40,
+              child: Icon(
+                Icons.remove_rounded,
+                size: 15,
+                color: canDecrease
+                    ? accentColor
+                    : const Color(0xFFD0D5DD),
+              ),
+            ),
+          ),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value.toString().padLeft(2, '0'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFF1D2939),
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          InkWell(
+            borderRadius: BorderRadius.circular(9),
+            onTap: canIncrease
+                ? () => onChanged((value + step).clamp(min, max).toInt())
+                : null,
+            child: SizedBox(
+              width: 18,
+              height: 40,
+              child: Icon(
+                Icons.add_rounded,
+                size: 15,
+                color: canIncrease
+                    ? accentColor
+                    : const Color(0xFFD0D5DD),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepArrow extends StatelessWidget {
+  final IconData icon;
+  final bool enabled;
+  final Color accentColor;
+  final VoidCallback onTap;
+
+  const _StepArrow({
+    required this.icon,
+    required this.enabled,
+    required this.accentColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(5),
+      onTap: enabled ? onTap : null,
+      child: SizedBox(
+        width: 19,
+        height: 17,
+        child: Icon(
+          icon,
+          size: 17,
+          color: enabled ? accentColor : const Color(0xFFD0D5DD),
+        ),
+      ),
+    );
+  }
+}
+
+class _TimelineItem extends StatelessWidget {
+  final String time;
+  final String title;
+  final bool active;
+  final bool last;
+
+  const _TimelineItem({
+    required this.time,
+    required this.title,
+    this.active = false,
+    this.last = false,
+  });
+
+  @override
+  Widget build(BuildContext context) => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 22,
+            child: Column(
+              children: [
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: active ? const Color(0xFF43A047) : Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF43A047), width: 1.6),
+                  ),
+                  child: Icon(
+                    Icons.play_arrow_rounded,
+                    size: 12,
+                    color: active ? Colors.white : const Color(0xFF43A047),
+                  ),
+                ),
+                if (!last) Container(width: 1.5, height: 25, color: const Color(0xFFCFE8D3)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 50,
+            child: Text(
+              time,
+              style: const TextStyle(color: Color(0xFF35883B), fontSize: 13, fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                color: Color(0xFF344054),
+                fontSize: 12.5,
+                height: 1.35,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      );
+}
+
+class _Quick extends StatelessWidget {
+  final String text;
+  final VoidCallback onTap;
+
+  const _Quick(this.text, this.onTap);
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: OutlinedButton(
+            onPressed: onTap,
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
+              foregroundColor: const Color(0xFF35883B),
+              backgroundColor: const Color(0xFFFAFCFA),
+              side: const BorderSide(color: Color(0xFFCFE8D3)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      );
 }
 
 class _SettingsTab extends ConsumerWidget {
@@ -1298,79 +2652,210 @@ class _SettingsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final opacity = ref.watch(lectureWidgetOpacityProvider);
     final width = ref.watch(lectureWidgetWidthProvider);
+    final height = ref.watch(lectureWidgetHeightProvider);
     final fontScale = ref.watch(lectureWidgetFontScaleProvider);
+    final accent = _tabAccentColor(LectureWidgetTab.settings);
+    final soft = _tabSoftColor(LectureWidgetTab.settings);
 
     return _PanelScroll(
       children: [
-        const _SectionTitle(tab: LectureWidgetTab.settings, icon: Icons.settings_rounded, title: '위젯 설정', subtitle: ''),
-        const SizedBox(height: 18),
-        _SettingSlider(title: '패널 투명도', valueText: '${(opacity * 100).round()}%', value: opacity, min: 0.20, max: 1.0, divisions: 16, onChanged: (v) => ref.read(lectureWidgetOpacityProvider.notifier).state = v),
-        const SizedBox(height: 18),
-        _SettingSlider(
-          title: '패널 너비',
-          valueText: '${width.round()}px',
-          value: width,
-          min: 300,
-          max: 460,
-          divisions: 8,
-          onChanged: (value) {
-            // 내부 플러터 패널 크기 인프라 상태 반영
-            ref.read(lectureWidgetWidthProvider.notifier).state = value;
-            
-            // 부모 크롬 레이어 창에 +48px 여유 마진을 주어 실시간 프레임 리사이징 단행
-            html.window.parent?.postMessage(
-              {
-                'type': 'llai-resize',
-                'width': value.toInt() + 48,
-              },
-              '*',
-            );
-          },
+        const _SectionTitle(
+          tab: LectureWidgetTab.settings,
+          icon: Icons.tune_rounded,
+          title: '설정',
+          subtitle: '',
         ),
-        const SizedBox(height: 18),
-        _SettingSlider(title: '글자 크기', valueText: '${(fontScale * 100).round()}%', value: fontScale, min: 0.9, max: 1.2, divisions: 6, onChanged: (v) => ref.read(lectureWidgetFontScaleProvider.notifier).state = v),
-        const SizedBox(height: 22),
-        _HideWidgetButton(onTap: () => ref.read(lectureWidgetVisibleProvider.notifier).state = false),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.fromLTRB(14, 4, 14, 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFDCE6F8)),
+          ),
+          child: Column(
+            children: [
+              _SettingSlider(
+                icon: Icons.opacity_rounded,
+                title: '투명도',
+                valueText: '${(opacity * 100).round()}%',
+                value: opacity,
+                min: 0.20,
+                max: 1.0,
+                divisions: 16,
+                accentColor: accent,
+                softColor: soft,
+                onChanged: (value) =>
+                    ref.read(lectureWidgetOpacityProvider.notifier).state = value,
+              ),
+              const Divider(height: 1, color: Color(0xFFEDF1F7)),
+              _SettingSlider(
+                icon: Icons.width_normal_rounded,
+                title: '너비',
+                valueText: '${width.round()} px',
+                value: width.clamp(300.0, 600.0),
+                min: 300,
+                max: 600,
+                divisions: 30,
+                accentColor: accent,
+                softColor: soft,
+                onChanged: (value) {
+                  ref.read(lectureWidgetWidthProvider.notifier).state = value;
+                  html.window.parent?.postMessage({
+                    'type': 'llai-resize',
+                    'width': value.toInt(),
+                    'height': height.toInt(),
+                  }, '*');
+                },
+              ),
+              const Divider(height: 1, color: Color(0xFFEDF1F7)),
+              _SettingSlider(
+                icon: Icons.height_rounded,
+                title: '높이',
+                valueText: '${height.round()} px',
+                value: height.clamp(420.0, 800.0),
+                min: 420,
+                max: 800,
+                divisions: 38,
+                accentColor: accent,
+                softColor: soft,
+                onChanged: (value) {
+                  ref.read(lectureWidgetHeightProvider.notifier).state = value;
+                  html.window.parent?.postMessage({
+                    'type': 'llai-resize',
+                    'width': width.toInt(),
+                    'height': value.toInt(),
+                  }, '*');
+                },
+              ),
+              const Divider(height: 1, color: Color(0xFFEDF1F7)),
+              _SettingSlider(
+                icon: Icons.text_fields_rounded,
+                title: '전체 글자 크기',
+                valueText: '${(fontScale * 100).round()}%',
+                value: fontScale,
+                min: 0.85,
+                max: 1.25,
+                divisions: 8,
+                accentColor: accent,
+                softColor: soft,
+                onChanged: (value) =>
+                    ref.read(lectureWidgetFontScaleProvider.notifier).state = value,
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 }
 
-class _HideWidgetButton extends StatelessWidget {
-  final VoidCallback onTap;
-  const _HideWidgetButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(15), onTap: onTap,
-      child: Container(
-        width: double.infinity, height: 46, alignment: Alignment.center,
-        decoration: BoxDecoration(color: const Color(0xFFEEF4FF), borderRadius: BorderRadius.circular(15), border: Border.all(color: const Color(0xFFB2CCFF))),
-        child: const Text('위젯 숨기기', style: TextStyle(color: Color(0xFF2F6BFF), fontSize: 13, fontWeight: FontWeight.w900)),
-      ),
-    );
-  }
-}
-
 class _SettingSlider extends StatelessWidget {
-  final String title; final String valueText; final double value; final double min; final double max; final int divisions; final ValueChanged<double> onChanged;
-  const _SettingSlider({required this.title, required this.valueText, required this.value, required this.min, required this.max, required this.divisions, required this.onChanged});
+  final IconData icon;
+  final String title;
+  final String valueText;
+  final double value;
+  final double min;
+  final double max;
+  final int divisions;
+  final Color accentColor;
+  final Color softColor;
+  final ValueChanged<double> onChanged;
+  final ValueChanged<double>? onChangeEnd;
+
+  const _SettingSlider({
+    required this.icon,
+    required this.title,
+    required this.valueText,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.divisions,
+    required this.accentColor,
+    required this.softColor,
+    required this.onChanged,
+    this.onChangeEnd,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 13, 14, 10),
-      decoration: BoxDecoration(color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(15), border: Border.all(color: const Color(0xFFE4E7EC))),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 13),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: Text(title, style: const TextStyle(color: Color(0xFF344054), fontSize: 13, fontWeight: FontWeight.w800))),
-              Text(valueText, style: const TextStyle(color: Color(0xFF2F6BFF), fontSize: 12, fontWeight: FontWeight.w900)),
+              Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: softColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: accentColor,
+                  size: 17,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF1D2939),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: softColor,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  valueText,
+                  style: TextStyle(
+                    color: accentColor,
+                    fontSize: 10.8,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             ],
           ),
-          Slider(value: value, min: min, max: max, divisions: divisions, onChanged: onChanged),
+          const SizedBox(height: 7),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: accentColor,
+              inactiveTrackColor: accentColor.withValues(alpha: 0.13),
+              thumbColor: Colors.white,
+              overlayColor: accentColor.withValues(alpha: 0.08),
+              trackHeight: 4,
+              thumbShape: const RoundSliderThumbShape(
+                enabledThumbRadius: 7,
+                elevation: 2,
+              ),
+              overlayShape: const RoundSliderOverlayShape(
+                overlayRadius: 14,
+              ),
+            ),
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              divisions: divisions,
+              onChanged: onChanged,
+              onChangeEnd: onChangeEnd,
+            ),
+          ),
         ],
       ),
     );
@@ -1407,10 +2892,10 @@ class _SectionTitle extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: accentColor, fontSize: 17, fontWeight: FontWeight.w900)),
+              Text(title, style: TextStyle(color: accentColor, fontSize: 17, fontWeight: FontWeight.w700)),
               if (subtitle.isNotEmpty) ...[
                 const SizedBox(height: 3),
-                Text(subtitle, style: const TextStyle(color: Color(0xFF667085), fontSize: 12, height: 1.25, fontWeight: FontWeight.w500)),
+                Text(subtitle, style: const TextStyle(color: Color(0xFF667085), fontSize: 12, height: 1.25, fontWeight: FontWeight.w600)),
               ],
             ],
           ),
@@ -1440,7 +2925,7 @@ class _ResultCard extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(color: accentColor, fontSize: 13, fontWeight: FontWeight.w900), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(title, style: TextStyle(color: accentColor, fontSize: 13, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 9),
                   Text(body, style: const TextStyle(color: Color(0xFF344054), fontSize: 14, height: 1.45, fontWeight: FontWeight.w700), softWrap: true, overflow: TextOverflow.visible),
                 ],
@@ -1551,7 +3036,7 @@ class _TargetTabButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(7), onTap: onTap,
         child: Container(
           alignment: Alignment.center,
-          decoration: BoxDecoration(color: selected ? const Color(0xFFFB8C00) : Colors.transparent, borderRadius: BorderRadius.circular(7)),
+          decoration: BoxDecoration(color: selected ? const Color(0xFFF79009) : Colors.transparent, borderRadius: BorderRadius.circular(7)),
           child: Text(label, style: TextStyle(color: selected ? Colors.white : const Color(0xFF667085), fontSize: 11, fontWeight: selected ? FontWeight.w800 : FontWeight.w600)),
         ),
       ),
@@ -1577,7 +3062,7 @@ class _VlmCaptureButton extends StatelessWidget {
                 children: [
                   Icon(Icons.camera_alt_rounded, color: Color(0xFF14B8A6), size: 18),
                   SizedBox(width: 8),
-                  Text('현재 화면 캡처해서 AI 질문', style: TextStyle(color: Color(0xFF0D9488), fontSize: 13, fontWeight: FontWeight.w800)),
+                  Text('현재 화면 캡처해서 AI 질문', style: TextStyle(color: Color(0xFF0D9488), fontSize: 13, fontWeight: FontWeight.w700)),
                 ],
               ),
       ),
