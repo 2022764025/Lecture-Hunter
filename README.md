@@ -24,7 +24,6 @@
 <p align="center">
   🇰🇷 한국어 &nbsp;·&nbsp;
   <a href="README.en.md">🇺🇸 English</a> &nbsp;·&nbsp;
-  <a href="README.jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
   <a href="README.zh.md">🇨🇳 简体中文</a>
 </p>
 
@@ -86,42 +85,51 @@ TV에서 자막 보신 적 있으시죠?
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/real-time captions.png" width="360"/>
+      <img src="./assets/screens/Captions.png"/Users/ansuji/Documents/Glossary.png width="360"/>
       <br/>
-      <sub>수신된 자막의 원문과 한국어 번역을 함께 볼 수 있어요.</sub>
+      <sub>강의 원문과 한국어 자막을 함께 확인할 수 있어요.</sub>
     </td>
     <td align="center">
-      <img src="./assets/screens/question_input.png" width="360"/><br/>
-      <sub>강의 내용을 바탕으로 AI에게 질문할 수 있어요.</sub>
+      <img src="./assets/screens/Questions.png" width="360"/>
+      <br/>
+      <sub>강의 내용에 대해 질문하고 화면을 캡처해 보낼 수 있어요.</sub>
     </td>
   </tr>
 
   <tr>
     <th align="center">📚 용어집 조회</th>
-    <th align="center">📝 핵심 요약</th>
+    <th align="center">📢 강의 공지</th>
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/glossary_tab.png" width="360"/><br/>
-      <sub>저장된 강의 용어를 검색해서 확인할 수 있어요.</sub>
+      <img src="./assets/screens/Glossary.png" width="360"/>
+      <br/>
+      <sub>강의 용어를 입력해 용어집에서 찾아볼 수 있어요.</sub>
     </td>
     <td align="center">
-      <img src="./assets/screens/key_summary_features.png" width="360"/><br/>
-      <sub>강의 내용을 짧게 요약해줘요.</sub>
+      <img src="./assets/screens/Notice.png" width="360"/>
+      <br/>
+      <sub>강의 공지와 자료, 과제 안내를 확인할 수 있어요.</sub>
     </td>
   </tr>
 
   <tr>
+    <th align="center">📝 강의 요약</th>
     <th align="center">⚙️ 설정</th>
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/caption_settings.png" width="360"/><br/>
-      <sub>자막 크기, 위치, 투명도, 테마를 조절할 수 있어요.</sub>
+      <img src="./assets/screens/Summary.png" width="360"/>
+      <br/>
+      <sub>원하는 구간의 강의 내용을 요약하고 주요 타임라인을 확인할 수 있어요.</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/Settings.png" width="360"/>
+      <br/>
+      <sub>자막 창의 투명도, 너비, 높이와 글자 크기를 조절할 수 있어요.</sub>
     </td>
   </tr>
 </table>
-
 <br/>
 
 ---
