@@ -85,7 +85,11 @@ TV에서 자막 보신 적 있으시죠?
   </tr>
   <tr>
     <td align="center">
+<<<<<<< HEAD
       <img src="./assets/screens/Captions.png"/Users/ansuji/Documents/Glossary.png width="360"/>
+=======
+      <img src="./assets/screens/Captions.png" width="360"/>
+>>>>>>> 64e852c (화면 이미지 및 README 수정)
       <br/>
       <sub>강의 원문과 한국어 자막을 함께 확인할 수 있어요.</sub>
     </td>
@@ -105,6 +109,54 @@ TV에서 자막 보신 적 있으시죠?
       <img src="./assets/screens/Glossary.png" width="360"/>
       <br/>
       <sub>강의 용어를 입력해 용어집에서 찾아볼 수 있어요.</sub>
+<<<<<<< HEAD
+=======
+    </td>
+    <td align="center">
+      <img src="./assets/screens/Notice.png" width="360"/>
+      <br/>
+      <sub>강의 공지와 자료, 과제 안내를 확인할 수 있어요.</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <th align="center">📝 강의 요약</th>
+    <th align="center">⚙️ 설정</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/Summary.png" width="360"/>
+      <br/>
+      <sub>원하는 구간의 강의 내용을 요약하고 주요 타임라인을 확인할 수 있어요.</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/Settings.png" width="360"/>
+      <br/>
+      <sub>자막 창의 투명도, 너비, 높이와 글자 크기를 조절할 수 있어요.</sub>
+    </td>
+  </tr>
+</table>
+
+<br/>
+
+  </tr>
+    <th align="center">⚙️ 설정</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/caption_settings.png" width="360"/><br/>
+      <sub>자막 크기, 위치, 투명도, 테마를 조절할 수 있어요.</sub>
+    </td>
+  </tr>
+</table>
+
+<br/>
+
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/Glossary.png" width="360"/><br/>
+      <sub>저장된 강의 용어를 검색해서 확인할 수 있어요.</sub>
+>>>>>>> 64e852c (화면 이미지 및 README 수정)
     </td>
     <td align="center">
       <img src="./assets/screens/Notice.png" width="360"/>
