@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/LectureHunter_Logo3.jpeg" alt="Lecture Hunter Logo" width="100%" />
+  <img src="assets/lecture-hunter-readme.gif" alt="Lecture Hunter" width="250">
 </p>
 
 <p align="center">
@@ -24,7 +24,6 @@
 <p align="center">
   <a href="README.md">🇰🇷 한국어</a> &nbsp;·&nbsp;
   🇺🇸 English &nbsp;·&nbsp;
-  <a href="README.jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
   <a href="README.zh.md">🇨🇳 简体中文</a>
 </p>
 
@@ -81,43 +80,53 @@ If you missed part of a lecture, it can even **summarize what's happened so far*
 
 <table align="center">
   <tr>
-    <th align="center">🎙 Real-time Captions & Translation</th>
-    <th align="center">💬 AI Q&A for Lectures</th>
+    <th align="center">🎙 Real-Time Captions and Translation</th>
+    <th align="center">💬 Ask the Lecture AI</th>
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/real-time captions.png" width="360"/>
+      <img src="./assets/screens/Captions.png" width="360"/>
       <br/>
-      <sub>View both the original text and its English translation side by side.</sub>
+      <sub>View the original lecture text and Korean captions together.</sub>
     </td>
     <td align="center">
-      <img src="./assets/screens/question_input.png" width="360"/><br/>
-      <sub>Ask the AI questions based on the lecture content.</sub>
+      <img src="./assets/screens/Questions.png" width="360"/>
+      <br/>
+      <sub>Ask questions about the lecture and send screenshots.</sub>
     </td>
   </tr>
 
   <tr>
-    <th align="center">📚 Glossary Lookup</th>
-    <th align="center">📝 Key Summary</th>
+    <th align="center">📚 Glossary</th>
+    <th align="center">📢 Lecture Notices</th>
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/glossary_tab.png" width="360"/><br/>
-      <sub>Search and review saved lecture terminology.</sub>
+      <img src="./assets/screens/Glossary.png" width="360"/>
+      <br/>
+      <sub>Search the glossary for lecture terms.</sub>
     </td>
     <td align="center">
-      <img src="./assets/screens/key_summary_features.png" width="360"/><br/>
-      <sub>Get a concise summary of the lecture content.</sub>
+      <img src="./assets/screens/Notice.png" width="360"/>
+      <br/>
+      <sub>Check lecture announcements, materials, and assignment instructions.</sub>
     </td>
   </tr>
 
   <tr>
+    <th align="center">📝 Lecture Summary</th>
     <th align="center">⚙️ Settings</th>
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/caption_settings.png" width="360"/><br/>
-      <sub>Adjust caption size, position, opacity, and theme.</sub>
+      <img src="./assets/screens/Summary.png" width="360"/>
+      <br/>
+      <sub>Summarize a selected section of the lecture and review its key moments.</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/Settings.png" width="360"/>
+      <br/>
+      <sub>Adjust the caption window's opacity, width, height, and font size.</sub>
     </td>
   </tr>
 </table>
