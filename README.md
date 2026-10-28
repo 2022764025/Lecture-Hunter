@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/LectureHunter_Logo3.jpeg" alt="Lecture Hunter Logo" width="100%" />
+  <img src="assets/lecture-hunter-readme.gif" alt="Lecture Hunter" width="250">
 </p>
 
 <p align="center">
@@ -24,7 +24,6 @@
 <p align="center">
   🇰🇷 한국어 &nbsp;·&nbsp;
   <a href="README.en.md">🇺🇸 English</a> &nbsp;·&nbsp;
-  <a href="README.jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
   <a href="README.zh.md">🇨🇳 简体中文</a>
 </p>
 
@@ -74,57 +73,60 @@ TV에서 자막 보신 적 있으시죠?
 | “10분 늦게 들어왔는데 지금 무슨 얘기야...”  | 강의 흐름을 AI 질문으로 확인할 수 있어요.   |
 | “질문하고 싶은데 손들기 부끄러워...”       | AI에게 조용히 질문할 수 있어요.         |
 | “어려운 단어가 나왔는데 다시 확인하고 싶어...” | 저장된 강의 용어를 검색해서 확인할 수 있어요.  |
-| “지나간 자막을 다시 보고 싶어...”        | 자막 히스토리에서 이전 자막을 확인할 수 있어요. |
 
 ---
 
-### 🖼 주요 기능 미리보기
+### 🖼 주요 기능
 
 <table align="center">
   <tr>
     <th align="center">🎙 실시간 자막 및 번역</th>
+    <th align="center">💬 강의 AI 질문</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/Captions.png"/Users/ansuji/Documents/Glossary.png width="360"/>
+      <br/>
+      <sub>강의 원문과 한국어 자막을 함께 확인할 수 있어요.</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/Questions.png" width="360"/>
+      <br/>
+      <sub>강의 내용에 대해 질문하고 화면을 캡처해 보낼 수 있어요.</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <th align="center">📚 용어집 조회</th>
+    <th align="center">📢 강의 공지</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./assets/screens/Glossary.png" width="360"/>
+      <br/>
+      <sub>강의 용어를 입력해 용어집에서 찾아볼 수 있어요.</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/Notice.png" width="360"/>
+      <br/>
+      <sub>강의 공지와 자료, 과제 안내를 확인할 수 있어요.</sub>
+    </td>
+  </tr>
+
+  <tr>
+    <th align="center">📝 강의 요약</th>
     <th align="center">⚙️ 설정</th>
   </tr>
   <tr>
     <td align="center">
-      준비 중
+      <img src="./assets/screens/Summary.png" width="360"/>
       <br/>
-      <sub>수신된 자막의 원문과 한국어 번역을 함께 볼 수 있어요.</sub>
+      <sub>원하는 구간의 강의 내용을 요약하고 주요 타임라인을 확인할 수 있어요.</sub>
     </td>
     <td align="center">
-      <img src="./assets/screens/caption_settings.png" width="360"/><br/>
-      <sub>자막 크기, 위치, 투명도, 테마를 조절할 수 있어요.</sub>
-    </td>
-  </tr>
-
-  <tr>
-    <th align="center">💬 강의 AI 질문</th>
-    <th align="center">📚 용어집 조회</th>
-  </tr>
-  <tr>
-    <td align="center">
-      <img src="./assets/screens/question_input.png" width="360"/><br/>
-      <sub>강의 내용을 바탕으로 AI에게 질문할 수 있어요.</sub>
-    </td>
-    <td align="center">
-      <img src="./assets/screens/glossary_tab.png" width="360"/><br/>
-      <sub>저장된 강의 용어를 검색해서 확인할 수 있어요.</sub>
-    </td>
-  </tr>
-
-  <tr>
-    <th align="center">📜 지난 자막 보기</th>
-    <th align="center">📝 핵심 요약</th>
-  </tr>
-  <tr>
-    <td align="center">
-      <img src="./assets/screens/caption_history.png" width="360"/><br/>
-      <sub>지나간 자막도 다시 확인할 수 있어요.</sub>
-    </td>
-    <td align="center">
-      <img src="./assets/screens/key_summary_features.png" width="360"/><br/>
-      <sub>강의 내용을 짧게 요약해줘요.</sub>
-    </td>
+      <img src="./assets/screens/Settings.png" width="360"/>
+      <br/>
+      <sub>자막 창의 투명도, 너비, 높이와 글자 크기를 조절할 수 있어요.</sub>
     </td>
   </tr>
 </table>
@@ -181,33 +183,43 @@ AI 답변:
 
 ## 🚀 시작하는 방법
 
+> 터미널 창을 3개 열어두고 시작하세요!
 
-| 항목 | 버전 |
-|------|------|
-| Python | 3.12 |
-| Flutter | 3.x |
-| Ollama | 최신 버전 |
-| Supabase 계정 | - |
+---
 
-**설치하기**
+### STEP 0. 사전 설치 _(최초 1회)_
+
+| 프로그램 | 다운로드 |
+|---------|---------|
+| Python 3.12 | https://www.python.org/downloads/ |
+| Flutter 3.x | https://docs.flutter.dev/get-started/install |
+| Ollama | https://ollama.com/ |
+| Google Chrome | https://www.google.com/chrome/ |
+| Supabase 계정 | https://supabase.com/ |
+
+---
+
+### STEP 1. 프로젝트 가져오기
 
 ```bash
-# 1. 프로젝트 가져오기
 git clone https://github.com/2022764025/Lecture-Hunter.git
 cd Lecture-Hunter
+```
 
-# 2. 백엔드 준비
+---
+
+### STEP 2. 백엔드 준비 _(최초 1회)_
+
+```bash
 python3 -m venv pikmin
-source pikmin/bin/activate
+source pikmin/bin/activate        # Windows: pikmin\Scripts\activate
 pip install -r requirements.txt
-
-# 3. 환경 설정 (.env 파일 생성 후 아래 내용 입력)
-cp .env.example .env
+cp .env.example .env              # .env 파일 열어서 아래 값 채우기
 ```
 
 ```env
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_URL=여기에_입력
+SUPABASE_ANON_KEY=여기에_입력
 LLM_MODEL=gemma2:2b
 VLM_MODEL=llama3.2-vision:11b
 WHISPER_MODEL_SIZE=medium
@@ -215,40 +227,63 @@ WHISPER_DEVICE=auto
 VAD_THRESHOLD=0.3
 ```
 
+> 💡 URL·KEY는 Supabase 대시보드 → Project Settings → API에서 확인
+
+---
+
+### STEP 3. 프론트엔드 준비 _(최초 1회)_
+
 ```bash
-# 4. 화면(프론트엔드) 준비
-cd Frontend
-flutter pub get
-cd ..
+cd Frontend && flutter pub get && cd ..
 ```
 
-**실행하기 → 터미널 창을 3개 열어주세요**
+---
 
+### STEP 4. 실행하기
+
+**터미널 1** — AI 서버
 ```bash
-# 터미널 1: AI 모델 서버 켜기
 ollama serve
+```
 
-# 터미널 2: 백엔드 서버 켜기
-cd ~/Downloads/Lecture-Hunter
+**터미널 2** — 백엔드
+```bash
 source pikmin/bin/activate
-cd App
-uvicorn main:app --reload
+cd App && uvicorn main:app --reload
+```
 
-# 터미널 3: 화면 실행
+**터미널 3** — 프론트엔드
+```bash
 cd Frontend
 flutter run -d chrome \
+  --web-port=9998 \
   --dart-define=API_BASE_URL=http://127.0.0.1:8000 \
   --dart-define=WS_BASE_URL=ws://127.0.0.1:8000 \
-  --dart-define=SUPABASE_URL=your_supabase_url \
-  --dart-define=SUPABASE_ANON_KEY=your_supabase_publishable_or_anon_key \
+  --dart-define=SUPABASE_URL=여기에_입력 \
+  --dart-define=SUPABASE_ANON_KEY=여기에_입력 \
   --dart-define=LECTURE_ID=demo-lecture \
   --dart-define=TARGET_LANG=Korean
 ```
 
-**잘 실행됐는지 확인하기**
-- 주소창에 `http://127.0.0.1:8000` 열어서 응답이 오면 **OK**
-- Chrome에서 자막 화면이 뜨면 **OK**
-- 자막·질문·용어집 버튼들이 보이면 **OK**
+---
+
+### STEP 5. 크롬 확장 프로그램 설치
+
+1. Chrome 주소창에 `chrome://extensions` 입력
+2. 오른쪽 위 **개발자 모드** 켜기
+3. **압축해제된 확장 프로그램을 로드합니다** 클릭 → `Extension/` 폴더 선택
+4. 🧩 아이콘 클릭 → Lecture Hunter 핀 고정
+5. 강의 탭에서 아이콘 클릭 → 위젯 실행
+
+---
+
+### ✅ 실행 확인
+
+| 확인 항목 | 주소 |
+|---------|------|
+| 백엔드 | http://127.0.0.1:8000 |
+| 프론트엔드 | http://127.0.0.1:9998 |
+| 확장 프로그램 | 강의 탭 위에 위젯 등장 여부 확인 |
 
 <br>
 
@@ -264,21 +299,11 @@ flutter run -d chrome \
 | 실시간 자막 수신 | ✅ 완료 |
 | 수동 자막 표시 테스트 | ✅ 완료 |
 | 오디오 WebSocket 연결 | ✅ 완료 |
-| 실제 마이크 음성 자막 변환 | ⏳ 예정 |
-| 핵심 요약 기능 | 🔄 진행 중 |
-| 슬라이드 이미지 분석 | 🔄 진행 중 |
+| 실제 마이크 음성 자막 변환 | ✅ 완료 |
+| 핵심 요약 기능 | ✅ 완료 |
+| 슬라이드 이미지 분석 | ✅ 완료 |
 | 여러 명 동시 사용 테스트 | ⏳ 예정 |
 
-
-### 🧪 남은 핵심 작업
-
-| 작업                 | 상태 |
-| ------------------ | -- |
-| 실제 마이크 입력          | 예정 |
-| 마이크 음성 백엔드 전송      | 예정 |
-| 음성 자막 변환           | 예정 |
-| 변환된 자막 실시간 표시      | 예정 |
-| 실제 음성 기반 전체 흐름 테스트 | 예정 |
 
 ---
 
@@ -294,7 +319,6 @@ Flutter 화면이 켜지면 강의 화면 위에 학습 도우미 위젯이 나�
 | 새 질문 시작 | 이전 질문 내용 지우고 새로 시작하고 싶을 때 눌러요 |
 | 용어 검색 | 용어집 탭에서 모르는 단어 검색해서 확인해요 |
 | 자막 히스토리 | 지나간 자막 다시 보고 싶을 때 확인해요 |
-| 실서버 연결 | 실제 강의와 연결해서 쓸 때 이 모드로 바꿔요 |
 
 <br/>
 
@@ -322,33 +346,25 @@ Flutter 화면이 켜지면 강의 화면 위에 학습 도우미 위젯이 나�
 
 
 ```text
-Lecture-Hunter
-│
-├── App/                   
-│   ├── main.py
+Lecture-Hunter/
+├── App/
 │   ├── api/
 │   ├── core/
 │   ├── services/
-│   └── ...
-│
-├── Frontend/              
+│   └── main.py
+├── Extension/
+│   ├── background.js
+│   ├── manifest.json
+│   ├── offscreen.html
+│   └── offscreen.js
+├── Frontend/
 │   ├── lib/
-│   │   ├── core/
-│   │   ├── features/
-│   │   │   ├── assistant/  
-│   │   │   ├── caption/    
-│   │   │   └── overlay/    
-│   │   ├── services/
-│   │   └── main.dart
+│   ├── web/
 │   └── pubspec.yaml
-│
 ├── assets/
-│   ├── LectureHunter_Logo3.jpeg
-│   └── screens/           
-│
-├── README.md
+├── Dockerfile
 ├── requirements.txt
-└── Dockerfile
+└── README.md
 ```
 
 <br/>
@@ -356,8 +372,6 @@ Lecture-Hunter
 ---
 
 ### 참고 자료
-
-만드는 데 도움받은 자료들이에요.
 
 - Flutter 공식 문서: https://docs.flutter.dev/
 - FastAPI 공식 문서: https://fastapi.tiangolo.com/
