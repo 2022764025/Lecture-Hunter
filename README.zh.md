@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/LectureHunter_Logo3.jpeg" alt="Lecture Hunter Logo" width="100%" />
+  <img src="assets/lecture-hunter-readme.gif" alt="Lecture Hunter" width="250">
 </p>
 
 <p align="center">
@@ -24,7 +24,6 @@
 <p align="center">
   <a href="README.md">🇰🇷 한국어</a> &nbsp;·&nbsp;
   <a href="README.en.md">🇺🇸 English</a> &nbsp;·&nbsp;
-  <a href="README.jp.md">🇯🇵 日本語</a> &nbsp;·&nbsp;
   🇨🇳 简体中文
 </p>
 
@@ -82,46 +81,55 @@
 <table align="center">
   <tr>
     <th align="center">🎙 实时字幕与翻译</th>
-    <th align="center">💬 讲义 AI 问答</th>
+    <th align="center">💬 向课堂 AI 提问</th>
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/real-time captions.png" width="360"/>
+      <img src="./assets/screens/Captions.png" width="360"/>
       <br/>
-      <sub>同时显示字幕原文与中文翻译。</sub>
+      <sub>可同时查看课程原文和韩语字幕。</sub>
     </td>
     <td align="center">
-      <img src="./assets/screens/question_input.png" width="360"/><br/>
-      <sub>可根据讲义内容向 AI 提问。</sub>
+      <img src="./assets/screens/Questions.png" width="360"/>
+      <br/>
+      <sub>可以针对课程内容提问，也可以发送屏幕截图。</sub>
     </td>
   </tr>
 
   <tr>
-    <th align="center">📚 词汇表查询</th>
-    <th align="center">📝 要点总结</th>
+    <th align="center">📚 术语表查询</th>
+    <th align="center">📢 课程公告</th>
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/glossary_tab.png" width="360"/><br/>
-      <sub>搜索并查看已保存的讲义术语。</sub>
+      <img src="./assets/screens/Glossary.png" width="360"/>
+      <br/>
+      <sub>输入课程术语，即可在术语表中查询。</sub>
     </td>
     <td align="center">
-      <img src="./assets/screens/key_summary_features.png" width="360"/><br/>
-      <sub>对讲义内容进行简洁摘要。</sub>
+      <img src="./assets/screens/Notice.png" width="360"/>
+      <br/>
+      <sub>查看课程公告、学习资料和作业说明。</sub>
     </td>
   </tr>
 
   <tr>
+    <th align="center">📝 课程总结</th>
     <th align="center">⚙️ 设置</th>
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/caption_settings.png" width="360"/><br/>
-      <sub>可调整字幕大小、位置、透明度和主题。</sub>
+      <img src="./assets/screens/Summary.png" width="360"/>
+      <br/>
+      <sub>总结指定的课程片段，并查看重要时间点。</sub>
+    </td>
+    <td align="center">
+      <img src="./assets/screens/Settings.png" width="360"/>
+      <br/>
+      <sub>可调整字幕窗口的透明度、宽度、高度和字体大小。</sub>
     </td>
   </tr>
 </table>
-
 <br/>
 
 ---
