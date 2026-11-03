@@ -85,7 +85,7 @@ TV에서 자막 보신 적 있으시죠?
   </tr>
   <tr>
     <td align="center">
-      <img src="./assets/screens/Captions.png"/Users/ansuji/Documents/Glossary.png width="360"/>
+      <img src="./assets/screens/Captions.png" width="360"/>
       <br/>
       <sub>강의 원문과 한국어 자막을 함께 확인할 수 있어요.</sub>
     </td>
@@ -95,7 +95,6 @@ TV에서 자막 보신 적 있으시죠?
       <sub>강의 내용에 대해 질문하고 화면을 캡처해 보낼 수 있어요.</sub>
     </td>
   </tr>
-
   <tr>
     <th align="center">📚 용어집 조회</th>
     <th align="center">📢 강의 공지</th>
@@ -112,7 +111,6 @@ TV에서 자막 보신 적 있으시죠?
       <sub>강의 공지와 자료, 과제 안내를 확인할 수 있어요.</sub>
     </td>
   </tr>
-
   <tr>
     <th align="center">📝 강의 요약</th>
     <th align="center">⚙️ 설정</th>
@@ -131,7 +129,9 @@ TV에서 자막 보신 적 있으시죠?
   </tr>
 </table>
 
-<br/>
+
+
+
 
 ---
 

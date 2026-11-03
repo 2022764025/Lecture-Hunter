@@ -24,35 +24,9 @@ enum LectureWidgetTab {
   settings,
 }
 
-Color _tabAccentColor(LectureWidgetTab tab) {
-  switch (tab) {
-    case LectureWidgetTab.caption:
-      return const Color(0xFFE53935); 
-    case LectureWidgetTab.question:
-      return const Color(0xFFF79009); 
-    case LectureWidgetTab.notice:
-      return const Color(0xFFF9A825); 
-    case LectureWidgetTab.summary:
-      return const Color(0xFF43A047); 
-    case LectureWidgetTab.settings:
-      return const Color(0xFF2F6BFF); 
-  }
-}
+Color _tabAccentColor(LectureWidgetTab tab) => const Color(0xFF779586);
 
-Color _tabSoftColor(LectureWidgetTab tab) {
-  switch (tab) {
-    case LectureWidgetTab.caption:
-      return const Color(0xFFFFEBEE);
-    case LectureWidgetTab.question:
-      return const Color(0xFFFFF4E5);
-    case LectureWidgetTab.notice:
-      return const Color(0xFFFFF8E1);
-    case LectureWidgetTab.summary:
-      return const Color(0xFFE8F5E9);
-    case LectureWidgetTab.settings:
-      return const Color(0xFFEEF4FF);
-  }
-}
+Color _tabSoftColor(LectureWidgetTab tab) => const Color(0xFFE8EEE9);
 
 final lectureWidgetTabProvider =
     StateProvider<LectureWidgetTab>((ref) => LectureWidgetTab.caption);
@@ -67,9 +41,9 @@ final lectureWidgetSlideProvider =
 
 final lectureWidgetOpacityProvider = StateProvider<double>((ref) => 1.0);
 
-final lectureWidgetWidthProvider = StateProvider<double>((ref) => 360);
+final lectureWidgetWidthProvider = StateProvider<double>((ref) => 420);
 
-final lectureWidgetHeightProvider = StateProvider<double>((ref) => 560);
+final lectureWidgetHeightProvider = StateProvider<double>((ref) => 640);
 
 final lectureWidgetFontScaleProvider = StateProvider<double>((ref) => 1.0);
 
@@ -252,16 +226,16 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
                   width: 420,
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
+                    color: const Color(0xFFF5F3F0),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE4E7EC)),
+                    border: Border.all(color: const Color(0xFFE7E5E1)),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.ondemand_video_rounded, size: 52, color: Color(0xFF2F6BFF)),
+                      const Icon(Icons.ondemand_video_rounded, size: 52, color: Color(0xFF779586)),
                       const SizedBox(height: 20),
-                      const Text('강의 영상 주소를 입력하세요', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF101828))),
+                      const Text('강의 영상 주소를 입력하세요', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF252525))),
                       const SizedBox(height: 20),
                       TextField(
                         onSubmitted: (value) {
@@ -342,9 +316,9 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
                         height: panelHeight,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(22),
+                          borderRadius: BorderRadius.circular(18),
                           border: Border.all(
-                            color: const Color(0xFFE4E7EC),
+                            color: const Color(0xFFE7E5E1),
                             width: 1,
                           ),
                           boxShadow: [
@@ -359,7 +333,7 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
                           children: [
                             Positioned.fill(
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(22),
+                                borderRadius: BorderRadius.circular(18),
                                 child: Column(
                                   children: [
                                     _WidgetHeader(
@@ -438,30 +412,7 @@ class _LectureFloatingWidgetState extends ConsumerState<LectureFloatingWidget> {
                                       'height': nextHeight.toInt(),
                                     }, '*');
                                   },
-                                  child: Container(
-                                    width: 30,
-                                    height: 30,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.96),
-                                      borderRadius: BorderRadius.circular(9),
-                                      border: Border.all(
-                                        color: const Color(0xFFD0D5DD),
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.05),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Icon(
-                                      Icons.south_west_rounded,
-                                      size: 17,
-                                      color: Color(0xFF667085),
-                                    ),
-                                  ),
+                                  child: const SizedBox(width: 30, height: 30),
                                 ),
                               ),
                             ),
@@ -482,182 +433,66 @@ class _WidgetHeader extends StatelessWidget {
   final VoidCallback? onResetVideo;
   final VoidCallback? onMinimize;
   final GestureDragUpdateCallback? onDragUpdate;
-
-  const _WidgetHeader({
-    required this.tab,
-    this.onResetVideo,
-    this.onMinimize,
-    this.onDragUpdate,
-  });
-
+  const _WidgetHeader({required this.tab, this.onResetVideo, this.onMinimize, this.onDragUpdate});
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onPanUpdate: onDragUpdate,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 16, top: 12, right: 12, bottom: 10),
-        child: Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: 54,
-                child: Image.asset(
-                  'assets/Lecture-Hunter_Logo4.png',
-                  width: double.infinity,
-                  fit: BoxFit.contain,
-                  alignment: Alignment.center,
-                  filterQuality: FilterQuality.high,
-                  errorBuilder: (context, error, stackTrace) => const Text(
-                    'Lecture Hunter',
-                    style: TextStyle(
-                      color: Color(0xFF2F6BFF),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (onMinimize != null)
-                  IconButton(
-                    icon: const Icon(Icons.remove_rounded, color: Colors.black54, size: 22),
-                    onPressed: onMinimize,
-                    tooltip: '위젯 최소화',
-                  ),
-                if (onMinimize != null && onResetVideo != null) const SizedBox(width: 4),
-                if (onResetVideo != null)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.refresh_rounded, color: Colors.black54, size: 20),
-                      splashRadius: 18,
-                      tooltip: '강의실 URL 초기화',
-                      onPressed: onResetVideo,
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => GestureDetector(
+    behavior: HitTestBehavior.translucent,
+    onPanUpdate: onDragUpdate,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(15, 14, 12, 8),
+      child: Row(children: [
+        Container(width: 36, height: 36,
+          decoration: BoxDecoration(color: const Color(0xFFE8EEE9), borderRadius: BorderRadius.circular(10)),
+          child: const Icon(Icons.chat_outlined, color: Color(0xFF567D68), size: 23)),
+        const SizedBox(width: 9),
+        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+          Text('Lecture-Hunter', style: TextStyle(fontSize: 17, height: 1.15, fontWeight: FontWeight.w800, color: Color(0xFF252525))),
+          SizedBox(height: 2),
+          Text('강의가 조금 더 쉬워지는 그날까지', style: TextStyle(fontSize: 9, color: Color(0xFF77746F))),
+        ])),
+        if (onResetVideo != null) IconButton(onPressed: onResetVideo, icon: const Icon(Icons.refresh_rounded, size: 18, color: Color(0xFF77746F)), tooltip: '강의 URL 초기화', constraints: const BoxConstraints(minWidth: 30, minHeight: 30), padding: EdgeInsets.zero),
+        IconButton(onPressed: onMinimize, icon: const Icon(Icons.remove_rounded, size: 23, color: Color(0xFF77746F)), tooltip: '최소화', constraints: const BoxConstraints(minWidth: 30, minHeight: 30), padding: EdgeInsets.zero),
+      ]),
+    ),
+  );
 }
+
 
 class _TabBar extends ConsumerWidget {
   final LectureWidgetTab tab;
   const _TabBar({required this.tab});
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFEAECF0), width: 1)),
-      ),
-      child: Row(
-        children: [
-          _TabButton(
-            label: '자막',
-            accentColor: _tabAccentColor(LectureWidgetTab.caption),
-            softColor: _tabSoftColor(LectureWidgetTab.caption),
-            selected: tab == LectureWidgetTab.caption,
-            onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.caption,
-          ),
-          _TabButton(
-            label: '질문',
-            accentColor: _tabAccentColor(LectureWidgetTab.question),
-            softColor: _tabSoftColor(LectureWidgetTab.question),
-            selected: tab == LectureWidgetTab.question,
-            onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.question,
-          ),
-          _TabButton(
-            label: '공지',
-            accentColor: _tabAccentColor(LectureWidgetTab.notice),
-            softColor: _tabSoftColor(LectureWidgetTab.notice),
-            selected: tab == LectureWidgetTab.notice,
-            onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.notice,
-          ),
-          _TabButton(
-            label: '요약',
-            accentColor: _tabAccentColor(LectureWidgetTab.summary),
-            softColor: _tabSoftColor(LectureWidgetTab.summary),
-            selected: tab == LectureWidgetTab.summary,
-            onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.summary,
-          ),
-          _TabButton(
-            label: '설정',
-            accentColor: _tabAccentColor(LectureWidgetTab.settings),
-            softColor: _tabSoftColor(LectureWidgetTab.settings),
-            selected: tab == LectureWidgetTab.settings,
-            onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = LectureWidgetTab.settings,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TabButton extends StatelessWidget {
-  final String label;
-  final Color accentColor;
-  final Color softColor;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _TabButton({
-    required this.label,
-    required this.accentColor,
-    required this.softColor,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            height: 36,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: selected ? softColor : Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: selected
-                    ? accentColor.withValues(alpha: 0.55)
-                    : accentColor.withValues(alpha: 0.22),
-              ),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: selected ? accentColor : const Color(0xFF667085),
-                fontSize: 11.8,
-                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
-              ),
+  Widget build(BuildContext context, WidgetRef ref) => Container(
+    padding: const EdgeInsets.fromLTRB(15, 13, 15, 15),
+    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFE7E5E1)))),
+    child: Row(children: [
+      for (final entry in const [
+        (LectureWidgetTab.caption, '자막'), (LectureWidgetTab.question, '질문'),
+        (LectureWidgetTab.notice, '공지'), (LectureWidgetTab.summary, '요약'),
+        (LectureWidgetTab.settings, '설정')
+      ])
+        Expanded(child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3),
+          child: InkWell(
+            onTap: () => ref.read(lectureWidgetTabProvider.notifier).state = entry.$1,
+            borderRadius: BorderRadius.circular(10),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150), height: 38,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: tab == entry.$1 ? const Color(0xFFE8EEE9) : const Color(0xFFF5F3F0),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: tab == entry.$1 ? const Color(0xFF779586) : const Color(0xFFE7E5E1))),
+              child: Text(entry.$2, style: TextStyle(fontSize: 12, fontWeight: tab == entry.$1 ? FontWeight.w800 : FontWeight.w500,
+                color: tab == entry.$1 ? const Color(0xFF476C58) : const Color(0xFF77746F))),
             ),
           ),
-        ),
-      ),
-    );
-  }
+        )),
+    ]),
+  );
 }
+
+
 
 class _TabBody extends ConsumerWidget {
   final LectureWidgetTab tab;
@@ -706,126 +541,104 @@ class _CaptionTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subtitleAsync = ref.watch(subtitleStreamProvider);
-    final selectedLanguage = ref.watch(selectedCaptionLanguageProvider);
+    final history = ref.watch(subtitleHistoryProvider);
+    final language = ref.watch(selectedCaptionLanguageProvider);
+    final subtitle = subtitleAsync.valueOrNull ??
+        (history.isNotEmpty ? history.last : null);
+    final original = subtitle?.originalText.trim();
+    final translated = subtitle?.translatedText?.trim();
 
-    return subtitleAsync.when(
-      data: (latestSubtitle) {
-        if (latestSubtitle == null) {
-          return _CaptionEmptyState(
-            selectedLanguage: selectedLanguage,
-            onLanguageChanged: (language) {
-              ref.read(selectedCaptionLanguageProvider.notifier).state = language;
-            },
-          );
-        }
-
-        final originalText = '강의가 조금 더 쉬워지는 그날까지';
-        final translatedText = _slogan(selectedLanguage);
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _CaptionHeader(
-                selectedLanguage: selectedLanguage,
-                onLanguageChanged: (language) {
-                  ref.read(selectedCaptionLanguageProvider.notifier).state = language;
-                },
-              ),
-              const SizedBox(height: 16),
-              _ModernSubtitleCard(
-                label: _originalTitle(selectedLanguage),
-                text: originalText,
-                accentColor: const Color(0xFF667085),
-                backgroundColor: const Color(0xFFF9FAFB),
-              ),
-              const SizedBox(height: 12),
-              _ModernSubtitleCard(
-                label: _languageTitle(selectedLanguage),
-                text: translatedText,
-                accentColor: const Color(0xFF2F6BFF),
-                backgroundColor: const Color(0xFFF9FAFB),
-              ),
-            ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(15, 20, 15, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(children: [
+            const Expanded(child: Text('실시간 자막',
+              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800,
+                color: Color(0xFF252525)))),
+            Icon(Icons.circle, size: 9,
+              color: subtitleAsync.hasError
+                  ? const Color(0xFFBF554E)
+                  : subtitle == null
+                      ? const Color(0xFFB0ACA6)
+                      : const Color(0xFF476C58)),
+            const SizedBox(width: 5),
+            Text(subtitleAsync.hasError ? '연결 오류'
+                : subtitle == null ? '연결 대기' : '자막 수신 중',
+              style: const TextStyle(fontSize: 11, color: Color(0xFF476C58))),
+          ]),
+          const SizedBox(height: 16),
+          _LanguageSelector(
+            selectedLanguage: language,
+            onChanged: (value) =>
+                ref.read(selectedCaptionLanguageProvider.notifier).state = value,
           ),
-        );
-      },
-      loading: () => const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF2F6BFF),
-          strokeWidth: 2.5,
-        ),
-      ),
-      error: (err, stack) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            '자막 연동 오류\n$err',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Color(0xFFD92D20),
-              fontSize: 13,
-              height: 1.5,
+          const SizedBox(height: 18),
+          Container(
+            height: 135,
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F3F0),
+              borderRadius: BorderRadius.circular(14),
             ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(language == 'en' ? 'Original' : language == 'zh' ? '原文' : '원문', style: const TextStyle(fontSize: 13,
+                fontWeight: FontWeight.w700, color: Color(0xFF77746F))),
+              const SizedBox(height: 12),
+              Text(original == null || original.isEmpty
+                  ? '강의 원문 자막이 여기에 표시됩니다.' : original,
+                maxLines: 4, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF55534F))),
+            ]),
           ),
-        ),
+          const SizedBox(height: 16),
+          Container(
+            height: 175,
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFF779586)),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                const Icon(Icons.translate_rounded,
+                  color: Color(0xFF476C58), size: 19),
+                const SizedBox(width: 7),
+                Text(language == 'en' ? 'English Caption'
+                    : language == 'zh' ? '中文字幕' : '한국어 자막',
+                  style: const TextStyle(fontSize: 15,
+                    fontWeight: FontWeight.w800, color: Color(0xFF476C58))),
+              ]),
+              const SizedBox(height: 12),
+              Text(
+                translated == null || translated.isEmpty
+                ? language == 'en'
+                  ? 'Translated captions will appear here.'
+                  : language == 'zh'
+                    ? '翻译后的字幕将在此处显示。'
+                    : '번역된 자막이 여기에 표시됩니다.'
+                      : translated,
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF252525),),),
+            ]),
+          ),
+          if (subtitleAsync.hasError) ...[
+            const SizedBox(height: 12),
+            const Text('자막 서버 연결 상태를 확인해 주세요.',
+              style: TextStyle(fontSize: 12, color: Color(0xFFBF554E))),
+          ],
+        ],
       ),
     );
   }
-
-  static String _originalTitle(String language) {
-    switch (language) {
-      case 'en':
-        return 'Original';
-      case 'zh':
-        return '原文';
-      case 'ko':
-      default:
-        return '원문';
-    }
-  }
-
-  static String _languageTitle(String language) {
-    switch (language) {
-      case 'en':
-        return 'English Caption';
-      case 'zh':
-        return '中文字幕';
-      case 'ko':
-      default:
-        return '한국어 자막';
-    }
-  }
-
-  static String _languageBadge(String language) {
-    switch (language) {
-      case 'en':
-        return 'EN';
-      case 'zh':
-        return '中文';
-      case 'ko':
-      default:
-        return 'KO';
-    }
-  }
-
-
-  static String _slogan(String language) {
-    switch (language) {
-      case 'en':
-        return 'Until the day lectures become '
-            'a little easier';
-
-      case 'zh':
-        return '直到课程变得更轻松的那一天';
-
-      case 'ko':
-      default:
-        return '강의가 조금 더 쉬워지는 그날까지';
-    }
-  }
 }
+
 
 class _CaptionHeader extends StatelessWidget {
   final String selectedLanguage;
@@ -853,7 +666,7 @@ class _CaptionHeader extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.closed_caption_rounded,
-                color: Color(0xFFE53935),
+                color: Color(0xFF779586),
                 size: 21,
               ),
             ),
@@ -865,7 +678,7 @@ class _CaptionHeader extends StatelessWidget {
                   Text(
                     '실시간 자막',
                     style: TextStyle(
-                      color: Color(0xFF101828),
+                      color: Color(0xFF252525),
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.3,
@@ -889,122 +702,35 @@ class _CaptionHeader extends StatelessWidget {
 class _LanguageSelector extends StatelessWidget {
   final String selectedLanguage;
   final ValueChanged<String> onChanged;
-
-  const _LanguageSelector({
-    required this.selectedLanguage,
-    required this.onChanged,
-  });
-
+  const _LanguageSelector({required this.selectedLanguage, required this.onChanged});
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F4F7),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          _LanguageButton(
-            flag: '🇺🇸',
-            label: 'EN',
-            value: 'en',
-            selected: selectedLanguage == 'en',
-            onTap: onChanged,
-          ),
-          const SizedBox(width: 4),
-          _LanguageButton(
-            flag: '🇰🇷',
-            label: 'KR',
-            value: 'ko',
-            selected: selectedLanguage == 'ko',
-            onTap: onChanged,
-          ),
-          const SizedBox(width: 4),
-          _LanguageButton(
-            flag: '🇨🇳',
-            label: 'CN',
-            value: 'zh',
-            selected: selectedLanguage == 'zh',
-            onTap: onChanged,
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Row(children: [
+    _LanguageButton(flag: '🇺🇸', label: 'EN', value: 'en', selected: selectedLanguage == 'en', onTap: onChanged),
+    const SizedBox(width: 8),
+    _LanguageButton(flag: '🇰🇷', label: 'KR', value: 'ko', selected: selectedLanguage == 'ko', onTap: onChanged),
+    const SizedBox(width: 8),
+    _LanguageButton(flag: '🇨🇳', label: 'CN', value: 'zh', selected: selectedLanguage == 'zh', onTap: onChanged),
+  ]);
 }
+
 
 class _LanguageButton extends StatelessWidget {
-  final String flag;
-  final String label;
-  final String value;
+  final String flag, label, value;
   final bool selected;
   final ValueChanged<String> onTap;
-
-  const _LanguageButton({
-    required this.flag,
-    required this.label,
-    required this.value,
-    required this.selected,
-    required this.onTap,
-  });
-
+  const _LanguageButton({required this.flag, required this.label, required this.value, required this.selected, required this.onTap});
   @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => onTap(value),
-          borderRadius: BorderRadius.circular(10),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            curve: Curves.easeOut,
-            height: 42,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: selected ? Colors.white : Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
-              border: selected
-                  ? Border.all(
-                      color: const Color(0xFFD0D5DD),
-                      width: 0.8,
-                    )
-                  : null,
-              boxShadow: selected
-                  ? [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(flag, style: const TextStyle(fontSize: 18)),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: selected
-                        ? const Color(0xFF2F6BFF)
-                        : const Color(0xFF667085),
-                    fontSize: 12,
-                    fontWeight:
-                        selected ? FontWeight.w900 : FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Expanded(child: InkWell(
+    onTap: () => onTap(value), borderRadius: BorderRadius.circular(10),
+    child: Container(height: 48, alignment: Alignment.center,
+      decoration: BoxDecoration(color: selected ? const Color(0xFFE8EEE9) : const Color(0xFFF5F3F0),
+        borderRadius: BorderRadius.circular(10), border: Border.all(color: selected ? const Color(0xFF779586) : const Color(0xFFE7E5E1))),
+      child: Text('$flag $label', style: TextStyle(fontSize: 14, fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+        color: selected ? const Color(0xFF476C58) : const Color(0xFF77746F))),
+    ),
+  ));
 }
+
 
 class _ModernSubtitleCard extends StatelessWidget {
   final String label;
@@ -1033,13 +759,13 @@ class _ModernSubtitleCard extends StatelessWidget {
         border: Border.all(
           color: highlighted
               ? const Color(0xFFB2CCFF)
-              : const Color(0xFFEAECF0),
+              : const Color(0xFFE7E5E1),
           width: highlighted ? 1.2 : 1,
         ),
         boxShadow: highlighted
             ? [
                 BoxShadow(
-                  color: const Color(0xFF2F6BFF).withValues(alpha: 0.07),
+                  color: const Color(0xFF779586).withValues(alpha: 0.07),
                   blurRadius: 14,
                   offset: const Offset(0, 5),
                 ),
@@ -1099,9 +825,9 @@ class _CaptionStatusBar extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: const Color(0xFFF5F3F0),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEAECF0)),
+        border: Border.all(color: const Color(0xFFE7E5E1)),
       ),
       child: const Row(
         children: [
@@ -1111,7 +837,7 @@ class _CaptionStatusBar extends StatelessWidget {
             child: Text(
               '실시간 자막 연결 중',
               style: TextStyle(
-                color: Color(0xFF667085),
+                color: Color(0xFF77746F),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
               ),
@@ -1120,7 +846,7 @@ class _CaptionStatusBar extends StatelessWidget {
           Icon(
             Icons.graphic_eq_rounded,
             size: 17,
-            color: Color(0xFF2F6BFF),
+            color: Color(0xFF779586),
           ),
         ],
       ),
@@ -1198,7 +924,7 @@ class _CaptionEmptyState extends StatelessWidget {
             height: 64,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: const Color(0xFFF2F4F7),
+              color: const Color(0xFFF5F3F0),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
@@ -1271,17 +997,9 @@ class _QuestionTab extends ConsumerWidget {
     final mode = ref.watch(questionSubTabProvider);
     return Column(
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(14, 14, 14, 0),
-          child: _SectionTitle(
-            tab: LectureWidgetTab.question,
-            icon: Icons.help_outline_rounded,
-            title: '질문',
-            subtitle: '',
-          ),
-        ),
+
         Padding(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+          padding: const EdgeInsets.fromLTRB(15, 20, 15, 16),
           child: _QuestionModeToggle(
             mode: mode,
             onChanged: (value) => ref.read(questionSubTabProvider.notifier).state = value,
@@ -1301,61 +1019,21 @@ class _QuestionModeToggle extends StatelessWidget {
   final int mode;
   final ValueChanged<int> onChanged;
   const _QuestionModeToggle({required this.mode, required this.onChanged});
-
   @override
-  Widget build(BuildContext context) {
-    Widget item(String text, int value, IconData? icon) {
-      final selected = mode == value;
-      return Expanded(
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => onChanged(value),
-          child: Container(
-            height: 46,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: selected ? const Color(0xFFFFF4E5) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: selected ? const Color(0xFFFED7AA) : const Color(0xFFE4E7EC),
-                width: selected ? 1.4 : 1,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icon != null) ...[
-                  Icon(
-                    icon,
-                    size: 17,
-                    color: selected ? const Color(0xFFF79009) : const Color(0xFF98A2B3),
-                  ),
-                  const SizedBox(width: 7),
-                ],
-                Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: selected ? const Color(0xFF7A2E0E) : const Color(0xFF475467),
-                  ),
-                ),
-              ],
-            ),
-          ),
+  Widget build(BuildContext context) => Row(children: [
+    for (final item in const [(0, '익명 질문'), (1, '용어집 조회')])
+      Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: InkWell(
+        onTap: () => onChanged(item.$1), borderRadius: BorderRadius.circular(10),
+        child: Container(height: 44, alignment: Alignment.center,
+          decoration: BoxDecoration(color: mode == item.$1 ? const Color(0xFFE8EEE9) : const Color(0xFFF5F3F0),
+            borderRadius: BorderRadius.circular(10), border: Border.all(color: mode == item.$1 ? const Color(0xFF779586) : const Color(0xFFE7E5E1))),
+          child: Text(item.$2, style: TextStyle(fontSize: 14, fontWeight: mode == item.$1 ? FontWeight.w800 : FontWeight.w500,
+            color: mode == item.$1 ? const Color(0xFF476C58) : const Color(0xFF77746F))),
         ),
-      );
-    }
-
-    return Row(
-      children: [
-        item('익명 질문', 0, null),
-        const SizedBox(width: 8),
-        item('용어집 조회', 1, null),
-      ],
-    );
-  }
+      ))),
+  ]);
 }
+
 
 class _AnonymousQuestionView extends ConsumerWidget {
   final TextEditingController controller;
@@ -1371,53 +1049,55 @@ class _AnonymousQuestionView extends ConsumerWidget {
       children: [
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+            padding: const EdgeInsets.fromLTRB(15, 4, 15, 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextField(
                   controller: controller,
                   style: const TextStyle(
-                    color: Color(0xFF101828),
+                    color: Color(0xFF252525),
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                   ),
-                  cursorColor: const Color(0xFFF79009),
-                  minLines: 3,
-                  maxLines: 5,
+                  cursorColor: const Color(0xFF779586),
+                  minLines: 6,
+                  maxLines: 6,
                   maxLength: 500,
                   decoration: InputDecoration(
                     hintText: '궁금한 내용을 입력하세요.',
+                    counterText: '',
+                    contentPadding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
                     hintStyle: const TextStyle(
-                      color: Color(0xFF98A2B3),
+                      color: Color(0xFF77746F),
                       fontSize: 13,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: const Color(0xFFF5F3F0),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+                      borderSide: const BorderSide(color: Color(0xFFF5F3F0)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+                      borderSide: const BorderSide(color: Color(0xFFF5F3F0)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(
-                        color: Color(0xFFF79009),
+                        color: Color(0xFF779586),
                         width: 1.4,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 14),
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(44),
-                    foregroundColor: const Color(0xFF7A2E0E),
+                    foregroundColor: const Color(0xFF476C58),
                     backgroundColor: Colors.white,
-                    side: const BorderSide(color: Color(0xFFFED7AA)),
+                    side: const BorderSide(color: Color(0xFFE7E5E1)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -1425,10 +1105,10 @@ class _AnonymousQuestionView extends ConsumerWidget {
                   onPressed: () => _captureForQuestion(ref),
                   icon: const Icon(
                     Icons.image_rounded,
-                    color: Color(0xFFF79009),
+                    color: Color(0xFF779586),
                   ),
                   label: const Text(
-                    '화면 캡처하기',
+                    '화면 캡처',
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -1467,12 +1147,12 @@ class _AnonymousQuestionView extends ConsumerWidget {
                     ],
                   ),
                 ],
-                const SizedBox(height: 10),
+                const SizedBox(height: 14),
                 FilledButton.icon(
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFF79009),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(46),
+                    backgroundColor: const Color(0xFFE8EEE9),
+                    foregroundColor: const Color(0xFF476C58),
+                    minimumSize: const Size.fromHeight(44),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -1487,9 +1167,9 @@ class _AnonymousQuestionView extends ConsumerWidget {
                         );
                     controller.clear();
                   },
-                  icon: const Icon(Icons.send_rounded, size: 18),
+                  icon: const Icon(Icons.send_outlined, size: 18, color: Color(0xFF476C58)),
                   label: const Text(
-                    '익명 질문 보내기',
+                    '질문 전송',
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -1498,7 +1178,7 @@ class _AnonymousQuestionView extends ConsumerWidget {
                   _CompactAnswerCard(
                     label: '질문',
                     body: state.query.trim(),
-                    accent: const Color(0xFFFED7AA),
+                    accent: const Color(0xFFE7E5E1),
                   ),
                   const SizedBox(height: 8),
                   _CompactAnswerCard(
@@ -1506,7 +1186,7 @@ class _AnonymousQuestionView extends ConsumerWidget {
                     body: (answer == null || answer.isEmpty)
                         ? '질문이 전달되었습니다. 답변을 기다려주세요.'
                         : answer,
-                    accent: const Color(0xFFF79009),
+                    accent: const Color(0xFF779586),
                   ),
                 ],
               ],
@@ -1572,15 +1252,15 @@ class _GlossaryLookupViewState extends ConsumerState<_GlossaryLookupView> {
                 child: TextField(
                   controller: widget.controller,
                   style: const TextStyle(
-                    color: Color(0xFF101828),
+                    color: Color(0xFF252525),
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                   ),
-                  cursorColor: const Color(0xFFF79009),
+                  cursorColor: const Color(0xFF779586),
                   decoration: InputDecoration(
-                    hintText: '용어를 입력하세요...',
+                    hintText: '조회할 용어를 입력하세요.',
                     hintStyle: const TextStyle(
-                      color: Color(0xFFB0B7C3),
+                      color: Color(0xFF77746F),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1593,19 +1273,19 @@ class _GlossaryLookupViewState extends ConsumerState<_GlossaryLookupView> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(
-                        color: Color(0xFFD0D5DD),
+                        color: Color(0xFFE7E5E1),
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(
-                        color: Color(0xFFD0D5DD),
+                        color: Color(0xFFE7E5E1),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(
-                        color: Color(0xFFF79009),
+                        color: Color(0xFF779586),
                         width: 1.4,
                       ),
                     ),
@@ -1616,20 +1296,17 @@ class _GlossaryLookupViewState extends ConsumerState<_GlossaryLookupView> {
               const SizedBox(width: 8),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFFF79009),
-                  foregroundColor: const Color(0xFF172033),
-                  minimumSize: const Size(68, 48),
+                  backgroundColor: const Color(0xFF779586),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(44, 44),
+                  fixedSize: const Size(44, 44),
+                  padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 onPressed: _search,
-                child: const Text(
-                  '조회',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+                child: const Icon(Icons.search, size: 25, color: Colors.white),
               ),
             ],
           ),
@@ -1639,7 +1316,7 @@ class _GlossaryLookupViewState extends ConsumerState<_GlossaryLookupView> {
               child: Padding(
                 padding: EdgeInsets.all(24),
                 child: CircularProgressIndicator(
-                  color: Color(0xFFF79009),
+                  color: Color(0xFF779586),
                   strokeWidth: 2.4,
                 ),
               ),
@@ -1689,7 +1366,7 @@ class _GlossaryResultCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFE4E7EC),
+          color: const Color(0xFFE7E5E1),
         ),
         boxShadow: [
           BoxShadow(
@@ -1705,7 +1382,7 @@ class _GlossaryResultCard extends StatelessWidget {
           Text(
             term,
             style: const TextStyle(
-              color: Color(0xFF101828),
+              color: Color(0xFF252525),
               fontSize: 16,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.2,
@@ -1718,13 +1395,13 @@ class _GlossaryResultCard extends StatelessWidget {
               vertical: 5,
             ),
             decoration: BoxDecoration(
-              color: const Color(0xFFF2F4F7),
+              color: const Color(0xFFF5F3F0),
               borderRadius: BorderRadius.circular(999),
             ),
             child: const Text(
               '번역 서버 내부 용어집',
               style: TextStyle(
-                color: Color(0xFF667085),
+                color: Color(0xFF77746F),
                 fontSize: 10.5,
                 fontWeight: FontWeight.w700,
               ),
@@ -1766,7 +1443,7 @@ class _GlossaryResultCard extends StatelessWidget {
               minimumSize: const Size.fromHeight(42),
               foregroundColor: const Color(0xFFB54708),
               side: const BorderSide(
-                color: Color(0xFFFED7AA),
+                color: Color(0xFFE7E5E1),
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1787,7 +1464,7 @@ class _CompactAnswerCard extends StatelessWidget {
     decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(12)),
     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Container(width: 4, height: 54, decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(99))), const SizedBox(width: 12),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(color: Color(0xFF667085), fontSize: 12, fontWeight: FontWeight.w700)), const SizedBox(height: 5), Text(body, style: const TextStyle(color: Color(0xFF344054), height: 1.45))]))
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(color: Color(0xFF77746F), fontSize: 12, fontWeight: FontWeight.w700)), const SizedBox(height: 5), Text(body, style: const TextStyle(color: Color(0xFF344054), height: 1.45))]))
     ]),
   );
 }
@@ -1806,8 +1483,8 @@ class _SmallResetButton extends StatelessWidget {
         child: Container(
           width: 30, height: 30,
           alignment: Alignment.center,
-          decoration: BoxDecoration(color: const Color(0xFFFFF3E0), borderRadius: BorderRadius.circular(999), border: Border.all(color: const Color(0xFFFED7AA))),
-          child: const Icon(Icons.refresh_rounded, size: 17, color: Color(0xFFF79009)),
+          decoration: BoxDecoration(color: const Color(0xFFFFF3E0), borderRadius: BorderRadius.circular(999), border: Border.all(color: const Color(0xFFE7E5E1))),
+          child: const Icon(Icons.refresh_rounded, size: 17, color: Color(0xFF779586)),
         ),
       ),
     );
@@ -1819,739 +1496,238 @@ class _NoticeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
+    padding: const EdgeInsets.all(15),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Container(
         padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const _SectionTitle(
-              tab: LectureWidgetTab.notice,
-              icon: Icons.campaign_rounded,
-              title: '공지',
-              subtitle: '',
-            ),
-            const SizedBox(height: 14),
-            _NoticeSection(
-              icon: null,
-              title: '',
-              child: RichText(
-                text: const TextSpan(
-                  style: TextStyle(
-                    color: Color(0xFF667085),
-                    fontSize: 13,
-                    height: 1.6,
-                  ),
-                  children: [
-                    TextSpan(text: '이번 주 강의는 '),
-                    TextSpan(
-                      text: '진도 흐름 파악이 중요합니다.',
-                      style: TextStyle(
-                        color: Color(0xFFF79009),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    TextSpan(
-                      text: '\n다음 주부터 중간 평가 관련 내용이 진행될 예정이니, 반드시 이번 주 내용을 숙지해 주세요.',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const _NoticeSection(
-              icon: Icons.description_rounded,
-              title: '강의 자료',
-              child: Column(
-                children: [
-                  _NoticeRow(
-                    icon: Icons.attach_file_rounded,
-                    title: '강의 슬라이드',
-                    subtitle: '출처: 교수님 제공',
-                    trailing: Icons.open_in_new_rounded,
-                    actionMessage: '강의 슬라이드 바로가기',
-                  ),
-                  SizedBox(height: 8),
-                  _NoticeRow(
-                    icon: Icons.attach_file_rounded,
-                    title: '추가 참고 자료',
-                    subtitle: '출처: 논문 (Smith et al., 2023)',
-                    trailing: Icons.open_in_new_rounded,
-                    actionMessage: '추가 참고 자료 바로가기',
-                  ),
-                  SizedBox(height: 8),
-                  _NoticeRow(
-                    icon: Icons.laptop_mac_rounded,
-                    title: '필요한 환경',
-                    subtitle: '구글 코랩(Google Colab), VS Code 권장\n필요한 라이브러리: numpy, matplotlib 등',
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            const _NoticeSection(
-              icon: Icons.assignment_rounded,
-              title: '과제 안내',
-              child: Column(
-                children: [
-                  _NoticeRow(
-                    icon: Icons.description_outlined,
-                    title: '과제 설명',
-                    subtitle: '신경망 모델 구현 및 성능 비교',
-                    trailing: Icons.chevron_right_rounded,
-                    actionMessage: '과제 설명 열기',
-                  ),
-                  SizedBox(height: 8),
-                  _NoticeRow(
-                    icon: Icons.attach_file_rounded,
-                    title: '과제 제출 방법',
-                    subtitle: 'LMS에 코드 파일(.ipynb) 업로드',
-                    trailing: Icons.chevron_right_rounded,
-                    actionMessage: '과제 제출 방법 열기',
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
+        decoration: BoxDecoration(color: const Color(0xFFE8EEE9), borderRadius: BorderRadius.circular(14)),
+        child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [Icon(Icons.push_pin_outlined, color: Color(0xFF476C58), size: 19), SizedBox(width: 6), Text('중요 공지', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF476C58)))]),
+          SizedBox(height: 10),
+          Text('이번 강의에서 우선적으로 알아야 할 내용과 학습 방향을 안내합니다.', style: TextStyle(fontSize: 12.5, color: Color(0xFF595854), height: 1.5)),
+        ]),
+      ),
+      const SizedBox(height: 12),
+      _FigmaNoticeCard(title: '교재 및 참고 자료', icon: Icons.menu_book_outlined, rows: const [
+        ['추천 교재', '교재명 · 저자 · 출판사 · 참고 범위'],
+        ['추가 참고 자료', '자료 제목 · 발행기관 · 출처 링크'],
+        ['필요한 학습 환경', '프로그램 · 개발 환경 · 설치 안내'],
+      ]),
+      const SizedBox(height: 12),
+      _FigmaNoticeCard(title: '과제 안내', icon: Icons.assignment_outlined, rows: const [
+        ['과제 설명', '과제명 · 수행 내용 · 요구사항'],
+        ['제출 방법', '제출 플랫폼 · 파일 형식 · 제출 절차'],
+        ['제출 기한', '제출 마감 날짜 및 시간'],
+      ]),
+    ]),
+  );
 }
-class _NoticeSection extends StatelessWidget {
-  final IconData? icon;
+
+class _FigmaNoticeCard extends StatelessWidget {
   final String title;
-  final Widget child;
-
-  const _NoticeSection({
-    required this.icon,
-    required this.title,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const accent = Color(0xFFF9A825);
-    const soft = Color(0xFFFFF8E1);
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: accent.withValues(alpha: 0.30),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: accent.withValues(alpha: 0.035),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (title.isNotEmpty) ...[
-            Row(
-              children: [
-                if (icon != null) ...[
-                  Container(
-                    width: 34,
-                    height: 34,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: soft,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: accent,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF101828),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-          ],
-          child,
-        ],
-      ),
-    );
-  }
-}
-class _NoticeRow extends StatelessWidget {
   final IconData icon;
-  final String title;
-  final String subtitle;
-  final IconData? trailing;
-  final String? actionMessage;
-
-  const _NoticeRow({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    this.trailing,
-    this.actionMessage,
-  });
-
+  final List<List<String>> rows;
+  const _FigmaNoticeCard({required this.title, required this.icon, required this.rows});
   @override
-  Widget build(BuildContext context) => Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: actionMessage == null
-              ? null
-              : () {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(actionMessage!),
-                      duration: const Duration(milliseconds: 900),
-                    ),
-                  );
-                },
-          child: Container(
-            padding: const EdgeInsets.all(11),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFF9A825).withValues(alpha: 0.18),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: const Color(0xFFF9A825),
-                  size: 21,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF101828),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          color: Color(0xFF667085),
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (trailing != null)
-                  Icon(
-                    trailing,
-                    color: const Color(0xFFF9A825),
-                    size: 20,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      );
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(0xFFE7E5E1)), borderRadius: BorderRadius.circular(14)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [Icon(icon, size: 20, color: const Color(0xFF476C58)), const SizedBox(width: 7), Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF476C58)))]),
+      const SizedBox(height: 9),
+      for (var i = 0; i < rows.length; i++) ...[
+        if (i > 0) const Divider(height: 16, color: Color(0xFFE7E5E1)),
+        Text(rows[i][0], style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF252525))),
+        const SizedBox(height: 5),
+        Text(rows[i][1], style: const TextStyle(fontSize: 11.5, color: Color(0xFF77746F))),
+      ],
+    ]),
+  );
 }
 
 class _SummaryTab extends ConsumerStatefulWidget {
   const _SummaryTab({super.key});
-
   @override
   ConsumerState<_SummaryTab> createState() => _SummaryTabState();
 }
 
 class _SummaryTabState extends ConsumerState<_SummaryTab> {
-  int _startHour = 0;
-  int _startMinutePart = 0;
-  int _endHour = 0;
-  int _endMinutePart = 5;
+  final _startHour = TextEditingController(text: '00');
+  final _startMinute = TextEditingController(text: '00');
+  final _endHour = TextEditingController(text: '00');
+  final _endMinute = TextEditingController(text: '00');
 
-  int get _startTotal => _startHour * 60 + _startMinutePart;
-  int get _endTotal => _endHour * 60 + _endMinutePart;
-  bool get _hasValidRange => _endTotal > _startTotal;
+  @override
+  void dispose() {
+    _startHour.dispose(); _startMinute.dispose(); _endHour.dispose(); _endMinute.dispose();
+    super.dispose();
+  }
 
-  String _formatTime(int hour, int minute) {
-    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+  int? _parse(TextEditingController h, TextEditingController m) {
+    final hour = int.tryParse(h.text);
+    final minute = int.tryParse(m.text);
+    if (hour == null || minute == null || hour < 0 || minute < 0 || minute > 59) return null;
+    return hour * 60 + minute;
+  }
+
+  void _run(int minutes) {
+    ref.read(summaryLoadingProvider.notifier).state = true;
+    ref.read(summaryProvider.notifier).fetchSummary(minutes: minutes).whenComplete(() {
+      if (mounted) ref.read(summaryLoadingProvider.notifier).state = false;
+    });
+  }
+
+  void _submitManual() {
+    final start = _parse(_startHour, _startMinute);
+    final end = _parse(_endHour, _endMinute);
+    if (start == null || end == null || end <= start) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('종료 시간을 시작 시간보다 크게 입력해 주세요.')));
+      return;
+    }
+    _run(end - start);
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(summaryProvider);
     final loading = ref.watch(summaryLoadingProvider);
-    final body = state.summary.isEmpty
-        ? '요약을 실행하면 선택한 구간의 핵심 내용이 여기에 표시됩니다.'
-        : state.summary;
-    final summaryAccent = _tabAccentColor(LectureWidgetTab.summary);
-    final summarySoft = _tabSoftColor(LectureWidgetTab.summary);
-
+    const green = Color(0xFF779586);
+    const ink = Color(0xFF252525);
+    const border = Color(0xFFE7E5E1);
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const _SectionTitle(
-            tab: LectureWidgetTab.summary,
-            icon: Icons.auto_awesome_rounded,
-            title: '구간요약',
-            subtitle: '',
-          ),
+      padding: const EdgeInsets.all(15),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: Colors.white, border: Border.all(color: border), borderRadius: BorderRadius.circular(14)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              const Text('요약할 시간 설정', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: ink)),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('강의 경과 00:00', style: TextStyle(fontSize: 10, color: Color(0xFF77746F)))),
+              const Text('시 : 분', style: TextStyle(fontSize: 10, color: Color(0xFF77746F))),
+            ]),
+            const SizedBox(height: 17),
+            Row(children: [
+              Expanded(child: _ManualTimePair(label: '시작 시간', hour: _startHour, minute: _startMinute)),
+              const SizedBox(width: 20),
+              Expanded(child: _ManualTimePair(label: '종료 시간', hour: _endHour, minute: _endMinute)),
+            ]),
+          ]),
+        ),
+        const SizedBox(height: 10),
+        Row(children: [
+          _SummaryQuick(label: '전체 구간', onTap: () => _run(60)),
+          const SizedBox(width: 6),
+          _SummaryQuick(label: '최근 10분', onTap: () => _run(10)),
+          const SizedBox(width: 6),
+          _SummaryQuick(label: '최근 30분', onTap: () => _run(30)),
+          const SizedBox(width: 6),
+          _SummaryQuick(label: '직접 선택', onTap: () => FocusScope.of(context).unfocus()),
+        ]),
+        const SizedBox(height: 12),
+        SizedBox(height: 43, child: FilledButton(
+          onPressed: loading ? null : _submitManual,
+          style: FilledButton.styleFrom(backgroundColor: green, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          child: Text(loading ? '요약 중...' : '요약하기', style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
+        )),
+        if (state.summary.isNotEmpty || loading) ...[
           const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-            decoration: _box(summaryAccent, summarySoft),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _TimePointSelector(
-                        label: '시작',
-                        accentColor: summaryAccent,
-                        softColor: summarySoft,
-                        hour: _startHour,
-                        minute: _startMinutePart,
-                        onHourChanged: (value) {
-                          setState(() => _startHour = value);
-                        },
-                        onMinuteChanged: (value) {
-                          setState(() => _startMinutePart = value);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _TimePointSelector(
-                        label: '종료',
-                        accentColor: summaryAccent,
-                        softColor: summarySoft,
-                        hour: _endHour,
-                        minute: _endMinutePart,
-                        onHourChanged: (value) {
-                          setState(() => _endHour = value);
-                        },
-                        onMinuteChanged: (value) {
-                          setState(() => _endMinutePart = value);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  height: 42,
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: summaryAccent,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: summaryAccent.withValues(alpha: 0.28),
-                      disabledForegroundColor: Colors.white.withValues(alpha: 0.72),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: _hasValidRange ? _summarizeSelectedRange : null,
-                    icon: const Icon(Icons.auto_awesome_rounded, size: 16),
-                    label: const Text(
-                      '요약하기',
-                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 11),
-                Row(
-                  children: [
-                    _Quick('전체 구간', () => _summarize(30)),
-                    _Quick('최근 5분', () => _summarize(5)),
-                    _Quick('최근 10분', () => _summarize(10)),
-                    _Quick('직접 선택', () {}),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
             padding: const EdgeInsets.all(14),
-            decoration: _box(summaryAccent, summarySoft),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.description_rounded, color: summaryAccent, size: 20),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'AI 요약',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF101828),
-                        ),
-                      ),
-                    ),
-                    Icon(Icons.refresh_rounded, color: summaryAccent, size: 19),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(13, 13, 13, 13),
-                  decoration: BoxDecoration(
-                    color: summarySoft.withValues(alpha: 0.62),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: summaryAccent.withValues(alpha: 0.14)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 3,
-                        constraints: const BoxConstraints(minHeight: 54),
-                        decoration: BoxDecoration(
-                          color: summaryAccent,
-                          borderRadius: BorderRadius.circular(99),
-                        ),
-                      ),
-                      const SizedBox(width: 11),
-                      Expanded(
-                        child: loading
-                            ? Center(
-                                child: CircularProgressIndicator(
-                                  color: summaryAccent,
-                                  strokeWidth: 2.4,
-                                ),
-                              )
-                            : Text(
-                                body,
-                                style: const TextStyle(
-                                  color: Color(0xFF344054),
-                                  height: 1.55,
-                                  fontSize: 12.2,
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-            decoration: _box(summaryAccent, summarySoft),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: summarySoft,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        Icons.timeline_rounded,
-                        color: summaryAccent,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 9),
-                    const Text(
-                      '주요 타임라인',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF101828),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                const _TimelineItem(
-                  time: '00:00',
-                  title: '강의 시작 및 핵심 개념 소개',
-                  active: true,
-                ),
-                const _TimelineItem(
-                  time: '15:00',
-                  title: '주요 개념 및 내용 정리',
-                ),
-                const _TimelineItem(
-                  time: '30:00',
-                  title: '핵심 내용 심화 설명',
-                ),
-                const _TimelineItem(
-                  time: '45:00',
-                  title: '정리 및 예제 설명',
-                  last: true,
-                ),
-              ],
-            ),
+            decoration: BoxDecoration(color: Colors.white, border: Border.all(color: border), borderRadius: BorderRadius.circular(14)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('AI 요약 결과', style: TextStyle(fontWeight: FontWeight.bold, color: ink)),
+              const SizedBox(height: 10),
+              loading ? const Center(child: CircularProgressIndicator()) : Text(state.summary, style: const TextStyle(fontSize: 12, color: ink, height: 1.6)),
+            ]),
           ),
         ],
-      ),
+      ]),
     );
   }
+}
 
-  BoxDecoration _box(Color accent, Color soft) {
-    return BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.96),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: accent.withValues(alpha: 0.23)),
-      boxShadow: [
-        BoxShadow(
-          color: accent.withValues(alpha: 0.035),
-          blurRadius: 14,
-          offset: const Offset(0, 5),
+class _ManualTimePair extends StatelessWidget {
+  final String label;
+  final TextEditingController hour;
+  final TextEditingController minute;
+
+  const _ManualTimePair({
+    required this.label,
+    required this.hour,
+    required this.minute,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Color(0xFF77746F), fontSize: 11)),
+        const SizedBox(height: 6),
+        Row(
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: _TimeTextField(controller: hour)),
+            const SizedBox(
+              width: 22,
+              height: 42,
+              child: Center(
+                child: Text(
+                  ':',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFF252525),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(child: _TimeTextField(controller: minute)),
+          ],
         ),
       ],
     );
   }
-
-  void _summarizeSelectedRange() {
-    if (!_hasValidRange) return;
-    _summarize(_endTotal - _startTotal);
-  }
-
-  void _summarize(int minutes) {
-    ref.read(summaryLoadingProvider.notifier).state = true;
-    ref.read(summaryProvider.notifier).fetchSummary(minutes: minutes).whenComplete(
-          () => ref.read(summaryLoadingProvider.notifier).state = false,
-        );
-  }
 }
 
-class _TimePointSelector extends StatelessWidget {
+class _TimeTextField extends StatelessWidget {
+  final TextEditingController controller;
+  const _TimeTextField({required this.controller});
+  @override
+  Widget build(BuildContext context) => SizedBox(height: 42, child: TextField(
+    controller: controller,
+    keyboardType: TextInputType.number,
+    maxLength: 2,
+    textAlign: TextAlign.center,
+    style: const TextStyle(fontSize: 14, color: Color(0xFF77746F)),
+    decoration: InputDecoration(
+      counterText: '', isDense: true,
+      contentPadding: const EdgeInsets.symmetric(vertical: 11, horizontal: 2),
+      filled: true, fillColor: Colors.white,
+      enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFFE7E5E1)), borderRadius: BorderRadius.circular(10)),
+      focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: Color(0xFF779586)), borderRadius: BorderRadius.circular(10)),
+    ),
+  ));
+}
+
+class _SummaryQuick extends StatelessWidget {
   final String label;
-  final Color accentColor;
-  final Color softColor;
-  final int hour;
-  final int minute;
-  final ValueChanged<int> onHourChanged;
-  final ValueChanged<int> onMinuteChanged;
-
-  const _TimePointSelector({
-    required this.label,
-    required this.accentColor,
-    required this.softColor,
-    required this.hour,
-    required this.minute,
-    required this.onHourChanged,
-    required this.onMinuteChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(9),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: accentColor.withValues(alpha: 0.22),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: accentColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Color(0xFF667085),
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _TimeUnitStepper(
-                  value: hour,
-                  min: 0,
-                  max: 23,
-                  step: 1,
-                  accentColor: accentColor,
-                  softColor: softColor,
-                  onChanged: onHourChanged,
-                ),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: _TimeUnitStepper(
-                  value: minute,
-                  min: 0,
-                  max: 55,
-                  step: 5,
-                  accentColor: accentColor,
-                  softColor: softColor,
-                  onChanged: onMinuteChanged,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TimeUnitStepper extends StatelessWidget {
-  final int value;
-  final int min;
-  final int max;
-  final int step;
-  final Color accentColor;
-  final Color softColor;
-  final ValueChanged<int> onChanged;
-
-  const _TimeUnitStepper({
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.step,
-    required this.accentColor,
-    required this.softColor,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final canDecrease = value > min;
-    final canIncrease = value < max;
-
-    return Container(
-      height: 40,
-      decoration: BoxDecoration(
-        color: softColor.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: accentColor.withValues(alpha: 0.18),
-        ),
-      ),
-      child: Row(
-        children: [
-          InkWell(
-            borderRadius: BorderRadius.circular(9),
-            onTap: canDecrease
-                ? () => onChanged((value - step).clamp(min, max).toInt())
-                : null,
-            child: SizedBox(
-              width: 18,
-              height: 40,
-              child: Icon(
-                Icons.remove_rounded,
-                size: 15,
-                color: canDecrease
-                    ? accentColor
-                    : const Color(0xFFD0D5DD),
-              ),
-            ),
-          ),
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                value.toString().padLeft(2, '0'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFF1D2939),
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
-          InkWell(
-            borderRadius: BorderRadius.circular(9),
-            onTap: canIncrease
-                ? () => onChanged((value + step).clamp(min, max).toInt())
-                : null,
-            child: SizedBox(
-              width: 18,
-              height: 40,
-              child: Icon(
-                Icons.add_rounded,
-                size: 15,
-                color: canIncrease
-                    ? accentColor
-                    : const Color(0xFFD0D5DD),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StepArrow extends StatelessWidget {
-  final IconData icon;
-  final bool enabled;
-  final Color accentColor;
   final VoidCallback onTap;
-
-  const _StepArrow({
-    required this.icon,
-    required this.enabled,
-    required this.accentColor,
-    required this.onTap,
-  });
-
+  const _SummaryQuick({required this.label, required this.onTap});
   @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(5),
-      onTap: enabled ? onTap : null,
-      child: SizedBox(
-        width: 19,
-        height: 17,
-        child: Icon(
-          icon,
-          size: 17,
-          color: enabled ? accentColor : const Color(0xFFD0D5DD),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Expanded(child: InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(10),
+    child: Container(height: 40, alignment: Alignment.center,
+      decoration: BoxDecoration(color: const Color(0xFFF5F3F0), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE7E5E1))),
+      child: Text(label, style: const TextStyle(fontSize: 10.5, color: Color(0xFF77746F))),
+    ),
+  ));
 }
 
 class _TimelineItem extends StatelessWidget {
@@ -2579,14 +1755,14 @@ class _TimelineItem extends StatelessWidget {
                   width: 18,
                   height: 18,
                   decoration: BoxDecoration(
-                    color: active ? const Color(0xFF43A047) : Colors.white,
+                    color: active ? const Color(0xFF779586) : Colors.white,
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF43A047), width: 1.6),
+                    border: Border.all(color: const Color(0xFF779586), width: 1.6),
                   ),
                   child: Icon(
                     Icons.play_arrow_rounded,
                     size: 12,
-                    color: active ? Colors.white : const Color(0xFF43A047),
+                    color: active ? Colors.white : const Color(0xFF779586),
                   ),
                 ),
                 if (!last) Container(width: 1.5, height: 25, color: const Color(0xFFCFE8D3)),
@@ -2598,7 +1774,7 @@ class _TimelineItem extends StatelessWidget {
             width: 50,
             child: Text(
               time,
-              style: const TextStyle(color: Color(0xFF35883B), fontSize: 13, fontWeight: FontWeight.w700),
+              style: const TextStyle(color: Color(0xFF476C58), fontSize: 13, fontWeight: FontWeight.w700),
             ),
           ),
           const SizedBox(width: 8),
@@ -2631,7 +1807,7 @@ class _Quick extends StatelessWidget {
             onPressed: onTap,
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
-              foregroundColor: const Color(0xFF35883B),
+              foregroundColor: const Color(0xFF476C58),
               backgroundColor: const Color(0xFFFAFCFA),
               side: const BorderSide(color: Color(0xFFCFE8D3)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -2647,220 +1823,63 @@ class _Quick extends StatelessWidget {
 
 class _SettingsTab extends ConsumerWidget {
   const _SettingsTab();
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final opacity = ref.watch(lectureWidgetOpacityProvider);
     final width = ref.watch(lectureWidgetWidthProvider);
     final height = ref.watch(lectureWidgetHeightProvider);
     final fontScale = ref.watch(lectureWidgetFontScaleProvider);
-    final accent = _tabAccentColor(LectureWidgetTab.settings);
-    final soft = _tabSoftColor(LectureWidgetTab.settings);
-
-    return _PanelScroll(
-      children: [
-        const _SectionTitle(
-          tab: LectureWidgetTab.settings,
-          icon: Icons.tune_rounded,
-          title: '설정',
-          subtitle: '',
-        ),
-        const SizedBox(height: 14),
-        Container(
-          padding: const EdgeInsets.fromLTRB(14, 4, 14, 4),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFDCE6F8)),
-          ),
-          child: Column(
-            children: [
-              _SettingSlider(
-                icon: Icons.opacity_rounded,
-                title: '투명도',
-                valueText: '${(opacity * 100).round()}%',
-                value: opacity,
-                min: 0.20,
-                max: 1.0,
-                divisions: 16,
-                accentColor: accent,
-                softColor: soft,
-                onChanged: (value) =>
-                    ref.read(lectureWidgetOpacityProvider.notifier).state = value,
-              ),
-              const Divider(height: 1, color: Color(0xFFEDF1F7)),
-              _SettingSlider(
-                icon: Icons.width_normal_rounded,
-                title: '너비',
-                valueText: '${width.round()} px',
-                value: width.clamp(300.0, 600.0),
-                min: 300,
-                max: 600,
-                divisions: 30,
-                accentColor: accent,
-                softColor: soft,
-                onChanged: (value) {
-                  ref.read(lectureWidgetWidthProvider.notifier).state = value;
-                  html.window.parent?.postMessage({
-                    'type': 'llai-resize',
-                    'width': value.toInt(),
-                    'height': height.toInt(),
-                  }, '*');
-                },
-              ),
-              const Divider(height: 1, color: Color(0xFFEDF1F7)),
-              _SettingSlider(
-                icon: Icons.height_rounded,
-                title: '높이',
-                valueText: '${height.round()} px',
-                value: height.clamp(420.0, 800.0),
-                min: 420,
-                max: 800,
-                divisions: 38,
-                accentColor: accent,
-                softColor: soft,
-                onChanged: (value) {
-                  ref.read(lectureWidgetHeightProvider.notifier).state = value;
-                  html.window.parent?.postMessage({
-                    'type': 'llai-resize',
-                    'width': width.toInt(),
-                    'height': value.toInt(),
-                  }, '*');
-                },
-              ),
-              const Divider(height: 1, color: Color(0xFFEDF1F7)),
-              _SettingSlider(
-                icon: Icons.text_fields_rounded,
-                title: '전체 글자 크기',
-                valueText: '${(fontScale * 100).round()}%',
-                value: fontScale,
-                min: 0.85,
-                max: 1.25,
-                divisions: 8,
-                accentColor: accent,
-                softColor: soft,
-                onChanged: (value) =>
-                    ref.read(lectureWidgetFontScaleProvider.notifier).state = value,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+    return ListView(padding: const EdgeInsets.fromLTRB(15, 18, 15, 15), children: [
+      Container(padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+        decoration: BoxDecoration(color: const Color(0xFFF5F3F0), borderRadius: BorderRadius.circular(14)),
+        child: Column(children: [
+          _SettingSlider(title: '불투명도', valueText: '${(opacity * 100).round()}%', value: opacity, min: 0.2, max: 1, divisions: 16,
+            onChanged: (v) => ref.read(lectureWidgetOpacityProvider.notifier).state = v),
+          const Divider(color: Color(0xFFDEDCD7)),
+          _SettingSlider(title: '너비', valueText: '${width.round()}px', value: width.clamp(300.0, 600.0), min: 300, max: 600, divisions: 30,
+            onChanged: (v) {ref.read(lectureWidgetWidthProvider.notifier).state = v;
+              html.window.parent?.postMessage({'type':'llai-resize','width':v.toInt(),'height':height.toInt()}, '*');}),
+          const Divider(color: Color(0xFFDEDCD7)),
+          _SettingSlider(title: '높이', valueText: '${height.round()}px', value: height.clamp(420.0, 800.0), min: 420, max: 800, divisions: 38,
+            onChanged: (v) {ref.read(lectureWidgetHeightProvider.notifier).state = v;
+              html.window.parent?.postMessage({'type':'llai-resize','width':width.toInt(),'height':v.toInt()}, '*');}),
+          const Divider(color: Color(0xFFDEDCD7)),
+          _SettingSlider(title: '전체 글자 크기', valueText: '${(fontScale * 100).round()}%', value: fontScale, min: 0.85, max: 1.25, divisions: 8,
+            onChanged: (v) => ref.read(lectureWidgetFontScaleProvider.notifier).state = v),
+        ]),
+      ),
+    ]);
   }
 }
+
 
 class _SettingSlider extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String valueText;
-  final double value;
-  final double min;
-  final double max;
+  final String title, valueText;
+  final double value, min, max;
   final int divisions;
-  final Color accentColor;
-  final Color softColor;
   final ValueChanged<double> onChanged;
-  final ValueChanged<double>? onChangeEnd;
-
-  const _SettingSlider({
-    required this.icon,
-    required this.title,
-    required this.valueText,
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.divisions,
-    required this.accentColor,
-    required this.softColor,
-    required this.onChanged,
-    this.onChangeEnd,
-  });
-
+  const _SettingSlider({required this.title, required this.valueText, required this.value,
+    required this.min, required this.max, required this.divisions, required this.onChanged});
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: softColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  icon,
-                  color: accentColor,
-                  size: 17,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF1D2939),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: softColor,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  valueText,
-                  style: TextStyle(
-                    color: accentColor,
-                    fontSize: 10.8,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 7),
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: accentColor,
-              inactiveTrackColor: accentColor.withValues(alpha: 0.13),
-              thumbColor: Colors.white,
-              overlayColor: accentColor.withValues(alpha: 0.08),
-              trackHeight: 4,
-              thumbShape: const RoundSliderThumbShape(
-                enabledThumbRadius: 7,
-                elevation: 2,
-              ),
-              overlayShape: const RoundSliderOverlayShape(
-                overlayRadius: 14,
-              ),
-            ),
-            child: Slider(
-              value: value,
-              min: min,
-              max: max,
-              divisions: divisions,
-              onChanged: onChanged,
-              onChangeEnd: onChangeEnd,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 12),
+    child: Column(children: [
+      Row(children: [Expanded(child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF252525)))),
+        Text(valueText, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF476C58)))]),
+      const SizedBox(height: 10),
+      SliderTheme(data: SliderTheme.of(context).copyWith(
+        activeTrackColor: const Color(0xFF779586), inactiveTrackColor: const Color(0xFFDEDCD7),
+        thumbColor: Colors.white, trackHeight: 5,
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7, elevation: 0),
+        overlayShape: SliderComponentShape.noOverlay,
+        valueIndicatorShape: SliderComponentShape.noOverlay,
+        showValueIndicator: ShowValueIndicator.never,
+        tickMarkShape: SliderTickMarkShape.noTickMark),
+        child: Slider(value: value, min: min, max: max, onChanged: onChanged)),
+    ]),
+  );
 }
+
 
 class _PanelScroll extends StatelessWidget {
   final List<Widget> children;
@@ -2895,7 +1914,7 @@ class _SectionTitle extends StatelessWidget {
               Text(title, style: TextStyle(color: accentColor, fontSize: 17, fontWeight: FontWeight.w700)),
               if (subtitle.isNotEmpty) ...[
                 const SizedBox(height: 3),
-                Text(subtitle, style: const TextStyle(color: Color(0xFF667085), fontSize: 12, height: 1.25, fontWeight: FontWeight.w600)),
+                Text(subtitle, style: const TextStyle(color: Color(0xFF77746F), fontSize: 12, height: 1.25, fontWeight: FontWeight.w600)),
               ],
             ],
           ),
@@ -2913,7 +1932,7 @@ class _ResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity, padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(15), border: Border.all(color: const Color(0xFFE4E7EC))),
+      decoration: BoxDecoration(color: const Color(0xFFF5F3F0), borderRadius: BorderRadius.circular(15), border: Border.all(color: const Color(0xFFE7E5E1))),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2968,8 +1987,8 @@ class _InputArea extends StatelessWidget {
               borderRadius: BorderRadius.circular(13), onTap: onAttachTap,
               child: Container(
                 width: 42, height: 42, alignment: Alignment.center,
-                decoration: BoxDecoration(color: const Color(0xFFF2F4F7), borderRadius: BorderRadius.circular(13)),
-                child: const Icon(Icons.attach_file_rounded, color: Color(0xFF667085), size: 20),
+                decoration: BoxDecoration(color: const Color(0xFFF5F3F0), borderRadius: BorderRadius.circular(13)),
+                child: const Icon(Icons.attach_file_rounded, color: Color(0xFF77746F), size: 20),
               ),
             ),
             const SizedBox(width: 8),
@@ -2978,14 +1997,14 @@ class _InputArea extends StatelessWidget {
             child: SizedBox(
               height: 42,
               child: TextField(
-                controller: controller, style: const TextStyle(color: Color(0xFF101828), fontSize: 13, fontWeight: FontWeight.w600),
+                controller: controller, style: const TextStyle(color: Color(0xFF252525), fontSize: 13, fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
                   hintText: hintText, hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 13),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-                  filled: true, fillColor: const Color(0xFFF9FAFB),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: Color(0xFFE4E7EC))),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: Color(0xFFE4E7EC))),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: Color(0xFF2F6BFF))),
+                  filled: true, fillColor: const Color(0xFFF5F3F0),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: Color(0xFFE7E5E1))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: Color(0xFFE7E5E1))),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(13), borderSide: const BorderSide(color: Color(0xFF779586))),
                 ),
                 onSubmitted: (_) => onSubmit(),
               ),
@@ -2996,7 +2015,7 @@ class _InputArea extends StatelessWidget {
             borderRadius: BorderRadius.circular(13), onTap: onSubmit,
             child: Container(
               width: 42, height: 42, alignment: Alignment.center,
-              decoration: BoxDecoration(color: const Color(0xFF2F6BFF), borderRadius: BorderRadius.circular(13)),
+              decoration: BoxDecoration(color: const Color(0xFF779586), borderRadius: BorderRadius.circular(13)),
               child: Icon(buttonIcon, color: Colors.white, size: 20),
             ),
           ),
@@ -3014,7 +2033,7 @@ class _QuestionTargetToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 38, padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE4E7EC))),
+      decoration: BoxDecoration(color: const Color(0xFFF5F3F0), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE7E5E1))),
       child: Row(
         children: [
           _TargetTabButton(label: 'AI에게 질문', selected: target == QuestionTarget.ai, onTap: () => onChanged(QuestionTarget.ai)),
@@ -3036,8 +2055,8 @@ class _TargetTabButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(7), onTap: onTap,
         child: Container(
           alignment: Alignment.center,
-          decoration: BoxDecoration(color: selected ? const Color(0xFFF79009) : Colors.transparent, borderRadius: BorderRadius.circular(7)),
-          child: Text(label, style: TextStyle(color: selected ? Colors.white : const Color(0xFF667085), fontSize: 11, fontWeight: selected ? FontWeight.w800 : FontWeight.w600)),
+          decoration: BoxDecoration(color: selected ? const Color(0xFF779586) : Colors.transparent, borderRadius: BorderRadius.circular(7)),
+          child: Text(label, style: TextStyle(color: selected ? Colors.white : const Color(0xFF77746F), fontSize: 11, fontWeight: selected ? FontWeight.w800 : FontWeight.w600)),
         ),
       ),
     );
