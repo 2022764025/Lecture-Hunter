@@ -1,87 +1,53 @@
-// lib/main.dart
-// LiveLectureAI - 앱 진입점 (민재 동적 룸 파싱 + 여자친구 투명 테마 대통합)
+// Lecture-Hunter 프론트엔드 진입점
+//
+// 실행: flutter run -d chrome --web-port=9998 --dart-define-from-file=env.json
+// 크롬 확장은 유튜브 위에 확장 페이지(frame.html)를 띄우고, 그 안에서
+// http://127.0.0.1:9998/?lecture_id=<강의ID> 를 iframe으로 연다 (Extension/README 참고).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:js' as js; // 자바스크립트 변수 접근용
-import 'dart:html' as html; // 브라우저 주소창(URL) 파싱을 위한 웹 네이티브 임포트
-import 'features/overlay/presentation/pages/overlay_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-String? globalLectureId;
+import 'core/config/app_config.dart';
+import 'core/theme/app_theme.dart';
+import 'core/web/host_bridge.dart';
+import 'features/overlay/overlay_page.dart';
+import 'features/session/session_controller.dart';
+import 'services/local_store.dart';
 
-void main() {
-  // 1. index.html이 미리 대피시켜준 강의 ID가 있는지 먼저 체크
-  String? lectureId = js.context['initialLectureId'] as String?;
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  // 만약 자바스크립트 주입 값이 없다면 (LMS 크롬 확장 프로그램 인젝션 모드), 
-  // background.js가 던져준 주소창 뒤의 ?room=xxx 파라미터를 동적으로 스캔하여 방 번호 획득!
-  if (lectureId == null || lectureId.isEmpty) {
-    final uri = Uri.parse(html.window.location.href);
-    lectureId = uri.queryParameters['room']; 
+  if (AppConfig.hasSupabase) {
+    await Supabase.initialize(
+      url: AppConfig.supabaseUrl,
+      anonKey: AppConfig.supabaseAnonKey,
+      // 위젯은 로그인 없이 익명으로 쓴다
+      authOptions: const FlutterAuthClientOptions(autoRefreshToken: false, detectSessionInUri: false),
+    );
   }
+  // 크롬 확장(부모 창) 메시지는 llai-ready 를 보내기 전부터 듣고 있어야 한다
+  HostBridge.init();
+  final store = await LocalStore.open();
 
-  // 로컬 디버깅 환경 등 두 군데 모두 값이 없을 때 최종 폴백될 실제 테스트 강의 ID 지정
-  lectureId ??= 'lecture-715903747';
-
-  globalLectureId = lectureId;
-
-  print("==========================================================");
-  print("[최종 연동 대성공] index.html 및 URL 파라미터 복원 완료 | 강의 방 ID: $globalLectureId");
-  print("==========================================================");
-  
   runApp(
-    const ProviderScope(
-      child: LiveLectureApp(),
+    ProviderScope(
+      overrides: [localStoreProvider.overrideWithValue(store)],
+      child: const LectureHunterApp(),
     ),
   );
 }
 
-class LiveLectureApp extends StatelessWidget {
-  const LiveLectureApp({super.key});
+class LectureHunterApp extends StatelessWidget {
+  const LectureHunterApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'LiveLectureAI',
+      title: 'Lecture-Hunter',
       debugShowCheckedModeBanner: false,
-      theme: _buildTheme(),
+      theme: buildAppTheme(),
       home: const OverlayPage(),
-    );
-  }
-
-  ThemeData _buildTheme() {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.blueAccent,
-        brightness: Brightness.dark,
-      ),
-      fontFamily: 'Pretendard',
-      
-      // 외부 LMS 강의창에 오버레이 되었을 때 사이트를 가리지 않도록 배경 도화지를 완전히 투명화
-      scaffoldBackgroundColor: Colors.transparent,
-
-      textTheme: const TextTheme(
-        bodyMedium: TextStyle(color: Colors.white70),
-        bodySmall: TextStyle(color: Colors.white54),
-      ),
-
-      sliderTheme: SliderThemeData(
-        activeTrackColor: Colors.blueAccent,
-        inactiveTrackColor: Colors.white12,
-        thumbColor: Colors.blueAccent,
-        overlayColor: Colors.blueAccent.withValues(alpha: 0.2),
-      ),
-
-      switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? Colors.white : Colors.white38,
-        ),
-        trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? Colors.blueAccent : Colors.white12,
-        ),
-      ),
     );
   }
 }

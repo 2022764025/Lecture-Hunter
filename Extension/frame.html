@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Lecture-Hunter</title>
+  <style>
+    /* 위젯 배경 투명도 설정이 영상까지 비치도록 모든 층을 투명하게 둔다 */
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; color-scheme: normal; }
+    #widget { display: block; border: 0; width: 100%; height: 100%; background: transparent; color-scheme: normal; }
+    #fallback {
+      display: none; box-sizing: border-box; height: 100%; padding: 18px 18px 16px;
+      background: #fff; border: 1px solid #e3e0da; border-radius: 19px;
+      font: 14px/1.55 -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: #2f2f2f;
+    }
+    #fallback h1 { margin: 0 0 8px; font-size: 16px; color: #3f5f4a; }
+    #fallback p { margin: 0 0 10px; color: #5c5a57; }
+    #fallback code { display: block; padding: 8px 10px; border-radius: 8px; background: #f4f2ee; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+    #fallback button {
+      margin-top: 12px; width: 100%; height: 38px; border: 0; border-radius: 10px;
+      background: #7d9a86; color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+    }
+    body.failed #widget { display: none; }
+    body.failed #fallback { display: block; }
+  </style>
+</head>
+<body>
+  <iframe id="widget" title="Lecture-Hunter 위젯" allow="display-capture"></iframe>
+  <div id="fallback" role="alert">
+    <h1>Lecture-Hunter 위젯을 불러오지 못했어요</h1>
+    <p>위젯 서버(<span id="widget-url"></span>)가 켜져 있는지 확인해 주세요. 프론트엔드 폴더에서:</p>
+    <code>flutter run -d chrome --web-port=9998 --dart-define-from-file=env.json</code>
+    <button id="retry" type="button">다시 불러오기</button>
+  </div>
+  <script src="config.js"></script>
+  <script src="frame.js"></script>
+</body>
+</html>

@@ -1,196 +1,246 @@
 """
 <설명>
 (1) 텍스트 코퍼스 어그리게이션 (Aggregation)
-    - Supabase에서 해당 강의(lecture_id)의 모든 자막을 긁어모아 하나의 긴 텍스트(full_text)로 합침.
-    강의 전체의 맥락을 LLM에게 한 번에 전달할 수 있다.
-(2) LLM 요약 및 엔티티 추출 (Gemma-2:2b)
-    - 가벼운 Gemma-2 모델을 사용하여 3줄 요약과 키워드 5개를 뽑음. (나중에 모델 교체)
-    "개념 저장소(NoteLLM)"로 가는 기술, 학생들이 긴 강의를 다 볼 필요 없이 핵심만 파악하게 해준다.
-(3) 데이터 영속화 (Persistence)
-    - 결과를 단순히 보여주고 끝내는 게 아니라 lecture_summaries 테이블에 따로 저장.
-    나중에 학생 대시보드나 모바일 앱에서 '복습 탭'을 누르면 즉시 요약을 보여줄 수 있는 근거 데이터가 된다.
-(4) Adaptive Briefing (구간별 요약)
-    - 최근 N분간의 자막만 긁어와서 3줄로 요약. 지각생이나 잠깐 딴생각한 학생이 '지금까지 요약' 버튼 누를 때 호출.
-    - lecture_summaries 테이블에 type='adaptive'로 저장하여 전체 요약과 구분.
+    - Supabase에서 강의(lecture_id) 자막을 시간순으로 모은다.
+    - Supabase는 한 번에 최대 1,000행만 돌려주므로 페이지 단위로 끝까지 읽는다 (긴 강의 누락 방지).
+(2) 요약 범위 3가지
+    - 최근 N분 (Adaptive Briefing): 지각생이나 잠깐 딴생각한 학생용. 최대 180분.
+    - 구간 요약: 강의 시작(첫 자막) 기준 start_min ~ end_min 분 구간.
+    - 전체 요약: 강의 전체. 강의 종료(/lecture/end) 때 저장하고, 화면에서 다시 불러올 수 있다.
+(3) Recursive Summarization + JSON 구조화 출력
+    - 자막이 길면 구간별로 먼저 요약한 뒤 다시 합쳐 요약한다 (gemma2 문맥 길이 한계 대응).
+    - 마지막 요약은 JSON(summary 3문장 + keywords)으로 받아 파싱 오류를 줄이고, 키워드는 key_points에 저장한다.
+    - "자막에 없는 내용은 추측하지 말 것"을 프롬프트에 명시한다.
+(4) 데이터 영속화 (Persistence)
+    - 결과를 lecture_summaries에 저장한다. summary_type: 'adaptive'(최근 N분), 'range'(구간), 'full'(전체)
+    - 'full'은 강의당 1개만 둔다. DB의 부분 유니크 인덱스(WHERE summary_type='full')는
+      upsert(on_conflict)로 맞출 수 없어(42P10 에러) 조회 후 update/insert 한다.
 """
 
-import ollama
-from datetime import datetime, timezone, timedelta
-from core.config import settings
-from core.database import get_supabase # 싱글턴 중앙화
+import json
+from datetime import datetime, timedelta, timezone
+from typing import Optional
 
-# 순환 참조 방지: rag_service에서 가져오지 않고 독립 선언
-ollama_client = ollama.AsyncClient()
+from core import llm
+from core.database import get_supabase
+from core.lang import korean_lang_name
 
-CHUNK_SIZE = 100  # 청크당 문장 수
+PAGE_SIZE = 1000
+CHUNK_CHARS = 2500       # 한 번에 LLM에 넣는 자막 길이 (gemma2:2b 기본 문맥 4096 토큰 고려)
+MAX_RECENT_MINUTES = 180
 
 
-async def _summarize_chunk(chunk_text: str, chunk_index: int) -> str:
-    """
-    1차 요약: 청크 하나를 간단히 요약
-    """
-    prompt = f"""
-    아래는 강의의 일부분입니다. 핵심 내용을 3문장 이내로 요약하세요.
-    설명 없이 요약문만 출력하세요.
+def _parse_time(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
-    [강의 내용]:
-    {chunk_text}
-    """
+
+async def fetch_captions(
+    lecture_id: str,
+    since: Optional[datetime] = None,
+    until: Optional[datetime] = None,
+) -> list[dict]:
+    client = await get_supabase()
+    rows: list[dict] = []
+    start = 0
+    while True:
+        query = client.table("lecture_contents").select("id, original_text, created_at").eq("lecture_id", lecture_id)
+        if since:
+            query = query.gte("created_at", since.isoformat())
+        if until:
+            query = query.lte("created_at", until.isoformat())
+        res = await query.order("id").range(start, start + PAGE_SIZE - 1).execute()
+        rows.extend(res.data)
+        if len(res.data) < PAGE_SIZE:
+            break
+        start += PAGE_SIZE
+    return [r for r in rows if (r.get("original_text") or "").strip()]
+
+
+async def lecture_timeline(lecture_id: str) -> dict:
+    """첫 자막/마지막 자막 시각과 자막 수. 강의 경과 시간 표시와 구간 요약 기준점으로 쓴다."""
+    client = await get_supabase()
+    first = await client.table("lecture_contents").select("created_at") \
+        .eq("lecture_id", lecture_id).order("id").limit(1).execute()
+    if not first.data:
+        return {"started_at": None, "last_caption_at": None, "caption_count": 0}
+    last = await client.table("lecture_contents").select("created_at") \
+        .eq("lecture_id", lecture_id).order("id", desc=True).limit(1).execute()
+    count = await client.table("lecture_contents").select("id", count="exact") \
+        .eq("lecture_id", lecture_id).limit(1).execute()
+    return {
+        "started_at": first.data[0]["created_at"],
+        "last_caption_at": last.data[0]["created_at"],
+        "caption_count": count.count or 0,
+    }
+
+
+def _chunks(sentences: list[str]) -> list[str]:
+    chunks, current = [], ""
+    for s in sentences:
+        if current and len(current) + len(s) + 1 > CHUNK_CHARS:
+            chunks.append(current)
+            current = s
+        else:
+            current = f"{current} {s}".strip()
+    if current:
+        chunks.append(current)
+    return chunks
+
+
+async def _summarize_chunk(text: str, language: str) -> str:
+    prompt = f"""아래는 대학 강의의 일부분 자막입니다. 자막에 있는 내용만으로 핵심을 3문장 이내로 요약하세요.
+설명 없이 요약문만 {language}로 출력하세요.
+
+[자막]
+{text}
+"""
+    return await llm.generate(prompt, options={"temperature": 0.2})
+
+
+def _parse_summary(raw: str) -> tuple[list[str], list[str]]:
+    data = None
     try:
-        response = await ollama_client.generate(
-            model=settings.LLM_MODEL, 
-            prompt=prompt
-        )
-        result = response['response'].strip()
-        print(f"[Summary] 청크 {chunk_index} 요약 완료")
-        return result
-    except Exception as e:
-        print(f"[Summary] 청크 {chunk_index} 요약 에러: {e}")
-        return ""
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        start, end = raw.find("{"), raw.rfind("}")
+        if start != -1 and end > start:
+            try:
+                data = json.loads(raw[start:end + 1])
+            except json.JSONDecodeError:
+                data = None
+    if not isinstance(data, dict):
+        return [raw.strip()] if raw.strip() else [], []
+
+    summary = data.get("summary") or []
+    if isinstance(summary, str):
+        summary = [line.strip(" -•") for line in summary.splitlines() if line.strip()]
+    keywords = data.get("keywords") or []
+    if isinstance(keywords, str):
+        keywords = [k.strip() for k in keywords.split(",")]
+    lines = [str(s).strip() for s in summary if str(s).strip()][:5]
+    keys = list(dict.fromkeys(str(k).strip() for k in keywords if str(k).strip()))[:5]
+    return lines, keys
 
 
-async def _final_summarize(chunk_summaries: list[str]) -> str:
-    """
-    2차 요약: 1차 요약들을 합쳐 최종 3줄 요약 + 키워드 5개 생성
-    """
-    combined = "\n".join(chunk_summaries)
-    prompt = f"""
-    아래는 강의 전체를 구간별로 요약한 내용입니다.
-    이를 바탕으로 강의 전체의 3줄 요약과 핵심 키워드 5개를 뽑아주세요.
-    형식: [요약] 내용... [키워드] k1, k2, k3, k4, k5
-
-    [구간별 요약]:
-    {combined}
-    """
-    try:
-        response = await ollama_client.generate(
-            model=settings.LLM_MODEL,
-            prompt=prompt
-        )
-        return response['response'].strip()
-    except Exception as e:
-        print(f"[Summary] 최종 요약 에러: {e}")
-        return "최종 요약 생성 중 오류가 발생했습니다."
-
-
-async def generate_lecture_summary(lecture_id: str) -> str:
-    """강의 전체 요약 (강의 종료 시 호출)"""
-    supabase = await get_supabase()
-
-    # 1. 전체 자막 가져오기 (시간순)
-    resp = await supabase.table("lecture_contents") \
-        .select("original_text") \
-        .eq("lecture_id", lecture_id) \
-        .order("created_at", desc=False) \
-        .execute()
-
-    if not resp.data:
-        return "요약할 내용이 없습니다."
-
-    sentences = [item['original_text'] for item in resp.data if item['original_text']]
-
-    if not sentences:
-        return "요약할 내용이 없습니다."
-
-    # 2. Recursive Summarization
-    # 2-1. 100문장씩 청크 분할 후 1차 요약
-    chunks = [
-        sentences[i:i + CHUNK_SIZE]
-        for i in range(0, len(sentences), CHUNK_SIZE)
-    ]
-
-    print(f"[Summary] 전체 {len(sentences)}문장 → {len(chunks)}개 청크로 분할")
-
-    # 청크가 1개면 바로 최종 요약으로
-    if len(chunks) == 1:
-        chunk_text = " ".join(chunks[0])
-        summary_result = await _final_summarize([chunk_text])
+async def _summarize(sentences: list[str], scope: str, target_lang: str) -> dict:
+    language = korean_lang_name(target_lang)
+    chunks = _chunks(sentences)
+    if len(chunks) > 1:
+        print(f"[Summary] {len(sentences)}문장 → {len(chunks)}개 구간으로 나눠 1차 요약")
+        partials = []
+        for chunk in chunks:
+            try:
+                partials.append(await _summarize_chunk(chunk, language))
+            except Exception as e:
+                print(f"[Summary] 구간 요약 실패: {e}")
+        text = "\n".join(p for p in partials if p)
+        if not text:
+            raise RuntimeError("구간 요약이 모두 실패했습니다.")
+        scope = f"{scope}(구간별 요약본)"
     else:
-        # 1차 요약 (청크별 순차 처리)
-        chunk_summaries = []
-        for i, chunk in enumerate(chunks):
-            chunk_text = " ".join(chunk)
-            summary = await _summarize_chunk(chunk_text, i + 1)
-            if summary:
-                chunk_summaries.append(summary)
+        text = chunks[0] if chunks else ""
 
-        if not chunk_summaries:
-            return "요약 생성 중 오류가 발생했습니다."
+    prompt = f"""아래는 대학 강의 {scope}의 실시간 자막입니다. 음성 인식 결과라 오탈자가 있을 수 있습니다.
+자막에 나온 내용만 사용해서 요약하세요. 자막에 없는 내용은 추측하거나 덧붙이지 마세요.
+모든 문장은 {language}로 작성하세요.
 
-        # 2차 요약 (최종)
-        summary_result = await _final_summarize(chunk_summaries)
+다음 JSON 형식으로만 답하세요:
+{{"summary": ["핵심 내용 1", "핵심 내용 2", "핵심 내용 3"], "keywords": ["키워드1", "키워드2", "키워드3"]}}
+- summary: 핵심 내용 3개, 각각 한 문장
+- keywords: 강의에 나온 핵심 용어 3~5개
 
-    # 3. upsert로 중복 저장 방지
+[자막]
+{text}
+"""
+    raw = await llm.generate(prompt, json_mode=True, options={"temperature": 0.2})
+    lines, keywords = _parse_summary(raw)
+    if not lines:
+        raise RuntimeError("요약 결과가 비어 있습니다.")
+    return {"summary": "\n".join(f"• {line}" for line in lines), "key_points": keywords}
+
+
+async def _save(lecture_id: str, summary_type: str, result: dict) -> None:
+    client = await get_supabase()
+    row = {
+        "lecture_id": lecture_id,
+        "summary_text": result["summary"],
+        "summary_type": summary_type,
+        "key_points": result.get("key_points") or [],
+    }
     try:
-        await supabase.table("lecture_summaries").upsert({
-            "lecture_id": lecture_id,
-            "summary_text": summary_result,
-            "summary_type": "full"
-        }, on_conflict="lecture_id").execute()
-        print(f"[Summary] 전체 요약 DB 저장 완료: {lecture_id}")
+        if summary_type == "full":
+            existing = await client.table("lecture_summaries").select("id") \
+                .eq("lecture_id", lecture_id).eq("summary_type", "full").limit(1).execute()
+            if existing.data:
+                await client.table("lecture_summaries").update(row).eq("id", existing.data[0]["id"]).execute()
+                return
+        await client.table("lecture_summaries").insert(row).execute()
     except Exception as e:
-        print(f"[Summary] DB 저장 에러: {e}")
+        print(f"[Summary] DB 저장 실패 ({summary_type}): {e}")
 
-    return summary_result
 
-# 신규 추가: Adaptive Briefing
-async def generate_adaptive_summary(lecture_id: str, minutes: int = 5) -> str:
-    """
-    최근 N분간의 자막을 3줄로 요약 (Adaptive Briefing)
-    학생이 '지금까지 요약' 버튼 누를 때 호출
-    """
-    supabase = await get_supabase()
+def _empty(message: str, **extra) -> dict:
+    return {"summary": message, "key_points": [], "caption_count": 0, "empty": True, **extra}
 
-    # 1. 최근 N분간의 자막만 가져오기
-    since = (datetime.now(timezone.utc) - timedelta(minutes=minutes)).isoformat()
 
-    resp = await supabase.table("lecture_contents") \
-        .select("original_text") \
-        .eq("lecture_id", lecture_id) \
-        .gte("created_at", since) \
-        .order("created_at", desc=False) \
-        .execute()
+async def generate_adaptive_summary(lecture_id: str, minutes: int = 5, target_lang: str = "Korean") -> dict:
+    """최근 N분 자막 요약 (Adaptive Briefing)"""
+    minutes = max(1, min(int(minutes), MAX_RECENT_MINUTES))
+    since = datetime.now(timezone.utc) - timedelta(minutes=minutes)
+    rows = await fetch_captions(lecture_id, since=since)
+    if not rows:
+        return _empty(f"최근 {minutes}분간 강의 내용이 없습니다.", minutes=minutes)
 
-    if not resp.data:
-        return f"최근 {minutes}분간 강의 내용이 없습니다."
+    print(f"[Adaptive] {lecture_id} 최근 {minutes}분 | {len(rows)}문장 요약")
+    result = await _summarize([r["original_text"] for r in rows], f"최근 {minutes}분", target_lang)
+    await _save(lecture_id, "adaptive", result)
+    return {**result, "caption_count": len(rows), "minutes": minutes, "empty": False}
 
-    sentences = [item['original_text'] for item in resp.data if item['original_text']]
 
-    if not sentences:
-        return f"최근 {minutes}분간 요약할 내용이 없습니다."
+async def generate_range_summary(lecture_id: str, start_min: float, end_min: float,
+                                 target_lang: str = "Korean") -> dict:
+    """강의 시작(첫 자막) 기준 start_min ~ end_min 분 구간 요약"""
+    timeline = await lecture_timeline(lecture_id)
+    if not timeline["started_at"]:
+        return _empty("아직 강의 자막이 없습니다.", start_min=start_min, end_min=end_min)
 
-    print(f"[Adaptive] 최근 {minutes}분 | {len(sentences)}문장 요약 시작")
+    started = _parse_time(timeline["started_at"])
+    since = started + timedelta(minutes=start_min)
+    until = started + timedelta(minutes=end_min)
+    rows = await fetch_captions(lecture_id, since=since, until=until)
+    label = f"{_fmt_min(start_min)}~{_fmt_min(end_min)} 구간"
+    if not rows:
+        return _empty(f"{label}에 강의 내용이 없습니다.", start_min=start_min, end_min=end_min)
 
-    # 2. 단일 프롬프트로 바로 요약 (구간이 짧으니 Recursive 불필요)
-    full_text = " ".join(sentences)
-    prompt = f"""
-    아래는 최근 {minutes}분간의 강의 내용입니다.
-    지각생이나 잠깐 딴생각한 학생을 위해 핵심 내용을 3줄로 요약하세요.
-    형식: [요약] 내용...
+    print(f"[Range] {lecture_id} {label} | {len(rows)}문장 요약")
+    result = await _summarize([r["original_text"] for r in rows], label, target_lang)
+    await _save(lecture_id, "range", result)
+    return {**result, "caption_count": len(rows), "start_min": start_min, "end_min": end_min, "empty": False}
 
-    [강의 내용]:
-    {full_text}
-    """
 
-    try:
-        response = await ollama_client.generate(
-            model=settings.LLM_MODEL,
-            prompt=prompt
-        )
-        summary_result = response['response'].strip()
-    except Exception as e:
-        print(f"[Adaptive] LLM 요약 에러: {e}")
-        return "요약 생성 중 오류가 발생했습니다."
+async def generate_lecture_summary(lecture_id: str, target_lang: str = "Korean") -> dict:
+    """강의 전체 요약. 강의당 1개('full')로 저장한다."""
+    rows = await fetch_captions(lecture_id)
+    if not rows:
+        return _empty("요약할 내용이 없습니다.")
 
-    # 3. DB 저장 (adaptive 타입으로 별도 저장)
-    try:
-        await supabase.table("lecture_summaries").insert({
-            "lecture_id":   lecture_id,
-            "summary_text": summary_result,
-            "summary_type": "adaptive"      # 전체 요약과 구분
-        }).execute()
-        print(f"[Adaptive] DB 저장 완료: {lecture_id} | {minutes}분 요약")
-    except Exception as e:
-        print(f"[Adaptive] DB 저장 에러: {e}")
+    print(f"[Summary] {lecture_id} 전체 {len(rows)}문장 요약")
+    result = await _summarize([r["original_text"] for r in rows], "전체", target_lang)
+    await _save(lecture_id, "full", result)
+    return {**result, "caption_count": len(rows), "empty": False}
 
-    return summary_result
+
+async def get_saved_full_summary(lecture_id: str) -> Optional[dict]:
+    client = await get_supabase()
+    res = await client.table("lecture_summaries").select("summary_text, key_points, created_at") \
+        .eq("lecture_id", lecture_id).eq("summary_type", "full").limit(1).execute()
+    if not res.data:
+        return None
+    row = res.data[0]
+    return {"summary": row["summary_text"], "key_points": row.get("key_points") or [],
+            "created_at": row["created_at"], "empty": False}
+
+
+def _fmt_min(value: float) -> str:
+    total = int(round(value))
+    return f"{total // 60:02d}:{total % 60:02d}"

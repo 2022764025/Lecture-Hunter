@@ -1,0 +1,39 @@
+# LiveLectureAI 백엔드(App) 전용 의존성
+# Python 3.12 기준 (pikmin 가상환경에서 검증)
+# 설치: cd App && pip install -r requirements.txt
+#
+# pip로 설치되지 않아 따로 준비해야 하는 것 (macOS: brew install ffmpeg ollama)
+#   - ffmpeg : 유튜브 오디오를 16kHz PCM으로 변환 (api/v1/websocket.py)
+#   - Ollama : LLM / 임베딩 / VLM 서버. 필요한 모델:
+#              ollama pull gemma2:2b
+#              ollama pull nomic-embed-text
+#              ollama pull llava
+#
+# 루트의 requirements.txt는 예전 비전 실험 코드(vision_code)와 루트 Dockerfile용입니다.
+
+# 웹 서버
+fastapi==0.135.1
+uvicorn[standard]==0.41.0    # WebSocket 처리용 websockets 포함
+pydantic==2.12.5
+pydantic-settings==2.13.1    # .env 로딩 (python-dotenv 포함)
+
+# DB
+supabase==2.28.0
+
+# STT
+faster-whisper==1.2.1
+silero-vad==6.2.1
+torch==2.10.0
+torchaudio==2.10.0           # silero-vad 의존성. torch와 같은 버전이어야 함
+numpy==1.26.4
+
+# LLM / VLM
+ollama==0.6.1
+pillow==12.1.1
+
+# 유튜브 오디오 스트림 주소 추출 (websocket.py가 CLI로 호출)
+# 유튜브 쪽 변경으로 옛 버전이 자주 깨져서 하한만 지정
+yt-dlp>=2026.6.9
+
+# 성능 측정 스크립트(perf_benchmark.py) memory 명령 전용. 서버 실행에는 필요 없음
+#   pip install psutil==7.0.0 matplotlib==3.10.8

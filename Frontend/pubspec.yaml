@@ -1,40 +1,50 @@
 name: live_lecture_ai
-description: LiveLectureAI - 강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯
+description: Lecture-Hunter - 강의 상호작용을 위한 Flutter 기반 실시간 자막·질문 위젯
 
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.4.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
+  # 상태 관리
   flutter_riverpod: ^2.5.1
-  riverpod_annotation: ^2.3.5
 
+  # 백엔드 REST API
   http: ^1.2.1
-  dio: ^5.4.3
 
+  # 위젯 설정·익명 클라이언트 ID 저장 (웹에서는 localStorage)
   shared_preferences: ^2.3.1
 
-  flutter_animate: ^4.5.0
+  # 자막·질문·공지 실시간 수신 (Supabase Realtime)
+  supabase_flutter: ^2.12.4
+
+  # 브라우저 API (화면 캡처, 부모 창과 postMessage, 오디오 브리지). dart:html 대체
+  web: ^1.1.0
 
   cupertino_icons: ^1.0.8
-  web_socket_channel: ^3.0.3
-  supabase_flutter: ^2.12.4
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  build_runner: ^2.4.9
-  riverpod_generator: ^2.4.3
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/Lecture-Hunter_Logo1.png
-    - assets/Lecture-Hunter_Logo2.png
-    - assets/Lecture-Hunter_Logo4.png
+
+  # Pretendard (SIL OFL 1.1, assets/fonts/pretendard/LICENSE.txt).
+  # 디자인(과제헌터.html)의 Apple SD Gothic Neo / Inter 계열과 가장 비슷한 한글 글꼴.
+  # 한글 음절 전체 + 라틴 + 기호만 남기도록 subset 해서 굵기당 약 2.2MB.
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/pretendard/Pretendard-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/pretendard/Pretendard-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/pretendard/Pretendard-Bold.ttf
+          weight: 700

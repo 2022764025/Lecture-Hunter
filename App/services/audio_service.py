@@ -1,19 +1,18 @@
 """
-앞으로의 활용 방안 (빌드업)
-나중에 우리가 추가하기로 한 '3가지 신규 기능' 중에서, 오디오와 관련된 기능이 이 통로를 거치게 된다.
+오디오 입력 통로.
 
-잡음 제거(Denoising): 나중에 "교수님 마이크 소리가 너무 지지직거려요"라는 피드백이 오면, 
-                    stt_service로 넘기기 전에 여기서 잡음 제거 함수를 살짝 끼워 넣을 수 있는 '전략적 요충지'이다.
+WebSocket(api/v1/websocket.py)이 받은 PCM 청크를 STT 스트림 버퍼로 넘긴다.
+나중에 "교수님 마이크 소리가 너무 지지직거려요" 같은 피드백이 오면,
+stt_service로 넘기기 전에 여기서 잡음 제거(Denoising) 같은 전처리를 끼워 넣으면 된다.
 """
 
-from services.stt_service import process_audio_and_broadcast
+from services.stt_service import LectureStream
 
-async def process_lecture_audio(audio_data: bytes, lecture_id: str, target_lang: str = "Korean"):
+
+def process_lecture_audio(stream: LectureStream, conn_id: int, audio_data: bytes) -> bool:
     """
-    이 함수는 그냥 통로입니다. 
-    진짜 모델(잡음제거, STT, DB저장)은 stt_service가 다 합니다.
-    이제 target_lang도 함께 배달합니다.
+    16kHz / 16-bit / mono PCM 청크를 강의 스트림에 추가한다.
+    실제 인식(VAD → Whisper → DB 저장)은 stt_service의 강의별 워커가 한다.
+    스트림이 이미 끝났거나 이 연결이 더 최신 연결로 대체되었으면 False.
     """
-    # stt_service 로직
-    result = await process_audio_and_broadcast(audio_data, lecture_id, target_lang)
-    return result
+    return stream.feed(conn_id, audio_data)

@@ -1,16 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    window.initialLectureId = urlParams.get('lecture_id');
-  </script>
-
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Lecture-Hunter - 강의 상호작용을 위한 실시간 자막·질문 위젯">
 
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -20,303 +16,137 @@
   <link rel="icon" type="image/png" href="Lecture-Hunter_Logo5.png">
 
   <title>Lecture Hunter</title>
-
   <link rel="manifest" href="manifest.json">
 
   <style>
-    html, body {
-      background: transparent !important;
-      margin: 0;
-      padding: 0;
-    }
-
-    flutter-view {
-      background: transparent !important;
-    }
+    /* 크롬 확장 iframe 안에서는 유튜브 화면이 비쳐 보이도록 배경을 투명하게 둔다 */
+    html, body { background: transparent !important; margin: 0; padding: 0; }
+    flutter-view { background: transparent !important; }
   </style>
 </head>
 
 <body>
-  <script src="flutter_bootstrap.js" async></script>
-
   <script>
-    let lectureCaptureStream = null;
-    let lectureAudioContext = null;
-    let lectureAudioSource = null;
-    let lectureAudioProcessor = null;
-    let lectureAudioSocket = null;
+    /*
+     * window.llaiAudio : 위젯을 단독으로 열었을 때 강의 음성을 백엔드 WebSocket(/ws/audio/{id})으로 보낸다.
+     * (크롬 확장에서는 확장의 offscreen 문서가 탭 오디오를 보내므로 쓰지 않는다)
+     *
+     *   llaiAudio.start('mic' | 'tab' | 'youtube', wsUrl) → Promise
+     *     mic     : 마이크 입력
+     *     tab     : 화면/탭 공유의 오디오 (공유 창에서 "오디오 공유" 체크 필요)
+     *     youtube : 서버가 영상 오디오를 직접 받는다. 브라우저는 연결만 유지
+     *   llaiAudio.stop()
+     *
+     * 오디오는 AudioContext(16kHz)로 리샘플한 뒤 Int16 Little-Endian PCM 바이너리로 보낸다.
+     * 15초마다 "ping"을 보내 연결을 확인하고, 끊기면 1·2·4·8·10초 간격으로 다시 연결한다.
+     * 상태는 window.postMessage({source:'llai-audio', state, message}) 로 Flutter에 알린다.
+     */
+    window.llaiAudio = (() => {
+      let ws = null, stream = null, ctx = null, source = null, proc = null, mute = null;
+      let mode = null, wsUrl = null, active = false, retry = 0, pingTimer = null, retryTimer = null;
 
-    function floatTo16BitPcm(float32Array) {
-      const buffer = new ArrayBuffer(float32Array.length * 2);
-      const view = new DataView(buffer);
+      const post = (state, message = '') =>
+        window.postMessage({ source: 'llai-audio', state, mode, message }, '*');
 
-      for (let i = 0; i < float32Array.length; i++) {
-        let sample = Math.max(-1, Math.min(1, float32Array[i]));
-        sample = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
-        view.setInt16(i * 2, sample, true);
-      }
-
-      return buffer;
-    }
-
-    function downsampleBuffer(buffer, inputSampleRate, outputSampleRate) {
-      if (outputSampleRate === inputSampleRate) {
-        return buffer;
-      }
-
-      const sampleRateRatio = inputSampleRate / outputSampleRate;
-      const newLength = Math.round(buffer.length / sampleRateRatio);
-      const result = new Float32Array(newLength);
-
-      let offsetResult = 0;
-      let offsetBuffer = 0;
-
-      while (offsetResult < result.length) {
-        const nextOffsetBuffer = Math.round(
-          (offsetResult + 1) * sampleRateRatio
-        );
-
-        let accum = 0;
-        let count = 0;
-
-        for (
-          let i = offsetBuffer;
-          i < nextOffsetBuffer && i < buffer.length;
-          i++
-        ) {
-          accum += buffer[i];
-          count++;
-        }
-
-        result[offsetResult] = count > 0 ? accum / count : 0;
-        offsetResult++;
-        offsetBuffer = nextOffsetBuffer;
-      }
-
-      return result;
-    }
-
-    function stopLectureCapture() {
-      if (lectureAudioProcessor) {
-        try {
-          lectureAudioProcessor.disconnect();
-        } catch (e) {}
-
-        lectureAudioProcessor = null;
-      }
-
-      if (lectureAudioSource) {
-        try {
-          lectureAudioSource.disconnect();
-        } catch (e) {}
-
-        lectureAudioSource = null;
-      }
-
-      if (lectureAudioContext) {
-        try {
-          lectureAudioContext.close();
-        } catch (e) {}
-
-        lectureAudioContext = null;
-      }
-
-      const lectureVideo = document.getElementById(
-        'lecture-shared-video'
-      );
-
-      if (lectureVideo) {
-        lectureVideo.pause();
-        lectureVideo.srcObject = null;
-      }
-
-      if (lectureCaptureStream) {
-        lectureCaptureStream
-          .getTracks()
-          .forEach((track) => track.stop());
-
-        lectureCaptureStream = null;
-      }
-
-      if (lectureAudioSocket) {
-        try {
-          lectureAudioSocket.close();
-        } catch (e) {}
-
-        lectureAudioSocket = null;
-      }
-    }
-
-    window.addEventListener('message', async (event) => {
-      const data = event.data || {};
-
-      if (data.type === 'lecture_capture_start') {
-        try {
-          stopLectureCapture();
-
-          if (
-            !navigator.mediaDevices ||
-            !navigator.mediaDevices.getDisplayMedia
-          ) {
-            window.postMessage({
-              type: 'lecture_capture_error',
-              message: '이 브라우저는 화면/탭 공유를 지원하지 않습니다.'
-            }, '*');
-
+      function openSocket() {
+        ws = new WebSocket(wsUrl);
+        ws.binaryType = 'arraybuffer';
+        ws.onopen = () => {
+          retry = 0;
+          post('connected');
+          clearInterval(pingTimer);
+          pingTimer = setInterval(() => { if (ws && ws.readyState === WebSocket.OPEN) ws.send('ping'); }, 15000);
+        };
+        ws.onmessage = (event) => {
+          if (typeof event.data !== 'string') return;
+          try {
+            const msg = JSON.parse(event.data);
+            if (msg.type === 'youtube_ended') { active = false; post('ended'); }
+            if (msg.type === 'error') post('error', msg.message || '서버 오류');
+          } catch (_) { /* pong 등 */ }
+        };
+        ws.onclose = (event) => {
+          clearInterval(pingTimer);
+          if (!active) return;
+          if (event.code === 4000 || event.code === 4001) {
+            post('error', '서버가 연결을 거부했습니다 (강의 ID 또는 유튜브 주소 확인).');
+            stop(true);
             return;
           }
+          retry += 1;
+          const delay = Math.min(10000, 1000 * 2 ** (retry - 1));
+          post('reconnecting', `${Math.round(delay / 1000)}초 후 다시 연결`);
+          retryTimer = setTimeout(() => { if (active) openSocket(); }, delay);
+        };
+      }
 
-          const wsUrl = data.wsUrl;
-
-          if (!wsUrl) {
-            window.postMessage({
-              type: 'lecture_capture_error',
-              message: 'WebSocket 주소가 없습니다.'
-            }, '*');
-
-            return;
-          }
-
-          lectureCaptureStream =
-            await navigator.mediaDevices.getDisplayMedia({
-              video: true,
-              audio: true
+      async function start(newMode, url) {
+        stop(true);
+        mode = newMode; wsUrl = url; active = true;
+        try {
+          if (mode === 'mic') {
+            stream = await navigator.mediaDevices.getUserMedia({
+              audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true },
             });
-
-          const lectureVideo = document.getElementById(
-            'lecture-shared-video'
-          );
-
-          if (lectureVideo) {
-            lectureVideo.srcObject = lectureCaptureStream;
-            lectureVideo.muted = true;
-            lectureVideo.playsInline = true;
-
-            await lectureVideo.play();
-          }
-
-          const audioTracks =
-            lectureCaptureStream.getAudioTracks();
-
-          if (!audioTracks || audioTracks.length === 0) {
-            stopLectureCapture();
-
-            window.postMessage({
-              type: 'lecture_capture_error',
-              message:
-                '오디오 트랙이 없습니다. 공유 창에서 오디오 공유를 체크하세요.'
-            }, '*');
-
-            return;
-          }
-
-          lectureAudioSocket = new WebSocket(wsUrl);
-          lectureAudioSocket.binaryType = 'arraybuffer';
-
-          await new Promise((resolve, reject) => {
-            lectureAudioSocket.onopen = resolve;
-
-            lectureAudioSocket.onerror = () =>
-              reject(
-                new Error('오디오 WebSocket 연결 실패')
-              );
-
-            setTimeout(
-              () =>
-                reject(
-                  new Error(
-                    '오디오 WebSocket 연결 시간 초과'
-                  )
-                ),
-              5000
-            );
-          });
-
-          lectureAudioContext = new (
-            window.AudioContext ||
-            window.webkitAudioContext
-          )();
-
-          lectureAudioSource =
-            lectureAudioContext.createMediaStreamSource(
-              lectureCaptureStream
-            );
-
-          lectureAudioProcessor =
-            lectureAudioContext.createScriptProcessor(
-              4096,
-              1,
-              1
-            );
-
-          lectureAudioProcessor.onaudioprocess = (
-            audioProcessingEvent
-          ) => {
-            if (
-              !lectureAudioSocket ||
-              lectureAudioSocket.readyState !== WebSocket.OPEN
-            ) {
-              return;
+          } else if (mode === 'tab') {
+            stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+            if (!stream.getAudioTracks().length) {
+              throw new Error('공유 창에서 "오디오 공유"를 켜 주세요.');
             }
+            stream.getVideoTracks().forEach((t) => { t.onended = () => stop(); });
+          }
 
-            const inputBuffer =
-              audioProcessingEvent.inputBuffer;
-
-            const channelData =
-              inputBuffer.getChannelData(0);
-
-            const downsampled = downsampleBuffer(
-              channelData,
-              lectureAudioContext.sampleRate,
-              16000
-            );
-
-            const pcm16 =
-              floatTo16BitPcm(downsampled);
-
-            lectureAudioSocket.send(pcm16);
-          };
-
-          lectureAudioSource.connect(
-            lectureAudioProcessor
-          );
-
-          lectureAudioProcessor.connect(
-            lectureAudioContext.destination
-          );
-
-          lectureCaptureStream
-            .getTracks()
-            .forEach((track) => {
-              track.onended = () => {
-                stopLectureCapture();
-
-                window.postMessage({
-                  type: 'lecture_capture_stopped'
-                }, '*');
-              };
-            });
-
-          window.postMessage({
-            type: 'lecture_capture_started'
-          }, '*');
-        } catch (error) {
-          stopLectureCapture();
-
-          window.postMessage({
-            type: 'lecture_capture_error',
-            message:
-              error && error.message
-                ? error.message
-                : String(error)
-          }, '*');
+          if (stream) {
+            ctx = new AudioContext({ sampleRate: 16000 });
+            // 권한 창을 거치느라 클릭 직후가 아니면 suspended 로 만들어질 수 있다
+            if (ctx.state === 'suspended') await ctx.resume();
+            source = ctx.createMediaStreamSource(stream);
+            proc = ctx.createScriptProcessor(4096, 1, 1);
+            mute = ctx.createGain();
+            mute.gain.value = 0;   // 처리용 노드만 연결하고 소리는 다시 내보내지 않는다
+            proc.onaudioprocess = (e) => {
+              if (!ws || ws.readyState !== WebSocket.OPEN) return;
+              const input = e.inputBuffer.getChannelData(0);
+              const pcm = new Int16Array(input.length);
+              for (let i = 0; i < input.length; i++) {
+                const s = Math.max(-1, Math.min(1, input[i]));
+                pcm[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+              }
+              ws.send(pcm.buffer);
+            };
+            source.connect(proc);
+            proc.connect(mute);
+            mute.connect(ctx.destination);
+            stream.getAudioTracks().forEach((t) => { t.onended = () => stop(); });
+          }
+          openSocket();
+        } catch (err) {
+          stop(true);
+          const message = err && err.name === 'NotAllowedError'
+            ? '권한이 거부되었거나 공유가 취소되었습니다.'
+            : (err && err.message) || String(err);
+          post('error', message);
+          throw new Error(message);
         }
       }
 
-      if (data.type === 'lecture_capture_stop') {
-        stopLectureCapture();
+      function stop(silent) {
+        const wasActive = active;
+        active = false;
+        clearInterval(pingTimer); clearTimeout(retryTimer);
+        try { proc && proc.disconnect(); } catch (_) {}
+        try { source && source.disconnect(); } catch (_) {}
+        try { mute && mute.disconnect(); } catch (_) {}
+        try { ctx && ctx.close(); } catch (_) {}
+        if (stream) stream.getTracks().forEach((t) => t.stop());
+        try { ws && ws.close(1000); } catch (_) {}
+        ws = stream = ctx = source = proc = mute = null;
+        if (!silent && wasActive) post('stopped');
       }
-    });
+
+      return { start, stop: () => stop(false) };
+    })();
   </script>
+  <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

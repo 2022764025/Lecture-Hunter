@@ -1,225 +1,209 @@
-// lib/services/api_service.dart
-// FastAPI 백엔드 REST / WebSocket 통신 서비스 (민재 동적 룸 ID 엔진 이식 완료)
-
+import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
-import 'package:http/http.dart' as http;
-import '../core/config/app_config.dart';
-import '../features/assistant/presentation/controllers/question_model.dart';
-import '../main.dart'; // 주소창 파싱 변수인 globalLectureId를 가져오기 위한 임포트
 
+import 'package:http/http.dart' as http;
+
+import '../core/config/app_config.dart';
+import '../models/caption_language.dart';
+import '../models/lecture_models.dart';
+
+/// 백엔드 오류. message는 백엔드의 detail(한국어 안내)을 그대로 쓴다.
+class ApiException implements Exception {
+  final int? statusCode;
+  final String message;
+  const ApiException(this.message, {this.statusCode});
+
+  bool get isTableMissing => statusCode == 503 && message.contains('테이블');
+
+  @override
+  String toString() => message;
+}
+
+/// FastAPI 백엔드(App/main.py) REST 클라이언트
 class ApiService {
-  static const String _baseUrl = AppConfig.apiBaseUrl;
-  static const Duration _timeout = Duration(seconds: 30);
+  ApiService({http.Client? client, String? baseUrl})
+      : _client = client ?? http.Client(),
+        _base = (baseUrl ?? AppConfig.apiBaseUrl).replaceAll(RegExp(r'/+$'), '');
 
   final http.Client _client;
+  final String _base;
 
-  ApiService({http.Client? client}) : _client = client ?? http.Client();
+  static const _defaultTimeout = Duration(seconds: 60);
+  static const _llmTimeout = Duration(seconds: 120);    // 질문 답변·요약 (M1에서 10~25초)
+  static const _vlmTimeout = Duration(seconds: 180);    // 화면 질문 (M1에서 약 60초)
 
-  // ─── 강의 AI 질문 (RAG Q&A) ─────────────────────────────────
-  Future<QuestionResponse> askQuestion(QuestionRequest request) async {
-    try {
-      final uri = Uri.parse('$_baseUrl/lecture/ask').replace(
-        queryParameters: {
-          'lecture_id': globalLectureId ?? AppConfig.defaultLectureId,
-          'question': request.question,
-          'target_lang': AppConfig.defaultTargetLang,
-        },
-      );
-
-      final response = await _client
-          .get(
-            uri,
-            headers: {'Accept': 'application/json'},
-          )
-          .timeout(_timeout);
-
-      if (response.statusCode == 200) {
-        final json =
-            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-        return QuestionResponse.fromJson(json);
-      } else {
-        return QuestionResponse.error('서버 오류: ${response.statusCode}');
-      }
-    } on Exception catch (e) {
-      return QuestionResponse.error('연결 실패: $e');
-    }
+  Uri _uri(String path, [Map<String, Object?>? query]) {
+    final q = <String, String>{};
+    query?.forEach((k, v) {
+      if (v != null && '$v'.isNotEmpty) q[k] = '$v';
+    });
+    return Uri.parse('$_base$path').replace(queryParameters: q.isEmpty ? null : q);
   }
 
-  // ─── 강의 AI 질문 히스토리 초기화 ─────────────────────────────
-  Future<bool> resetQuestionHistory() async {
-    try {
-      final uri = Uri.parse('$_baseUrl/lecture/ask/reset').replace(
-        queryParameters: {
-          'lecture_id': globalLectureId ?? AppConfig.defaultLectureId,
-        },
-      );
-
-      final response = await _client
-          .post(
-            uri,
-            headers: {'Accept': 'application/json'},
-          )
-          .timeout(_timeout);
-
-      return response.statusCode == 200;
-    } on Exception {
-      return false;
-    }
-  }
-
-  // ─── 최근 강의 핵심 요약 조회 ───────────────────────────────
-  Future<SummaryResponse> fetchAdaptiveSummary(int minutes) async {
-    try {
-      // 🛠️ [경로 버그 격파] 기존 경로 변수(/adaptive/$lectureId) 구조를 허물고 쿼리 스트링 파라미터로 안전하게 패킹
-      final uri = Uri.parse('$_baseUrl/lecture/summary/adaptive').replace(
-        queryParameters: {
-          'lecture_id': globalLectureId ?? AppConfig.defaultLectureId,
-          'minutes': minutes.toString(),
-        },
-      );
-
-      final response = await _client
-          .get(
-            uri,
-            headers: {'Accept': 'application/json'},
-          )
-          .timeout(_timeout);
-
-      if (response.statusCode == 200) {
-        final json =
-            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-        return SummaryResponse.fromJson(json);
-      } else {
-        return SummaryResponse.error('서버 오류: ${response.statusCode}');
-      }
-    } on Exception catch (e) {
-      return SummaryResponse.error('연결 실패: $e');
-    }
-  }
-
-  // ─── 용어집 조회  ──────────────────────
-  Future<List<GlossaryEntry>> searchGlossary(String term) async {
-    try {
-      // 🛠️ [경로 버그 격파] 특수문자 크래시 방지를 위해 /glossary/$lectureId 주소를 평탄화하고 쿼리 파라미터 바인딩
-      final uri = Uri.parse('$_baseUrl/lecture/glossary').replace(
-        queryParameters: {
-          'lecture_id': globalLectureId ?? AppConfig.defaultLectureId,
-          if (term.trim().isNotEmpty) 'keyword': term.trim(),
-        },
-      );
-
-      final response = await _client
-          .get(
-            uri,
-            headers: {'Accept': 'application/json'},
-          )
-          .timeout(_timeout);
-
-      if (response.statusCode == 200) {
-        final data =
-            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-        final glossary = data['glossary'];
-
-        if (glossary is List) {
-          return glossary
-              .map((e) => GlossaryEntry.fromJson(e as Map<String, dynamic>))
-              .toList();
-        }
-      }
-
-      return [];
-    } on Exception {
-      return [];
-    }
-  }
-
-  // ─── 슬라이드 이미지 분석 ───────────────────────────────────
-  Future<SlideAnalysisResponse> analyzeSlide({
-    required Uint8List imageBytes,
-    required String filename,
+  Future<Map<String, dynamic>> _request(
+    String method,
+    String path, {
+    Map<String, Object?>? query,
+    Object? body,
+    Duration timeout = _defaultTimeout,
   }) async {
+    final uri = _uri(path, query);
+    final headers = {'Accept': 'application/json', if (body != null) 'Content-Type': 'application/json'};
+    late http.Response res;
     try {
-      final uri = Uri.parse(
-        '$_baseUrl/lecture/analyze-slide/${globalLectureId ?? AppConfig.defaultLectureId}',
-      ).replace(
-        queryParameters: {
-          'target_lang': AppConfig.defaultTargetLang,
-        },
-      );
-
-      final request = http.MultipartRequest('POST', uri)
-        ..files.add(
-          http.MultipartFile.fromBytes(
-            'file',
-            imageBytes,
-            filename: filename,
-          ),
-        );
-
-      final streamed = await request.send().timeout(_timeout);
-      final response = await http.Response.fromStream(streamed);
-
-      if (response.statusCode == 200) {
-        final json =
-            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-        return SlideAnalysisResponse.fromJson(json);
-      } else {
-        return SlideAnalysisResponse.error('서버 오류: ${response.statusCode}');
-      }
-    } on Exception catch (e) {
-      return SlideAnalysisResponse.error('연결 실패: $e');
+      final req = http.Request(method, uri)..headers.addAll(headers);
+      if (body != null) req.body = jsonEncode(body);
+      res = await http.Response.fromStream(await _client.send(req).timeout(timeout));
+    } on TimeoutException {
+      throw const ApiException('서버 응답이 너무 오래 걸립니다. 잠시 후 다시 시도해 주세요.');
+    } catch (_) {
+      throw const ApiException('백엔드 서버에 연결할 수 없습니다. 서버가 켜져 있는지 확인해 주세요.');
     }
+
+    final text = utf8.decode(res.bodyBytes);
+    Object? json;
+    try {
+      json = text.isEmpty ? null : jsonDecode(text);
+    } catch (_) {
+      json = null;
+    }
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      return json is Map<String, dynamic> ? json : <String, dynamic>{};
+    }
+    throw ApiException(_detail(json) ?? '서버 오류 (${res.statusCode})', statusCode: res.statusCode);
   }
 
-  // ─── Mock 응답 (백엔드 없을 때) ──────────────────────────────
-  Future<QuestionResponse> mockAskQuestion(QuestionRequest request) async {
-    await Future.delayed(const Duration(milliseconds: 1500));
-
-    final answers = {
-      'glossary': QuestionResponse(
-        answer: '**${request.question}** 은(는) 머신러닝의 핵심 개념으로, '
-            '신경망이 오차를 최소화하기 위해 가중치를 업데이트하는 과정입니다. '
-            'Gradient Descent를 통해 반복적으로 최적값에 수렴합니다.',
-        keyPoints: ['오차 역전파', '경사 하강법', '가중치 업데이트'],
-        source: '강의 23:15 구간 참고',
-      ),
-      'professor': const QuestionResponse(
-        answer: '교수님 답변: 방금 설명드린 내용에서 **기울기 소실 문제**는 '
-            'Sigmoid 활성화 함수를 사용할 때 미분값이 0에 가까워지면서 발생합니다. '
-            'ReLU를 사용하면 이 문제를 완화할 수 있습니다.',
-        keyPoints: ['기울기 소실', 'Sigmoid', 'ReLU'],
-        source: '강의 15분 내용 기반 답변',
-        relatedSlide: '슬라이드 7 - 활성화 함수 비교',
-      ),
-    };
-
-    return answers[request.mode] ??
-        const QuestionResponse(
-          answer: '질문을 이해했습니다. 강의 맥락을 검색 중...',
-          keyPoints: [],
-        );
+  String? _detail(Object? json) {
+    if (json is! Map) return null;
+    final detail = json['detail'];
+    if (detail is String) return detail;
+    if (detail is List && detail.isNotEmpty && detail.first is Map) {
+      final msg = (detail.first as Map)['msg']?.toString() ?? '';
+      return msg.replaceFirst('Value error, ', '');
+    }
+    return null;
   }
 
-  Future<List<GlossaryEntry>> mockSearchGlossary(String term) async {
-    await Future.delayed(const Duration(milliseconds: 800));
+  // ─── 강의 상태·설정 ─────────────────────────────────────────
 
-    return [
-      GlossaryEntry(
-        term: term,
-        definition: '$term: 딥러닝에서 사용되는 핵심 개념으로, 입력 데이터로부터 특징을 자동으로 학습하는 방법입니다.',
-        example: '예시: CNN에서 필터가 이미지의 엣지를 감지하는 것이 $term의 대표적 사례입니다.',
-        source: '강의 교재 3장 / 강의 내용',
-      ),
-      GlossaryEntry(
-        term: '${term}_관련',
-        definition: '$term과 관련된 심화 개념입니다.',
-        source: '추가 참고자료',
-      ),
-    ];
+  Future<LectureStatus> lectureStatus(String lectureId) async =>
+      LectureStatus.fromJson(await _request('GET', '/lecture/status', query: {'lecture_id': lectureId}));
+
+  Future<void> setTargetLanguage(String lectureId, CaptionLanguage lang) =>
+      _request('PUT', '/lecture/settings', body: {'lecture_id': lectureId, 'target_lang': lang.code});
+
+  Future<void> endLecture(String lectureId) =>
+      _request('POST', '/lecture/end', query: {'lecture_id': lectureId}, timeout: _llmTimeout);
+
+  // ─── AI 질문 (RAG) / 화면 질문 (VLM) ─────────────────────────
+
+  Future<AiAnswer> askAi({
+    required String lectureId,
+    required String question,
+    required CaptionLanguage lang,
+    required String clientId,
+  }) async =>
+      AiAnswer.fromJson(await _request('POST', '/lecture/ask',
+          body: {
+            'lecture_id': lectureId,
+            'question': question,
+            'target_lang': lang.backendName,
+            'client_id': clientId,
+          },
+          timeout: _llmTimeout));
+
+  Future<void> resetAi({required String lectureId, required String clientId}) =>
+      _request('POST', '/lecture/ask/reset', query: {'lecture_id': lectureId, 'client_id': clientId});
+
+  Future<AiAnswer> askAboutScreen({
+    required String lectureId,
+    required String imageDataUrl,
+    required CaptionLanguage lang,
+    String? question,
+  }) async =>
+      AiAnswer.fromJson(await _request('POST', '/api/vlm/analyze',
+          body: {
+            'lecture_id': lectureId,
+            'image': imageDataUrl,
+            if (question != null && question.trim().isNotEmpty) 'question': question.trim(),
+            'target_lang': lang.backendName,
+          },
+          timeout: _vlmTimeout));
+
+  // ─── 용어집 ─────────────────────────────────────────────────
+
+  Future<List<GlossaryEntry>> glossary(String lectureId, {String? keyword}) async {
+    final json = await _request('GET', '/lecture/glossary',
+        query: {'lecture_id': lectureId, 'keyword': keyword?.trim()}, timeout: _llmTimeout);
+    return (json['glossary'] as List? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(GlossaryEntry.fromJson)
+        .toList();
   }
 
-  void dispose() {
-    _client.close();
+  // ─── 요약 ───────────────────────────────────────────────────
+
+  Future<SummaryResult> summaryRecent(String lectureId, int minutes, CaptionLanguage lang) async =>
+      SummaryResult.fromJson(await _request('GET', '/lecture/summary/adaptive',
+          query: {'lecture_id': lectureId, 'minutes': minutes, 'target_lang': lang.backendName},
+          timeout: _llmTimeout));
+
+  Future<SummaryResult> summaryRange(String lectureId, int startMin, int endMin, CaptionLanguage lang) async =>
+      SummaryResult.fromJson(await _request('GET', '/lecture/summary/range',
+          query: {
+            'lecture_id': lectureId,
+            'start_min': startMin,
+            'end_min': endMin,
+            'target_lang': lang.backendName,
+          },
+          timeout: _llmTimeout));
+
+  Future<SummaryResult> summaryFull(String lectureId, CaptionLanguage lang) async =>
+      SummaryResult.fromJson(await _request('GET', '/lecture/summary/full',
+          query: {'lecture_id': lectureId, 'regenerate': 'true', 'target_lang': lang.backendName},
+          timeout: const Duration(seconds: 240)));
+
+  // ─── 익명 질문 · 공지 ───────────────────────────────────────
+
+  Future<LectureQuestion> createQuestion({
+    required String lectureId,
+    required String content,
+    required String clientId,
+    bool isAiRefined = false,
+  }) async {
+    final json = await _request('POST', '/lecture/questions', body: {
+      'lecture_id': lectureId,
+      'content': content,
+      'client_id': clientId,
+      'is_ai_refined': isAiRefined,
+    });
+    return LectureQuestion.fromRow(json['question'] as Map<String, dynamic>);
   }
+
+  Future<List<LectureQuestion>> questions(String lectureId) async {
+    final json = await _request('GET', '/lecture/questions', query: {'lecture_id': lectureId});
+    return (json['questions'] as List? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(LectureQuestion.fromRow)
+        .toList();
+  }
+
+  Future<RefineResult> refineQuestion(String lectureId, String content) async {
+    final json = await _request('POST', '/lecture/questions/refine',
+        body: {'lecture_id': lectureId, 'content': content}, timeout: _llmTimeout);
+    return RefineResult(
+      refined: (json['refined'] ?? content).toString(),
+      changed: json['changed'] == true,
+    );
+  }
+
+  Future<List<LectureNotice>> notices(String lectureId) async {
+    final json = await _request('GET', '/lecture/notices', query: {'lecture_id': lectureId});
+    return (json['notices'] as List? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(LectureNotice.fromRow)
+        .toList();
+  }
+
+  void dispose() => _client.close();
 }
