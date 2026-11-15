@@ -30,10 +30,6 @@
 > [!NOTE]
 > 동아대학교 AI학과 실증적AI개발프로젝트  
 > **과제헌터 팀 | 안수지 · 이민재 · 구재원**
-### 🔗 Links
-[![Notion 1학기](https://img.shields.io/badge/Notion-1학기-000000?style=for-the-badge&logo=notion&logoColor=white)](https://app.notion.com/p/AI-I-1-325a24cae47280e19ab6f3d52c2482ca?source=copy_link)
-[![Notion 2학기](https://img.shields.io/badge/Notion-2학기-000000?style=for-the-badge&logo=notion&logoColor=white)](https://app.notion.com/p/AI-II-2-3e3a24cae472800bb544fdfd804a26f0?source=copy_link)
-[![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/proto/YVSoQ9JNaM6womrJxa0Z1A/%EA%B3%BC%EC%A0%9C%ED%97%8C%ED%84%B0?node-id=1-539&p=f&t=wnxObpo5nAsxIZ4W-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1)
 
 ---
 
